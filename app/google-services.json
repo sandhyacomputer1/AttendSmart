@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "708969449112",
+    "project_id": "attendsmart-80ab1",
+    "storage_bucket": "attendsmart-80ab1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:708969449112:android:4dd90b8abd9c30345cf2ed",
+        "android_client_info": {
+          "package_name": "com.sandhyyasofttech.attendsmart"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAOeOy5v3WWsU5ElWj8KCaKcRH2smdl93c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
