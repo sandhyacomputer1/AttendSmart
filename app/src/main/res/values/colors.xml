@@ -28,4 +28,8 @@
     <!-- App Theme Colors (Material 3) -->
     <color name="surface">#FFFFFF</color>
     <color name="on_surface">#000000</color>
+
+    **<color name="green">#4CAF50</color>
+    <color name="orange">#FF9800</color>
+    <color name="red">#F44336</color>**
 </resources>

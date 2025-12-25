@@ -94,12 +94,17 @@ public class LoginActivity extends AppCompatActivity {
 
                             if (storedPassword != null && status != null &&
                                     password.equals(storedPassword) && "ACTIVE".equals(status)) {
-                                saveLogin(email, "ADMIN", companyKey);
+                                PrefManager prefManager = new PrefManager(LoginActivity.this);
+                                prefManager.saveUserEmail(email);  // ✅ Admin email
+                                prefManager.saveUserType("ADMIN");
+                                prefManager.saveCompanyKey(companyKey);
+
                                 showLoading(false);
                                 startActivity(new Intent(LoginActivity.this, AdminDashboardActivity.class));
                                 finish();
                                 return;
                             }
+
                         }
                         checkEmployeeLogin(email, password);
                     }
@@ -117,6 +122,7 @@ public class LoginActivity extends AppCompatActivity {
                 ArrayList<String> companies = new ArrayList<>();
 
                 for (DataSnapshot companySnapshot : snapshot.getChildren()) {
+                    String companyKey = companySnapshot.getKey();
                     for (DataSnapshot employeeSnapshot : companySnapshot.child("employees").getChildren()) {
                         DataSnapshot info = employeeSnapshot.child("info");
                         if (info.exists()) {
@@ -132,27 +138,34 @@ public class LoginActivity extends AppCompatActivity {
                                     employeeEmail.equals(email) &&
                                     password.equals(storedPassword) &&
                                     "ACTIVE".equals(status)) {
-                                companies.add(companySnapshot.getKey());
+                                companies.add(companyKey);
+                            String employeeMobile = employeeSnapshot.getKey();  // ✅ Get mobile key
+                                PrefManager prefManager = new PrefManager(LoginActivity.this);
+                                prefManager.setEmployeeEmail(employeeEmail);  // ✅ Employee email
+                                prefManager.setEmployeeMobile(employeeMobile);  // ✅ Mobile for attendance
+                                prefManager.saveUserEmail(employeeEmail);  // ✅ Admin compatibility
+                                prefManager.saveUserType("EMPLOYEE");
+                                prefManager.saveCompanyKey(companyKey);
+
+                                showLoading(false);
+                                Intent intent = new Intent(LoginActivity.this, EmployeeDashboardActivity.class);
+                                intent.putExtra("companyKey", companyKey);
+                                startActivity(intent);
+                                finish();
+                                return;  // ✅ Exit immediately
                             }
                         }
                     }
                 }
 
-                if (companies.size() == 1) {
-                    String companyKey = companies.get(0);
-                    saveLogin(employeeEmail, "EMPLOYEE", companyKey);
-                    showLoading(false);
-                    Intent intent = new Intent(LoginActivity.this, EmployeeDashboardActivity.class);
-                    intent.putExtra("companyKey", companyKey);
-                    startActivity(intent);
-                    finish();
-                } else if (companies.size() > 1) {
-                    showCompanySelector(employeeEmail, companies);
-                } else {
+                if (companies.size() == 0) {
                     showLoading(false);
                     Toast.makeText(LoginActivity.this, "Invalid credentials ❌", Toast.LENGTH_SHORT).show();
+                } else if (companies.size() > 1) {
+                    showCompanySelector(employeeEmail, companies);
                 }
             }
+
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 showLoading(false);
@@ -168,12 +181,6 @@ public class LoginActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private void saveLogin(String email, String userType, String companyKey) {
-        PrefManager prefManager = new PrefManager(this);
-        prefManager.saveUserEmail(email);
-        prefManager.saveUserType(userType);
-        prefManager.saveCompanyKey(companyKey);
-    }
 
     private void goToAdminDashboard() {
         showLoading(false);

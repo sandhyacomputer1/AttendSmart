@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/light_gray">
+    android:background="@color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -11,19 +11,32 @@
         android:orientation="vertical"
         android:padding="24dp">
 
+        <!-- Header -->
+        <TextView
+            android:id="@+id/tvCurrentTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Dec 25, 2025 1:15 PM"
+            android:textSize="16sp"
+            android:textColor="@color/gray"
+            android:layout_marginBottom="8dp"
+            android:gravity="center" />
+
         <TextView
             android:id="@+id/tvWelcome"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Welcome!"
+            android:text="Welcome, John!"
             android:textSize="28sp"
             android:textStyle="bold"
+            android:textColor="@color/black"
             android:layout_marginBottom="32dp" />
 
+        <!-- Info Card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="24dp"
             app:cardCornerRadius="16dp"
             app:cardElevation="8dp">
 
@@ -37,7 +50,7 @@
                     android:id="@+id/tvCompany"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Company: Loading..."
+                    android:text="Company: sss@gmail.com"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:layout_marginBottom="12dp" />
@@ -46,7 +59,7 @@
                     android:id="@+id/tvRole"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Role: Loading..."
+                    android:text="Role: Employee (Android)"
                     android:textSize="16sp"
                     android:layout_marginBottom="12dp" />
 
@@ -54,11 +67,70 @@
                     android:id="@+id/tvShift"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Shift: Loading..."
-                    android:textSize="16sp" />
+                    android:text="Shift: Morning (9:00 AM - 6:00 PM)"
+                    android:textSize="16sp"
+                    android:textColor="@color/primary" />
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <!-- Status Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Today's Status"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+
+                <TextView
+                    android:id="@+id/tvTodayStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Today: Absent"
+                    android:textSize="24sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Check In Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCheckIn"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:text="📸 Check In"
+            android:textSize="18sp"
+            android:textAllCaps="false"
+            app:cornerRadius="16dp"
+            app:iconSize="24dp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Check Out Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCheckOut"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:text="📸 Check Out"
+            android:textSize="18sp"
+            android:textAllCaps="false"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            app:cornerRadius="16dp"
+            app:iconSize="24dp" />
 
     </LinearLayout>
 </ScrollView>

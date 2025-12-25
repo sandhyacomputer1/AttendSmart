@@ -9,6 +9,9 @@ public class PrefManager {
     private static final String KEY_EMAIL = "email";
     private static final String KEY_USER_TYPE = "userType";
     private static final String KEY_COMPANY_KEY = "companyKey";
+    private static final String KEY_EMPLOYEE_EMAIL = "employee_email";
+    private static final String KEY_EMPLOYEE_MOBILE = "employee_mobile";
+
     SharedPreferences sharedPreferences;
     SharedPreferences.Editor editor;
 
@@ -28,6 +31,22 @@ public class PrefManager {
         return sharedPreferences.getString(KEY_EMAIL, null);
     }
 
+ // ✅ NEW: Employee methods**
+    public void setEmployeeEmail(String email) {
+        editor.putString(KEY_EMPLOYEE_EMAIL, email);
+        editor.commit();
+    }
+    public String getEmployeeEmail() {
+        return sharedPreferences.getString(KEY_EMPLOYEE_EMAIL, null);
+    }
+    public void setEmployeeMobile(String mobile) {
+        editor.putString(KEY_EMPLOYEE_MOBILE, mobile);
+        editor.commit();
+    }
+    public String getEmployeeMobile() {
+        return sharedPreferences.getString(KEY_EMPLOYEE_MOBILE, null);
+    }
+
     public void logout() {
         editor.clear();
         editor.commit();
@@ -36,16 +55,13 @@ public class PrefManager {
         editor.putString(KEY_USER_TYPE, userType);
         editor.commit();
     }
-
     public String getUserType() {
         return sharedPreferences.getString(KEY_USER_TYPE, null);
     }
-
     public void saveCompanyKey(String companyKey) {
         editor.putString(KEY_COMPANY_KEY, companyKey);
         editor.commit();
     }
-
     public String getCompanyKey() {
         return sharedPreferences.getString(KEY_COMPANY_KEY, null);
     }
