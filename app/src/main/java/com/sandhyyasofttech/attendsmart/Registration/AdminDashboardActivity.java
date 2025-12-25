@@ -18,6 +18,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.sandhyyasofttech.attendsmart.Activities.DepartmentActivity;
+import com.sandhyyasofttech.attendsmart.Activities.ShiftActivity;
 import com.sandhyyasofttech.attendsmart.Adapters.EmployeeAdapter;
 import com.sandhyyasofttech.attendsmart.Admin.AddEmployeeActivity;
 import com.sandhyyasofttech.attendsmart.Models.EmployeeModel;
@@ -39,6 +40,9 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
     private DatabaseReference employeesRef, departmentsRef;
     private String companyKey;
+    private TextView tvShiftCount;
+    private MaterialButton btnManageShifts;
+    private DatabaseReference shiftsRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +67,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
         employeeList = new ArrayList<>();
         adapter = new EmployeeAdapter(employeeList);
         rvEmployees.setAdapter(adapter);
-
+        tvShiftCount = findViewById(R.id.tvShiftCount);
+        btnManageShifts = findViewById(R.id.btnManageShifts);
         // Get logged-in company
         PrefManager prefManager = new PrefManager(this);
         String email = prefManager.getUserEmail();
@@ -80,7 +85,10 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 .child(companyKey);
         employeesRef = companyRef.child("employees");
         departmentsRef = companyRef.child("departments");
-
+        shiftsRef = companyRef.child("shifts");
+        fetchShiftCount();
+        btnManageShifts.setOnClickListener(v ->
+                startActivity(new Intent(this, ShiftActivity.class)));
         // Fetch data
         fetchEmployeeList();
         fetchDashboardData();
@@ -94,7 +102,17 @@ public class AdminDashboardActivity extends AppCompatActivity {
         btnManageDepartments.setOnClickListener(v ->
                 startActivity(new Intent(this, DepartmentActivity.class)));
     }
-
+    private void fetchShiftCount() {
+        shiftsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                long count = snapshot.getChildrenCount();
+                tvShiftCount.setText(count + " shifts");
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
     // ================= EMPLOYEE LIST =================
     private void fetchEmployeeList() {
         employeesRef.addValueEventListener(new ValueEventListener() {

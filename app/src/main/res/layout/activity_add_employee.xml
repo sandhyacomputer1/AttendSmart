@@ -70,7 +70,7 @@
                 android:id="@+id/etEmpEmail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Email (Optional)"
+                android:hint="Email"
                 android:inputType="textEmailAddress" />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -127,23 +127,24 @@
                 android:spinnerMode="dropdown" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Shift Time -->
+        <!-- REPLACE Shift Time TextInputLayout with this Spinner: -->
+
+        <!-- Shift Spinner (Professional UI) -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
             app:boxStrokeColor="@color/primary"
-            app:startIconTint="@color/primary"
-            app:endIconMode="custom">
+            app:hintTextColor="@color/primary"
+            app:startIconTint="@color/primary">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etShiftTime"
+            <Spinner
+                android:id="@+id/spinnerShift"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Shift Time (09:00)"
-                android:focusable="false"
-                android:clickable="true" />
+                android:spinnerMode="dropdown" />
         </com.google.android.material.textfield.TextInputLayout>
+
 
         <!-- Weekly Holiday Spinner -->
         <com.google.android.material.textfield.TextInputLayout

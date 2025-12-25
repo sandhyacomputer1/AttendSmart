@@ -29,15 +29,16 @@ import java.util.HashMap;
 public class AddEmployeeActivity extends AppCompatActivity {
 
     // UI Elements
-    TextInputEditText etEmpName, etEmpMobile, etEmpEmail, etEmpPassword, etShiftTime;
-    Spinner spinnerRole, spinnerHoliday, spinnerDepartment;  // ✅ Added Department Spinner
+    TextInputEditText etEmpName, etEmpMobile, etEmpEmail, etEmpPassword;
+    Spinner spinnerRole, spinnerHoliday, spinnerDepartment, spinnerShift;  // ✅ Added Shift Spinner
     MaterialButton btnSaveEmployee;
 
-    DatabaseReference employeesRef, departmentsRef;
+    DatabaseReference employeesRef, departmentsRef, shiftsRef;  // ✅ Added shiftsRef
     String companyKey;
     String selectedRole = "Employee";
     String selectedHoliday = "Sunday";
-    String selectedDepartment = "";  // ✅ Selected department
+    String selectedDepartment = "";
+    String selectedShift = "";  // ✅ Selected shift name
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +48,8 @@ public class AddEmployeeActivity extends AppCompatActivity {
         initViews();
         setupCompanyReference();
         setupSpinners();
-        loadDepartments();  // ✅ Load departments from Firebase
+        loadDepartments();
+        loadShifts();  // ✅ Load shifts from Firebase
         setupClickListeners();
     }
 
@@ -56,10 +58,10 @@ public class AddEmployeeActivity extends AppCompatActivity {
         etEmpMobile = findViewById(R.id.etEmpMobile);
         etEmpEmail = findViewById(R.id.etEmpEmail);
         etEmpPassword = findViewById(R.id.etEmpPassword);
-        etShiftTime = findViewById(R.id.etShiftTime);
         spinnerRole = findViewById(R.id.spinnerRole);
         spinnerHoliday = findViewById(R.id.spinnerHoliday);
-        spinnerDepartment = findViewById(R.id.spinnerDepartment);  // ✅ Department spinner
+        spinnerDepartment = findViewById(R.id.spinnerDepartment);
+        spinnerShift = findViewById(R.id.spinnerShift);  // ✅ Shift spinner
         btnSaveEmployee = findViewById(R.id.btnSaveEmployee);
     }
 
@@ -77,7 +79,8 @@ public class AddEmployeeActivity extends AppCompatActivity {
                 .getReference("Companies")
                 .child(companyKey);
         employeesRef = companyRef.child("employees");
-        departmentsRef = companyRef.child("departments");  // ✅ Departments reference
+        departmentsRef = companyRef.child("departments");
+        shiftsRef = companyRef.child("shifts");  // ✅ Shifts reference
     }
 
     private void setupSpinners() {
@@ -109,11 +112,21 @@ public class AddEmployeeActivity extends AppCompatActivity {
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        // ✅ Department Spinner - Loaded dynamically
+        // Department Spinner
         spinnerDepartment.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 selectedDepartment = parent.getItemAtPosition(position).toString();
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        // ✅ Shift Spinner
+        spinnerShift.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedShift = parent.getItemAtPosition(position).toString();
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
@@ -126,10 +139,10 @@ public class AddEmployeeActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 ArrayList<String> departments = new ArrayList<>();
-                departments.add("Select Department");  // Default option
+                departments.add("Select Department");
 
                 for (DataSnapshot ds : snapshot.getChildren()) {
-                    departments.add(ds.getKey());  // Android, Website
+                    departments.add(ds.getKey());
                 }
 
                 ArrayAdapter<String> adapter = new ArrayAdapter<>(
@@ -142,38 +155,61 @@ public class AddEmployeeActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(AddEmployeeActivity.this, "Failed to load departments", Toast.LENGTH_SHORT).show();
+           Toast.makeText(AddEmployeeActivity.this, "Failed to load departments", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void setupClickListeners() {
-        etShiftTime.setOnClickListener(v -> showTimePicker());
-        btnSaveEmployee.setOnClickListener(v -> saveEmployee());
+    private void loadShifts() {
+        shiftsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                ArrayList<String> shifts = new ArrayList<>();
+                shifts.add("Select Shift");
+
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    String shiftName = ds.getKey();
+                    Object startObj = ds.child("startTime").getValue(Object.class);
+                    Object endObj = ds.child("endTime").getValue(Object.class);
+                    String startTime = startObj != null ? startObj.toString() : "N/A";
+                    String endTime = endObj != null ? endObj.toString() : "N/A";
+                    shifts.add(shiftName + " (" + startTime + " - " + endTime + ")");
+                }
+
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                        AddEmployeeActivity.this,
+                        android.R.layout.simple_spinner_item,
+                        shifts);
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinnerShift.setAdapter(adapter);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+            Toast.makeText(AddEmployeeActivity.this, "Failed to load shifts", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    private void showTimePicker() {
-        Calendar calendar = Calendar.getInstance();
-        int hour = calendar.get(Calendar.HOUR_OF_DAY);
-        int minute = calendar.get(Calendar.MINUTE);
 
-        TimePickerDialog timePicker = new TimePickerDialog(this, (view, hourOfDay, minuteOfDay) -> {
-            String time = String.format("%02d:%02d", hourOfDay, minuteOfDay);
-            etShiftTime.setText(time);
-        }, hour, minute, false);
-        timePicker.show();
+    private void setupClickListeners() {
+        btnSaveEmployee.setOnClickListener(v -> saveEmployee());
     }
 
     private void saveEmployee() {
         String name = etEmpName.getText().toString().trim();
         String mobile = etEmpMobile.getText().toString().trim();
-        String email = etEmpEmail.getText().toString().trim();
+        String email = etEmpEmail.getText().toString().trim();  // ✅ Now used
         String password = etEmpPassword.getText().toString().trim();
-        String shiftTime = etShiftTime.getText().toString().trim();
 
-        // ✅ Validation - Department from spinner
+        // ✅ Updated Validation
         if (TextUtils.isEmpty(name)) { etEmpName.setError("Enter name"); etEmpName.requestFocus(); return; }
         if (TextUtils.isEmpty(mobile)) { etEmpMobile.setError("Enter mobile"); etEmpMobile.requestFocus(); return; }
+            if (TextUtils.isEmpty(email)) {
+            etEmpEmail.setError("Email is required");
+            etEmpEmail.requestFocus();
+            return;
+        }
         if (TextUtils.isEmpty(password) || password.length() < 6) {
             etEmpPassword.setError("Password must be 6+ characters"); etEmpPassword.requestFocus(); return;
         }
@@ -182,16 +218,20 @@ public class AddEmployeeActivity extends AppCompatActivity {
             spinnerDepartment.requestFocus();
             return;
         }
-        if (TextUtils.isEmpty(shiftTime)) { etShiftTime.setError("Select shift time"); etShiftTime.requestFocus(); return; }
+        if ("Select Shift".equals(selectedShift)) {
+            Toast.makeText(this, "Please select a shift", Toast.LENGTH_SHORT).show();
+            spinnerShift.requestFocus();
+            return;
+        }
 
         HashMap<String, Object> info = new HashMap<>();
         info.put("employeeName", name);
         info.put("employeeMobile", mobile);
         info.put("employeeEmail", email);
         info.put("employeePassword", password);
-        info.put("employeeDepartment", selectedDepartment);  // ✅ From spinner (Android, Website)
+        info.put("employeeDepartment", selectedDepartment);
+        info.put("employeeShift", selectedShift);  // ✅ Save full shift name + timing
         info.put("employeeRole", selectedRole);
-        info.put("shiftTime", shiftTime);
         info.put("weeklyHoliday", selectedHoliday);
         info.put("employeeStatus", "ACTIVE");
         info.put("createdAt", System.currentTimeMillis());
