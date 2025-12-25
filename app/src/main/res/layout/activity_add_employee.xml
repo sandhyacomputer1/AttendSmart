@@ -1,46 +1,172 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="24dp">
 
-        <EditText
-            android:id="@+id/etEmpName"
-            android:hint="Employee Name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-
-        <EditText
-            android:id="@+id/etEmpMobile"
-            android:hint="Mobile Number"
-            android:inputType="phone"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-
-        <EditText
-            android:id="@+id/etEmpEmail"
-            android:hint="Email (Optional)"
-            android:inputType="textEmailAddress"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-
-        <EditText
-            android:id="@+id/etEmpRole"
-            android:hint="Role (Employee / Manager)"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-
-        <Button
-            android:id="@+id/btnSaveEmployee"
-            android:text="Save Employee"
+        <!-- Title -->
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"/>
+            android:text="Add New Employee"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginBottom="32dp"
+            app:fontFamily="sans-serif-medium" />
+
+        <!-- Name -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:boxStrokeColor="@color/primary"
+            app:hintTextColor="@color/primary"
+            app:startIconTint="@color/primary">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etEmpName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Full Name"
+                android:inputType="textPersonName" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Mobile -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:boxStrokeColor="@color/primary"
+            app:hintTextColor="@color/primary"
+            app:startIconTint="@color/primary">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etEmpMobile"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Mobile Number"
+                android:inputType="phone" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Email -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:boxStrokeColor="@color/primary"
+            app:hintTextColor="@color/primary"
+            app:startIconTint="@color/primary">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etEmpEmail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Email (Optional)"
+                android:inputType="textEmailAddress" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Password -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:boxStrokeColor="@color/primary"
+            app:hintTextColor="@color/primary"
+            app:startIconTint="@color/primary"
+            app:passwordToggleEnabled="true">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etEmpPassword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Password"
+                android:inputType="textPassword" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Department -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:boxStrokeColor="@color/primary"
+            app:hintTextColor="@color/primary"
+            app:startIconTint="@color/primary">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etEmpDepartment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Department" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Role Spinner -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:boxStrokeColor="@color/primary"
+            app:hintTextColor="@color/primary"
+            app:startIconTint="@color/primary">
+
+            <Spinner
+                android:id="@+id/spinnerRole"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:spinnerMode="dropdown" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Shift Time -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:boxStrokeColor="@color/primary"
+            app:startIconTint="@color/primary"
+            app:endIconMode="custom">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etShiftTime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Shift Time (09:00)"
+                android:focusable="false"
+                android:clickable="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Weekly Holiday Spinner -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            app:boxStrokeColor="@color/primary"
+            app:hintTextColor="@color/primary"
+            app:startIconTint="@color/primary">
+
+            <Spinner
+                android:id="@+id/spinnerHoliday"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:spinnerMode="dropdown" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Save Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSaveEmployee"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="Save Employee"
+            android:textSize="16sp"
+            android:textAllCaps="false"
+            app:cornerRadius="12dp" />
+
     </LinearLayout>
 </ScrollView>
- 

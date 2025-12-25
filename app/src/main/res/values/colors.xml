@@ -2,4 +2,30 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="primary">#1976D2</color> <!-- Professional Blue -->
+    <color name="primary_variant">#1565C0</color>
+    <color name="primary_light">#42A5F5</color>
+
+    <!-- Secondary Colors -->
+    <color name="secondary">#388E3C</color> <!-- Success Green -->
+    <color name="secondary_variant">#2E7D32</color>
+
+    <!-- Backgrounds -->
+    <color name="light_gray">#F5F5F5</color>
+    <color name="gray">#E0E0E0</color>
+    <color name="dark_gray">#757575</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#000000</color>
+    <color name="text_secondary">#757575</color>
+
+    <!-- Status Colors -->
+    <color name="success">#4CAF50</color>
+    <color name="warning">#FF9800</color>
+    <color name="error">#F44336</color>
+
+    <!-- App Theme Colors (Material 3) -->
+    <color name="surface">#FFFFFF</color>
+    <color name="on_surface">#000000</color>
 </resources>

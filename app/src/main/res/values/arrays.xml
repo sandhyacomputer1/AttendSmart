@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="employee_roles">
+        <item>Employee</item>
+        <item>Manager</item>
+        <item>Supervisor</item>
+        <item>Admin</item>
+    </string-array>
+
+    <string-array name="weekly_holidays">
+        <item>Sunday</item>
+        <item>Monday</item>
+        <item>Tuesday</item>
+        <item>Wednesday</item>
+        <item>Thursday</item>
+        <item>Friday</item>
+        <item>Saturday</item>
+    </string-array>
+</resources>

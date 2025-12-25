@@ -13,9 +13,17 @@
         android:theme="@style/Theme.AttendSmart"
         tools:targetApi="31">
         <activity
+            android:name=".Registration.EmployeeLoginCompanySelector"
+            android:exported="false" />
+        <activity
+            android:name=".Activities.EmployeeDashboardActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Admin.EmployeeLoginCompanySelector"
+            android:exported="false" />
+        <activity
             android:name=".Admin.AddEmployeeActivity"
             android:exported="false" />
-
         <activity
             android:name=".Registration.RegisterActivity"
             android:exported="false" />
@@ -27,9 +35,7 @@
             android:exported="false" />
         <activity
             android:name=".Registration.SplashActivity"
-            android:exported="true" >
-
-
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -25,7 +25,8 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        rootRef = FirebaseDatabase.getInstance().getReference("ServiceCenter");
+        rootRef = FirebaseDatabase.getInstance().getReference("Companies");
+
         prefManager = new PrefManager(this);
 
         new Handler().postDelayed(this::checkLoginStatus, 1500);
@@ -50,13 +51,13 @@ public class SplashActivity extends AppCompatActivity {
             String safeEmail = email.replace(".", ",");
 
             rootRef.child(safeEmail)
-                    .child("ownerInfo")
+                    .child("companyInfo")
                     .child("status")
                     .get()
                     .addOnSuccessListener(snapshot -> {
-                        Boolean status = snapshot.getValue(Boolean.class);
+                        String status = snapshot.getValue(String.class);  // String, not Boolean [web:2][web:23]
 
-                        if (status != null && status) {
+                        if ("ACTIVE".equals(status)) {
                             startActivity(new Intent(this, AdminDashboardActivity.class));
                             finish();
                         } else {
