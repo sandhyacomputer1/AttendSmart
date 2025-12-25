@@ -9,13 +9,16 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.datepicker.MaterialDatePicker;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.sandhyyasofttech.attendsmart.R;
 import com.sandhyyasofttech.attendsmart.Utils.PrefManager;
 
@@ -26,14 +29,15 @@ import java.util.HashMap;
 public class AddEmployeeActivity extends AppCompatActivity {
 
     // UI Elements
-    TextInputEditText etEmpName, etEmpMobile, etEmpEmail, etEmpPassword, etEmpDepartment, etShiftTime;
-    Spinner spinnerRole, spinnerHoliday;
+    TextInputEditText etEmpName, etEmpMobile, etEmpEmail, etEmpPassword, etShiftTime;
+    Spinner spinnerRole, spinnerHoliday, spinnerDepartment;  // ✅ Added Department Spinner
     MaterialButton btnSaveEmployee;
 
-    DatabaseReference employeesRef;
+    DatabaseReference employeesRef, departmentsRef;
     String companyKey;
     String selectedRole = "Employee";
     String selectedHoliday = "Sunday";
+    String selectedDepartment = "";  // ✅ Selected department
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +47,7 @@ public class AddEmployeeActivity extends AppCompatActivity {
         initViews();
         setupCompanyReference();
         setupSpinners();
+        loadDepartments();  // ✅ Load departments from Firebase
         setupClickListeners();
     }
 
@@ -51,10 +56,10 @@ public class AddEmployeeActivity extends AppCompatActivity {
         etEmpMobile = findViewById(R.id.etEmpMobile);
         etEmpEmail = findViewById(R.id.etEmpEmail);
         etEmpPassword = findViewById(R.id.etEmpPassword);
-        etEmpDepartment = findViewById(R.id.etEmpDepartment);
         etShiftTime = findViewById(R.id.etShiftTime);
         spinnerRole = findViewById(R.id.spinnerRole);
         spinnerHoliday = findViewById(R.id.spinnerHoliday);
+        spinnerDepartment = findViewById(R.id.spinnerDepartment);  // ✅ Department spinner
         btnSaveEmployee = findViewById(R.id.btnSaveEmployee);
     }
 
@@ -67,14 +72,16 @@ public class AddEmployeeActivity extends AppCompatActivity {
             return;
         }
         companyKey = email.replace(".", ",");
-        employeesRef = FirebaseDatabase.getInstance()
+
+        DatabaseReference companyRef = FirebaseDatabase.getInstance()
                 .getReference("Companies")
-                .child(companyKey)
-                .child("employees");
+                .child(companyKey);
+        employeesRef = companyRef.child("employees");
+        departmentsRef = companyRef.child("departments");  // ✅ Departments reference
     }
 
     private void setupSpinners() {
-        // Role Spinner - FIXED
+        // Role Spinner
         ArrayAdapter<CharSequence> roleAdapter = ArrayAdapter.createFromResource(this,
                 R.array.employee_roles, android.R.layout.simple_spinner_item);
         roleAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -88,7 +95,7 @@ public class AddEmployeeActivity extends AppCompatActivity {
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        // Holiday Spinner - FIXED
+        // Holiday Spinner
         ArrayAdapter<CharSequence> holidayAdapter = ArrayAdapter.createFromResource(this,
                 R.array.weekly_holidays, android.R.layout.simple_spinner_item);
         holidayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -100,6 +107,43 @@ public class AddEmployeeActivity extends AppCompatActivity {
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        // ✅ Department Spinner - Loaded dynamically
+        spinnerDepartment.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedDepartment = parent.getItemAtPosition(position).toString();
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+    }
+
+    // ✅ FETCH DEPARTMENTS FROM FIREBASE
+    private void loadDepartments() {
+        departmentsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                ArrayList<String> departments = new ArrayList<>();
+                departments.add("Select Department");  // Default option
+
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    departments.add(ds.getKey());  // Android, Website
+                }
+
+                ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                        AddEmployeeActivity.this,
+                        android.R.layout.simple_spinner_item,
+                        departments);
+                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinnerDepartment.setAdapter(adapter);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(AddEmployeeActivity.this, "Failed to load departments", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
@@ -125,24 +169,27 @@ public class AddEmployeeActivity extends AppCompatActivity {
         String mobile = etEmpMobile.getText().toString().trim();
         String email = etEmpEmail.getText().toString().trim();
         String password = etEmpPassword.getText().toString().trim();
-        String department = etEmpDepartment.getText().toString().trim();
         String shiftTime = etShiftTime.getText().toString().trim();
 
-        // Validation
+        // ✅ Validation - Department from spinner
         if (TextUtils.isEmpty(name)) { etEmpName.setError("Enter name"); etEmpName.requestFocus(); return; }
         if (TextUtils.isEmpty(mobile)) { etEmpMobile.setError("Enter mobile"); etEmpMobile.requestFocus(); return; }
         if (TextUtils.isEmpty(password) || password.length() < 6) {
             etEmpPassword.setError("Password must be 6+ characters"); etEmpPassword.requestFocus(); return;
         }
-        if (TextUtils.isEmpty(department)) { etEmpDepartment.setError("Enter department"); etEmpDepartment.requestFocus(); return; }
+        if ("Select Department".equals(selectedDepartment)) {
+            Toast.makeText(this, "Please select a department", Toast.LENGTH_SHORT).show();
+            spinnerDepartment.requestFocus();
+            return;
+        }
         if (TextUtils.isEmpty(shiftTime)) { etShiftTime.setError("Select shift time"); etShiftTime.requestFocus(); return; }
 
         HashMap<String, Object> info = new HashMap<>();
         info.put("employeeName", name);
         info.put("employeeMobile", mobile);
         info.put("employeeEmail", email);
-        info.put("employeePassword", password); // Store hashed in production
-        info.put("employeeDepartment", department);
+        info.put("employeePassword", password);
+        info.put("employeeDepartment", selectedDepartment);  // ✅ From spinner (Android, Website)
         info.put("employeeRole", selectedRole);
         info.put("shiftTime", shiftTime);
         info.put("weeklyHoliday", selectedHoliday);

@@ -10,12 +10,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.sandhyyasofttech.attendsmart.Activities.DepartmentActivity;
 import com.sandhyyasofttech.attendsmart.Adapters.EmployeeAdapter;
 import com.sandhyyasofttech.attendsmart.Admin.AddEmployeeActivity;
 import com.sandhyyasofttech.attendsmart.Models.EmployeeModel;
@@ -26,7 +28,8 @@ import java.util.ArrayList;
 
 public class AdminDashboardActivity extends AppCompatActivity {
 
-    private TextView tvTotalEmployees, tvPresent, tvAbsent, tvLate;
+    private TextView tvTotalEmployees, tvPresent, tvAbsent, tvLate, tvDepartmentCount;
+    private MaterialButton btnManageDepartments;
 
     private RecyclerView rvEmployees;
     private EmployeeAdapter adapter;
@@ -34,7 +37,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
     private FloatingActionButton fabAddEmployee;
 
-    private DatabaseReference employeesRef;
+    private DatabaseReference employeesRef, departmentsRef;
     private String companyKey;
 
     @Override
@@ -47,6 +50,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
         tvPresent = findViewById(R.id.tvPresent);
         tvAbsent = findViewById(R.id.tvAbsent);
         tvLate = findViewById(R.id.tvLate);
+        tvDepartmentCount = findViewById(R.id.tvDepartmentCount);
+        btnManageDepartments = findViewById(R.id.btnManageDepartments);
 
         // FAB
         fabAddEmployee = findViewById(R.id.fabAddEmployee);
@@ -61,34 +66,40 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         // Get logged-in company
         PrefManager prefManager = new PrefManager(this);
-        companyKey = prefManager.getUserEmail().replace(".", ",");
+        String email = prefManager.getUserEmail();
+        if (email == null) {
+            Toast.makeText(this, "Session expired. Please login again.", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+        companyKey = email.replace(".", ",");
 
-        // Firebase reference
-        employeesRef = FirebaseDatabase.getInstance()
+        // Firebase references
+        DatabaseReference companyRef = FirebaseDatabase.getInstance()
                 .getReference("Companies")
-                .child(companyKey)
-                .child("employees");
+                .child(companyKey);
+        employeesRef = companyRef.child("employees");
+        departmentsRef = companyRef.child("departments");
 
         // Fetch data
         fetchEmployeeList();
         fetchDashboardData();
+        fetchDepartmentCount();
 
         // FAB click → Add Employee
         fabAddEmployee.setOnClickListener(v ->
-                startActivity(new Intent(
-                        AdminDashboardActivity.this,
-                        AddEmployeeActivity.class
-                ))
-        );
+                startActivity(new Intent(this, AddEmployeeActivity.class)));
+
+        // ✅ Department button click
+        btnManageDepartments.setOnClickListener(v ->
+                startActivity(new Intent(this, DepartmentActivity.class)));
     }
 
     // ================= EMPLOYEE LIST =================
     private void fetchEmployeeList() {
-
         employeesRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-
                 employeeList.clear();
 
                 if (!snapshot.exists()) {
@@ -97,19 +108,14 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 }
 
                 for (DataSnapshot empSnap : snapshot.getChildren()) {
-
                     DataSnapshot infoSnap = empSnap.child("info");
-
                     if (infoSnap.exists()) {
-                        EmployeeModel model =
-                                infoSnap.getValue(EmployeeModel.class);
-
+                        EmployeeModel model = infoSnap.getValue(EmployeeModel.class);
                         if (model != null) {
                             employeeList.add(model);
                         }
                     }
                 }
-
                 adapter.notifyDataSetChanged();
             }
 
@@ -124,11 +130,9 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
     // ================= DASHBOARD COUNTS =================
     private void fetchDashboardData() {
-
         employeesRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-
                 if (!snapshot.exists()) {
                     tvTotalEmployees.setText("0");
                     tvPresent.setText("0");
@@ -138,7 +142,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 }
 
                 int totalEmployees = (int) snapshot.getChildrenCount();
-
                 // Temporary logic (attendance not implemented yet)
                 int present = totalEmployees;
                 int absent = 0;
@@ -156,6 +159,20 @@ public class AdminDashboardActivity extends AppCompatActivity {
                         "Failed to load dashboard data",
                         Toast.LENGTH_SHORT).show();
             }
+        });
+    }
+
+    // ================= DEPARTMENTS COUNT =================
+    private void fetchDepartmentCount() {
+        departmentsRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                long count = snapshot.getChildrenCount();
+                tvDepartmentCount.setText(count + " departments");
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 }
