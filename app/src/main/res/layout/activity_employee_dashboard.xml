@@ -140,6 +140,20 @@
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             app:cornerRadius="16dp"
             app:iconSize="24dp" />
+        <!-- Attendance Report Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAttendanceReport"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="📊 Attendance Report"
+            android:textSize="16sp"
+            android:textAllCaps="false"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            app:cornerRadius="16dp"
+            app:iconSize="20dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp" />
 
     </LinearLayout>
+
 </ScrollView>

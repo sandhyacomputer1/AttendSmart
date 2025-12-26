@@ -101,6 +101,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         tvTodayStatus = findViewById(R.id.tvTodayStatus);
         tvCurrentTime = findViewById(R.id.tvCurrentTime);
         tvLocation = findViewById(R.id.tvLocation); // 🆕 Location TextView
+        MaterialButton btnAttendanceReport = findViewById(R.id.btnAttendanceReport);
 
         btnCheckIn = findViewById(R.id.btnCheckIn);
         btnCheckOut = findViewById(R.id.btnCheckOut);
@@ -110,6 +111,21 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
 
         btnCheckIn.setOnClickListener(v -> tryCheckIn());
         btnCheckOut.setOnClickListener(v -> tryCheckOut());
+        btnAttendanceReport.setOnClickListener(v -> openAttendanceReport());
+
+    }
+    // 🆕 ATTENDANCE REPORT
+    private void openAttendanceReport() {
+        if (employeeMobile == null || companyKey == null) {
+            toast("Loading profile first...");
+            return;
+        }
+
+        Intent intent = new Intent(this, AttendanceReportActivity.class);
+        intent.putExtra("companyKey", companyKey);
+        intent.putExtra("employeeMobile", employeeMobile);
+        intent.putExtra("employeeEmail", new PrefManager(this).getEmployeeEmail());
+        startActivity(intent);
     }
 
     // 🆕 LOCATION SETUP
