@@ -4,51 +4,79 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.net.Uri;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
 import com.google.android.material.button.MaterialButton;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.*;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 import com.sandhyyasofttech.attendsmart.R;
 import com.sandhyyasofttech.attendsmart.Utils.PrefManager;
+
 import java.io.ByteArrayOutputStream;
-import java.text.ParseException;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class EmployeeDashboardActivity extends AppCompatActivity {
 
-    private TextView tvWelcome, tvCompany, tvRole, tvShift, tvTodayStatus, tvCurrentTime;
+    // UI
+    private TextView tvWelcome, tvCompany, tvRole, tvShift, tvTodayStatus, tvCurrentTime, tvLocation;
     private MaterialButton btnCheckIn, btnCheckOut;
-    private String companyKey, employeeMobile, employeeShift, shiftStart, shiftEnd;
+
+    // Firebase
     private DatabaseReference employeesRef, attendanceRef, shiftsRef;
-    private StorageReference storageRef;
+    private StorageReference attendancePhotoRef;
 
-    private static final int CAMERA_PERMISSION_CODE = 100;
-    private static final int CAMERA_REQUEST_CODE_CHECKIN = 101;
-    private static final int CAMERA_REQUEST_CODE_CHECKOUT = 102;
-
+    // Data
+    private String companyKey;
+    private String employeeMobile;
+    private String shiftStart = "09:00 AM";
+    private String shiftEnd = "06:00 PM";
     private String todayStatus = "Absent";
     private String pendingAction = "";
+    private String currentAddress = "Getting location...";
+    private double currentLat = 0, currentLng = 0;
+
     private Bitmap currentPhotoBitmap;
-    private String shiftKey;
-    private boolean isCheckInDone = false; // ✅ Track check-in status
+
+    // Camera
+    private static final int CAMERA_PERMISSION_CODE = 100;
+    private static final int LOCATION_PERMISSION_CODE = 101;
+    private static final int CAMERA_REQUEST_CODE = 102;
+
+    // Location
+    private FusedLocationProviderClient fusedLocationClient;
+    private LocationCallback locationCallback;
+    private LocationRequest locationRequest;
+
+    // Clock
+    private Handler timeHandler;
+    private Runnable timeRunnable;
+    private boolean locationReady = false;
+
+    // ----------------------------------------------------
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,9 +85,13 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
 
         initViews();
         setupFirebase();
+        setupLocation();
+        requestLocationPermission();
         loadEmployeeData();
-        updateCurrentTime();
+        startClock();
     }
+
+    // ----------------------------------------------------
 
     private void initViews() {
         tvWelcome = findViewById(R.id.tvWelcome);
@@ -68,135 +100,220 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         tvShift = findViewById(R.id.tvShift);
         tvTodayStatus = findViewById(R.id.tvTodayStatus);
         tvCurrentTime = findViewById(R.id.tvCurrentTime);
+        tvLocation = findViewById(R.id.tvLocation); // 🆕 Location TextView
+
         btnCheckIn = findViewById(R.id.btnCheckIn);
         btnCheckOut = findViewById(R.id.btnCheckOut);
 
-        btnCheckIn.setOnClickListener(v -> checkInWithCamera());
-        btnCheckOut.setOnClickListener(v -> checkOutWithCamera());
+        btnCheckIn.setEnabled(false);
+        btnCheckOut.setEnabled(false);
+
+        btnCheckIn.setOnClickListener(v -> tryCheckIn());
+        btnCheckOut.setOnClickListener(v -> tryCheckOut());
     }
+
+    // 🆕 LOCATION SETUP
+    private void setupLocation() {
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+        locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 2000)
+                .setWaitForAccurateLocation(true)
+                .setMinUpdateIntervalMillis(1000)
+                .setMaxUpdateDelayMillis(5000)
+                .build();
+
+        locationCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(@NonNull LocationResult locationResult) {
+                Location location = locationResult.getLastLocation();
+                if (location != null) {
+                    currentLat = location.getLatitude();
+                    currentLng = location.getLongitude();
+                    locationReady = true;
+                    tvLocation.setText(String.format("📍 %.4f, %.4f", currentLat, currentLng));
+                    getAddressFromLatLng(currentLat, currentLng);
+                }
+            }
+        };
+    }
+    private void getCurrentLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(location -> {
+                    if (location != null) {
+                        currentLat = location.getLatitude();
+                        currentLng = location.getLongitude();
+                        locationReady = true;
+                        tvLocation.setText(String.format("📍 %.4f, %.4f", currentLat, currentLng));
+                        getAddressFromLatLng(currentLat, currentLng);
+                        startLocationUpdates(); // Continuous updates
+                    } else {
+                        startLocationUpdates(); // No last location, start updates
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    toast("GPS Error: " + e.getMessage());
+                    startLocationUpdates();
+                });
+    }
+
+    private void requestLocationPermission() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                    },
+                    LOCATION_PERMISSION_CODE);
+        } else {
+            getCurrentLocation(); // ✅ Start GPS immediately
+        }
+    }
+
+    private void getAddressFromLatLng(double lat, double lng) {
+        new Thread(() -> {
+            try {
+                Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+                List<Address> addresses = geocoder.getFromLocation(lat, lng, 1);
+                if (addresses != null && !addresses.isEmpty()) {
+                    Address address = addresses.get(0);
+                    String addr = address.getAddressLine(0);
+                    if (addr != null) {
+                        currentAddress = addr;
+                        runOnUiThread(() ->
+                                tvLocation.setText("📍 " + addr.substring(0, 40) + "..."));
+                    }
+                }
+            } catch (Exception ignored) {
+                // Address fail - coordinates enough
+            }
+        }).start();
+    }
+
+    private void updateAddress(double lat, double lng) {
+        new Thread(() -> {
+            Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+            try {
+                List<Address> addresses = geocoder.getFromLocation(lat, lng, 1);
+                if (addresses != null && !addresses.isEmpty()) {
+                    Address address = addresses.get(0);
+                    String fullAddress = String.format("%s, %s",
+                            address.getAddressLine(0),
+                            address.getLocality());
+                    runOnUiThread(() -> {
+                        currentAddress = fullAddress;
+                        tvLocation.setText("📍 " + currentAddress);
+                    });
+                }
+            } catch (IOException e) {
+                runOnUiThread(() -> tvLocation.setText("📍 Lat: " + lat + ", Lng: " + lng));
+            }
+        }).start();
+    }
+
+    // ----------------------------------------------------
 
     private void setupFirebase() {
-        companyKey = getIntent().getStringExtra("companyKey");
-        if (companyKey == null) {
-            PrefManager prefManager = new PrefManager(this);
-            companyKey = prefManager.getCompanyKey();
-        }
-        if (companyKey == null) {
-            Toast.makeText(this, "Company not found", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
+        PrefManager pref = new PrefManager(this);
+        companyKey = pref.getCompanyKey();
 
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        employeesRef = database.getReference("Companies").child(companyKey).child("employees");
-        attendanceRef = database.getReference("Companies").child(companyKey).child("attendance");
-        shiftsRef = database.getReference("Companies").child(companyKey).child("shifts");
-        storageRef = FirebaseStorage.getInstance().getReference()
-                .child("Companies").child(companyKey).child("attendance_photos");
+        FirebaseDatabase db = FirebaseDatabase.getInstance();
+        employeesRef = db.getReference("Companies").child(companyKey).child("employees");
+        attendanceRef = db.getReference("Companies").child(companyKey).child("attendance");
+        shiftsRef = db.getReference("Companies").child(companyKey).child("shifts");
+
+        attendancePhotoRef = FirebaseStorage.getInstance()
+                .getReference()
+                .child("Companies")
+                .child(companyKey)
+                .child("attendance_photos");
     }
 
+    // ----------------------------------------------------
+
     private void loadEmployeeData() {
-        PrefManager prefManager = new PrefManager(this);
-        String email = prefManager.getEmployeeEmail();
-        if (email == null) {
-            Toast.makeText(this, "Employee session expired", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
+        String email = new PrefManager(this).getEmployeeEmail();
 
         employeesRef.orderByChild("info/employeeEmail").equalTo(email)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        for (DataSnapshot employeeSnapshot : snapshot.getChildren()) {
-                            employeeMobile = employeeSnapshot.getKey();
-                            DataSnapshot info = employeeSnapshot.child("info");
-                            String name = info.child("employeeName").getValue(String.class);
-                            String role = info.child("employeeRole").getValue(String.class);
-                            employeeShift = info.child("employeeShift").getValue(String.class);
-                            String department = info.child("employeeDepartment").getValue(String.class);
-                            shiftKey = info.child("shiftKey").getValue(String.class);
 
-                            tvWelcome.setText("Welcome, " + (name != null ? name : "Employee") + "!");
+                        if (!snapshot.exists()) {
+                            toast("Employee not found");
+                            return;
+                        }
+
+                        for (DataSnapshot emp : snapshot.getChildren()) {
+
+                            employeeMobile = emp.getKey();
+                            DataSnapshot info = emp.child("info");
+
+                            tvWelcome.setText("Welcome, " + info.child("employeeName").getValue(String.class));
                             tvCompany.setText("Company: " + companyKey.replace(",", "."));
-                            tvRole.setText("Role: " + (role != null ? role : "Employee") + " (" + (department != null ? department : "N/A") + ")");
-                            tvShift.setText("Shift: " + (employeeShift != null ? employeeShift : "Not set"));
+                            tvRole.setText("Role: " + info.child("employeeRole").getValue(String.class));
 
-                            // ✅ Load shift details or default
-                            if (shiftKey != null && !shiftKey.isEmpty()) {
-                                loadShiftDetails(shiftKey);
-                            } else {
-                                shiftStart = "09:00 AM";
-                                shiftEnd = "06:00 PM";
-                                loadTodayStatus();
-                            }
+                            String shiftKey = info.child("shiftKey").getValue(String.class);
+                            if (shiftKey != null) loadShift(shiftKey);
+                            else loadTodayStatus();
+
+                            btnCheckIn.setEnabled(true);
+                            break;
                         }
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-                        Toast.makeText(EmployeeDashboardActivity.this, "Error loading data", Toast.LENGTH_SHORT).show();
+                        toast("Failed to load employee");
                     }
                 });
     }
 
-    private void loadShiftDetails(String shiftKey) {
+    // ----------------------------------------------------
+
+    private void loadShift(String shiftKey) {
         shiftsRef.child(shiftKey).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    shiftStart = snapshot.child("startTime").getValue(String.class);
-                    shiftEnd = snapshot.child("endTime").getValue(String.class);
-                    if (shiftStart == null) shiftStart = "09:00 AM";
-                    if (shiftEnd == null) shiftEnd = "06:00 PM";
-                } else {
-                    shiftStart = "09:00 AM";
-                    shiftEnd = "06:00 PM";
-                }
+            public void onDataChange(@NonNull DataSnapshot s) {
+                shiftStart = s.child("startTime").getValue(String.class);
+                shiftEnd = s.child("endTime").getValue(String.class);
                 tvShift.setText("Shift: " + shiftStart + " - " + shiftEnd);
-                loadTodayStatus(); // ✅ Now load status
+                loadTodayStatus();
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                shiftStart = "09:00 AM";
-                shiftEnd = "06:00 PM";
-                loadTodayStatus();
-            }
+            public void onCancelled(@NonNull DatabaseError error) { }
         });
     }
 
+    // ----------------------------------------------------
+
     private void loadTodayStatus() {
-        if (employeeMobile == null) {
-            tvTodayStatus.setText("Today: Loading...");
-            return;
-        }
+        if (employeeMobile == null) return;
 
         String today = getTodayDate();
+
         attendanceRef.child(today).child(employeeMobile)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    public void onDataChange(@NonNull DataSnapshot s) {
 
-                        boolean hasCheckIn = snapshot.hasChild("checkInTime");
-                        boolean hasCheckOut = snapshot.hasChild("checkOutTime");
+                        boolean in = s.hasChild("checkInTime");
+                        boolean out = s.hasChild("checkOutTime");
 
-                        // flags
-                        isCheckInDone = hasCheckIn;
+                        if (!in) todayStatus = "Absent";
+                        else if (in && !out) {
+                            long late = getDiffMinutes(
+                                    shiftStart,
+                                    s.child("checkInTime").getValue(String.class));
+                            todayStatus = late > 15 ? "Late" : "Present (In)";
+                        } else todayStatus = "Present";
 
-                        if (!hasCheckIn && !hasCheckOut) {
-                            todayStatus = "Absent";
-                        } else if (hasCheckIn && !hasCheckOut) {
-                            // फक्त check-in झालेले
-                            String checkInTime = snapshot.child("checkInTime").getValue(String.class);
-                            long minutesLate = getTimeDifferenceMinutes(shiftStart, checkInTime);
-                            todayStatus = minutesLate > 15 ? "Late" : "Present (In)";
-                        } else if (hasCheckIn && hasCheckOut) {
-                            todayStatus = "Present";
-                        }
-
-                        updateStatusUI();
-                        updateButtons(hasCheckIn, hasCheckOut);
+                        updateUI(in, out);
                     }
 
                     @Override
@@ -204,235 +321,233 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                 });
     }
 
-    private void calculateTodayStatus(DataSnapshot snapshot) {
-        boolean hasCheckIn = snapshot.hasChild("checkInTime");
-        boolean hasCheckOut = snapshot.hasChild("checkOutTime");
+    // ----------------------------------------------------
 
-        if (hasCheckOut) {
-            todayStatus = "Present";
-            isCheckInDone = true;
-        } else if (hasCheckIn) {
-            isCheckInDone = true;
-            String checkInTime = snapshot.child("checkInTime").getValue(String.class);
-            long minutesLate = getTimeDifferenceMinutes(checkInTime, shiftStart);
-            todayStatus = minutesLate > 15 ? "Late" : "Present (Checked In)";
-        } else {
-            todayStatus = "Absent";
-            isCheckInDone = false;
-        }
-    }
-
-    private void updateStatusUI() {
+    private void updateUI(boolean in, boolean out) {
         tvTodayStatus.setText("Today: " + todayStatus);
-        int color = ContextCompat.getColor(this,
-                todayStatus.contains("Present") ? R.color.green :
-                        todayStatus.equals("Late") ? R.color.orange :
-                                R.color.red);
-        tvTodayStatus.setTextColor(color);
-    }
+        int color = todayStatus.contains("Present") ? R.color.green :
+                todayStatus.equals("Late") ? R.color.orange : R.color.red;
+        tvTodayStatus.setTextColor(ContextCompat.getColor(this, color));
 
-    private void updateButtons(boolean hasCheckIn, boolean hasCheckOut) {
-        // Check-in फक्त तेव्हाच possible आहे जेव्हा अजून check-in झालेले नाही
-        btnCheckIn.setEnabled(!hasCheckIn);
-
-        // Check-out फक्त तेव्हाच possible जेव्हा check-in झाले आहे आणि check-out झालेला नाही
-        btnCheckOut.setEnabled(hasCheckIn && !hasCheckOut);
+        btnCheckIn.setEnabled(!in && locationReady);  // ✅ Location required
+        btnCheckOut.setEnabled(in && !out);
     }
 
 
-    private void checkInWithCamera() {
-        if (isWithinShiftTime("start", 60)) { // ✅ 60 min grace period
-            if (checkCameraPermission()) {
-                pendingAction = "checkIn";
-                openCamera();
-            } else {
-                requestCameraPermission("checkIn");
-            }
-        } else {
-            Toast.makeText(this, "⏰ Check-in time: " + shiftStart + " (60 min grace)", Toast.LENGTH_LONG).show();
+    // ----------------------------------------------------
+
+    private void tryCheckIn() {
+        if (!locationReady) {
+            toast("⏳ Wait for GPS location");
+            return;
+        }
+        if (!withinWindow(shiftStart, 60)) {
+            toast("⏰ Check-in allowed ±60 min");
+            return;
+        }
+        openCamera("checkIn");
+    }
+
+
+    private void tryCheckOut() {
+        if (!withinWindow(shiftEnd, 120)) {
+            toast("⏰ Check-out allowed ±2 hrs");
+            return;
+        }
+        openCamera("checkOut");
+    }
+
+    // ----------------------------------------------------
+
+    private boolean withinWindow(String base, int grace) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("h:mm a", Locale.ENGLISH);
+            Calendar now = Calendar.getInstance();
+            Calendar baseCal = Calendar.getInstance();
+            baseCal.setTime(sdf.parse(base));
+            baseCal.set(now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH));
+
+            Calendar from = (Calendar) baseCal.clone();
+            Calendar to = (Calendar) baseCal.clone();
+            from.add(Calendar.MINUTE, -grace);
+            to.add(Calendar.MINUTE, grace);
+
+            return now.after(from) && now.before(to);
+        } catch (Exception e) {
+            return true;
         }
     }
 
-    private void checkOutWithCamera() {
-        if (isWithinShiftTime("end", 120)) { // ✅ 2 hours before/after allowed
-            if (checkCameraPermission()) {
-                pendingAction = "checkOut";
-                openCamera();
-            } else {
-                requestCameraPermission("checkOut");
-            }
-        } else {
-            Toast.makeText(this, "⏰ Check-out time: " + shiftEnd + " (±2 hrs)", Toast.LENGTH_LONG).show();
-        }
-    }
+    // ----------------------------------------------------
 
-    private boolean checkCameraPermission() {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED;
-    }
-
-    private void requestCameraPermission(String action) {
+    private void openCamera(String action) {
         pendingAction = action;
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_CODE);
+
+        // Check both permissions
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+
+            ActivityCompat.requestPermissions(this,
+                    new String[]{
+                            Manifest.permission.CAMERA,
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                    },
+                    LOCATION_PERMISSION_CODE);
+            return;
+        }
+
+        startActivityForResult(new Intent(MediaStore.ACTION_IMAGE_CAPTURE), CAMERA_REQUEST_CODE);
     }
 
-    private void openCamera() {
-        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (cameraIntent.resolveActivity(getPackageManager()) != null) {
-            startActivityForResult(cameraIntent, pendingAction.equals("checkIn") ?
-                    CAMERA_REQUEST_CODE_CHECKIN : CAMERA_REQUEST_CODE_CHECKOUT);
-        } else {
-            Toast.makeText(this, "Camera not available", Toast.LENGTH_SHORT).show();
-        }
-    }
+    // ----------------------------------------------------
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == CAMERA_PERMISSION_CODE && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            openCamera();
-        } else {
-            Toast.makeText(this, "📸 Camera permission required", Toast.LENGTH_SHORT).show();
+
+        if (requestCode == LOCATION_PERMISSION_CODE) {
+            boolean allGranted = true;
+            for (int result : grantResults) {
+                if (result != PackageManager.PERMISSION_GRANTED) {
+                    allGranted = false;
+                    break;
+                }
+            }
+            if (allGranted) {
+                getCurrentLocation(); // ✅ GPS start
+            } else {
+                tvLocation.setText("📍 Location OFF");
+                toast("📍 GPS permission required");
+            }
         }
     }
+
+
+
+    // 🆕 START LOCATION UPDATES
+    private void startLocationUpdates() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
+    }
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if ((requestCode == CAMERA_REQUEST_CODE_CHECKIN || requestCode == CAMERA_REQUEST_CODE_CHECKOUT)
-                && resultCode == RESULT_OK && data != null) {
-            currentPhotoBitmap = (Bitmap) data.getExtras().get("data");
-            if (currentPhotoBitmap != null) {
-                uploadPhotoAndRecordAttendance();
-            }
-        }
-    }
 
-    private void uploadPhotoAndRecordAttendance() {
-        if (currentPhotoBitmap == null || employeeMobile == null) {
-            Toast.makeText(this, "Photo capture failed", Toast.LENGTH_SHORT).show();
+        if (employeeMobile == null) {
+            toast("Please wait, loading profile...");
             return;
         }
 
-        // ✅ Show uploading progress
-        Toast.makeText(this, "📤 Uploading photo...", Toast.LENGTH_SHORT).show();
+        if (requestCode == CAMERA_REQUEST_CODE &&
+                resultCode == RESULT_OK &&
+                data != null &&
+                data.getExtras() != null) {
+
+            currentPhotoBitmap = (Bitmap) data.getExtras().get("data");
+            uploadPhotoAndSaveAttendance();
+        }
+    }
+
+    // ----------------------------------------------------
+
+    private void uploadPhotoAndSaveAttendance() {
+
+        if (employeeMobile == null || currentPhotoBitmap == null) {
+            toast("Photo capture failed");
+            return;
+        }
 
         String today = getTodayDate();
-        String timestamp = System.currentTimeMillis() + "";
-        String photoPath = String.format("attendance/%s/%s_%s_%s.jpg",
-                today, employeeMobile, pendingAction, timestamp);
+        String time = getCurrentTime();
 
-        StorageReference photoRef = storageRef.child(photoPath);
+        String photoName = employeeMobile + "_" + pendingAction + "_" + System.currentTimeMillis() + ".jpg";
+        StorageReference photoRef = attendancePhotoRef.child(today).child(photoName);
 
-        // ✅ Compress bitmap
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         currentPhotoBitmap.compress(Bitmap.CompressFormat.JPEG, 85, baos);
         byte[] data = baos.toByteArray();
 
-        // ✅ Upload to Firebase Storage
+        toast("📤 Uploading photo + GPS location...");
+
         photoRef.putBytes(data)
-                .addOnSuccessListener(taskSnapshot -> {
-                    photoRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                        String photoUrl = uri.toString();
-                        Toast.makeText(this, "✅ Photo uploaded successfully", Toast.LENGTH_SHORT).show();
-                        recordAttendance(photoUrl);
-                    }).addOnFailureListener(e -> {
-                        Toast.makeText(this, "❌ URL failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        recordAttendance("photo_uploaded"); // Continue without URL
-                    });
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "❌ Upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    recordAttendance("upload_failed");
-                });
+                .addOnSuccessListener(task ->
+                        photoRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                            saveAttendance(uri.toString(), time);
+                        }))
+                .addOnFailureListener(e -> toast("Photo upload failed"));
     }
 
-    private void recordAttendance(String photoUrl) {
+    // 🆕 SAVE ATTENDANCE WITH LOCATION
+    private void saveAttendance(String photoUrl, String time) {
+
         String today = getTodayDate();
-        String currentTime = getCurrentTime();
-        DatabaseReference attendanceNode = attendanceRef.child(today).child(employeeMobile);
+        DatabaseReference node = attendanceRef.child(today).child(employeeMobile);
 
-        attendanceNode.addListenerForSingleValueEvent(new ValueEventListener() {
+        node.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (pendingAction.equals("checkIn") && !snapshot.hasChild("checkInTime")) {
-                    // ✅ CHECK-IN LOGIC
-                    long minutesLate = getTimeDifferenceMinutes(shiftStart, currentTime);
-                    String status = minutesLate > 15 ? "Late" : "Present";
+            public void onDataChange(@NonNull DataSnapshot s) {
 
-                    attendanceNode.child("checkInTime").setValue(currentTime);
-                    attendanceNode.child("checkInPhoto").setValue(photoUrl);
-                    attendanceNode.child("status").setValue(status);
-                    attendanceNode.child("shiftStart").setValue(shiftStart);
-                    attendanceNode.child("shiftEnd").setValue(shiftEnd);
-                    attendanceNode.child("employeeMobile").setValue(employeeMobile);
+                if (pendingAction.equals("checkIn") && !s.hasChild("checkInTime")) {
 
-                    isCheckInDone = true;
-                    todayStatus = status;
-                    Toast.makeText(EmployeeDashboardActivity.this,
-                            "✅ CHECK-IN: " + currentTime + (minutesLate > 15 ? " (Late " + minutesLate + "m)" : ""),
-                            Toast.LENGTH_LONG).show();
+                    long late = getDiffMinutes(shiftStart, time);
 
-                } else if (pendingAction.equals("checkOut") && snapshot.hasChild("checkInTime") && !snapshot.hasChild("checkOutTime")) {
-                    // ✅ CHECK-OUT LOGIC - FIXED!
-                    String checkInTime = snapshot.child("checkInTime").getValue(String.class);
-                    long totalMinutes = getTimeDifferenceMinutes(checkInTime, currentTime);
-                    double totalHours = totalMinutes / 60.0;
+                    node.child("checkInTime").setValue(time);
+                    node.child("checkInPhoto").setValue(photoUrl);
+                    node.child("status").setValue(late > 15 ? "Late" : "Present");
 
-                    attendanceNode.child("checkOutTime").setValue(currentTime);
-                    attendanceNode.child("checkOutPhoto").setValue(photoUrl);
-                    attendanceNode.child("totalHours").setValue(String.format("%.2f", totalHours));
-                    attendanceNode.child("status").setValue("Present");
-                    attendanceNode.child("totalMinutes").setValue(totalMinutes);
+                    // 🆕 LOCATION DATA
+                    node.child("checkInLat").setValue(currentLat);
+                    node.child("checkInLng").setValue(currentLng);
+                    node.child("checkInAddress").setValue(currentAddress);
+                    node.child("checkInGPS").setValue(true);
 
-                    isCheckInDone = true;
-                    todayStatus = "Present";
-                    Toast.makeText(EmployeeDashboardActivity.this,
-                            "✅ CHECK-OUT: " + currentTime + " (Total: " + String.format("%.2f hrs)", totalHours),
-                            Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(EmployeeDashboardActivity.this, "⚠️ Invalid action for current status", Toast.LENGTH_SHORT).show();
+                    toast("✅ Check-in saved with GPS location");
+
+                } else if (pendingAction.equals("checkOut")
+                        && s.hasChild("checkInTime")
+                        && !s.hasChild("checkOutTime")) {
+
+                    String inTime = s.child("checkInTime").getValue(String.class);
+                    long mins = getDiffMinutes(inTime, time);
+
+                    node.child("checkOutTime").setValue(time);
+                    node.child("checkOutPhoto").setValue(photoUrl);
+                    node.child("totalMinutes").setValue(mins);
+                    node.child("totalHours")
+                            .setValue(String.format(Locale.US, "%.2f", mins / 60.0));
+
+                    // 🆕 CHECKOUT LOCATION DATA
+                    node.child("checkOutLat").setValue(currentLat);
+                    node.child("checkOutLng").setValue(currentLng);
+                    node.child("checkOutAddress").setValue(currentAddress);
+                    node.child("checkOutGPS").setValue(true);
+
+                    toast("✅ Check-out saved with GPS location");
                 }
 
-                updateStatusUI();
-// recordAttendance() मध्ये data change नंतर
-                boolean hasCheckIn = true; // कारण check-in case मध्ये नक्की true असेल
-                boolean hasCheckOut = pendingAction.equals("checkOut");
-                updateButtons(hasCheckIn, hasCheckOut);
-                loadTodayStatus(); // Refresh
+                loadTodayStatus();
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(EmployeeDashboardActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
+            public void onCancelled(@NonNull DatabaseError error) { }
         });
     }
 
-    private boolean isWithinShiftTime(String type, int graceMinutes) {
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.ENGLISH);
-            Calendar now = Calendar.getInstance();
-            Calendar shiftCal = Calendar.getInstance();
+    // ----------------------------------------------------
 
-            Date shiftTime = sdf.parse(type.equals("start") ? shiftStart : shiftEnd);
-            shiftCal.setTime(shiftTime);
-            shiftCal.set(Calendar.YEAR, now.get(Calendar.YEAR));
-            shiftCal.set(Calendar.MONTH, now.get(Calendar.MONTH));
-            shiftCal.set(Calendar.DAY_OF_MONTH, now.get(Calendar.DAY_OF_MONTH));
-
-            shiftCal.add(Calendar.MINUTE, graceMinutes);
-            return now.before(shiftCal) || now.equals(shiftCal);
-        } catch (Exception e) {
-            return true; // Allow if parsing fails
-        }
-    }
-
-    private long getTimeDifferenceMinutes(String startTime, String endTime) {
+    private long getDiffMinutes(String start, String end) {
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("h:mm a", Locale.ENGLISH);
-            Date d1 = sdf.parse(startTime);
-            Date d2 = sdf.parse(endTime);
-            return (d2.getTime() - d1.getTime()) / (1000 * 60);
+            return Math.max(0,
+                    (sdf.parse(end).getTime() - sdf.parse(start).getTime()) / 60000);
         } catch (Exception e) {
             return 0;
         }
@@ -446,16 +561,38 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         return new SimpleDateFormat("h:mm a", Locale.ENGLISH).format(new Date());
     }
 
-    private void updateCurrentTime() {
-        final Handler handler = new Handler();
-        final Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                String currentTimeStr = new SimpleDateFormat("MMM dd, yyyy h:mm a", Locale.getDefault()).format(new Date());
-                tvCurrentTime.setText(currentTimeStr);
-                handler.postDelayed(this, 1000); // Update every second
-            }
+    // ----------------------------------------------------
+
+    private void startClock() {
+        timeHandler = new Handler();
+        timeRunnable = () -> {
+            tvCurrentTime.setText(
+                    new SimpleDateFormat("MMM dd, yyyy h:mm a", Locale.getDefault()).format(new Date()));
+            timeHandler.postDelayed(timeRunnable, 1000);
         };
-        handler.post(runnable);
+        timeHandler.post(timeRunnable);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (locationReady && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            startLocationUpdates();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (timeHandler != null) timeHandler.removeCallbacks(timeRunnable);
+        if (fusedLocationClient != null && locationCallback != null) {
+            fusedLocationClient.removeLocationUpdates(locationCallback);
+        }
+    }
+
+
+    private void toast(String msg) {
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
     }
 }
