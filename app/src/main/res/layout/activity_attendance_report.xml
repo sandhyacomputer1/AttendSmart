@@ -1,85 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@color/white">
+    android:background="@color/white"
+    android:padding="16dp">
 
-    <!-- ✅ FIXED SearchView -->
-    <androidx.appcompat.widget.SearchView
-        android:id="@+id/searchView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:iconifiedByDefault="false"
-        android:queryHint="Search employees..."
-        android:layout_marginBottom="16dp" />
-
-    <!-- Date Display -->
-    <TextView
-        android:id="@+id/tvDate"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="@color/black"
-        android:layout_marginBottom="12dp" />
-
-    <!-- Summary Cards -->
+    <!-- Month Navigation -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:gravity="center_vertical"
         android:layout_marginBottom="16dp">
 
-        <TextView
-            android:id="@+id/tvTotalEmployees"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Total: 0"
-            android:textSize="14sp"
-            android:padding="12dp"
-            android:layout_marginEnd="4dp" />
+        <ImageView
+            android:id="@+id/ivPrevMonth"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_arrow_left"
+            android:layout_marginEnd="24dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Previous Month" />
 
         <TextView
-            android:id="@+id/tvPresentCount"
+            android:id="@+id/tvMonthYear"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Present: 0"
-            android:textSize="14sp"
-            android:padding="12dp"
-            android:layout_marginEnd="4dp" />
+            android:text="December 2025"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:textColor="@color/black" />
 
-        <TextView
-            android:id="@+id/tvAbsentCount"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Absent: 0"
-            android:textSize="14sp"
-            android:padding="12dp"
-            android:layout_marginEnd="4dp" />
-
-        <TextView
-            android:id="@+id/tvLateCount"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Late: 0"
-            android:textSize="14sp"
-            android:padding="12dp" />
+        <ImageView
+            android:id="@+id/ivNextMonth"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_arrow_right"
+            android:layout_marginStart="24dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Next Month" />
     </LinearLayout>
 
-    <!-- RecyclerView -->
+    <!-- Legend -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="24dp">
+
+        <LinearLayout android:orientation="horizontal" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:gravity="center" android:layout_marginEnd="24dp" android:padding="8dp">
+            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#4CAF50" android:layout_marginEnd="8dp"/>
+            <TextView      android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:text="Attendance" android:textSize="14sp" android:textColor="@color/black"/>
+        </LinearLayout>
+
+        <LinearLayout android:orientation="horizontal" android:layout_width="wrap_content"
+            android:layout_height="wrap_content" android:gravity="center" android:padding="8dp">
+            <View android:layout_width="12dp" android:layout_height="12dp" android:background="#FF9800" android:layout_marginEnd="8dp"/>
+            <TextView      android:layout_width="wrap_content"
+                android:layout_height="wrap_content" android:text="Holiday" android:textSize="14sp" android:textColor="@color/black"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Calendar -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView"
+        android:id="@+id/rvCalendar"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="8dp" />
+        android:clipToPadding="false"
+        android:padding="16dp" />
+
+    <!-- Details Container (Dynamic) -->
+    <LinearLayout
+        android:id="@+id/llDetailsContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="24dp" />
 
     <!-- ProgressBar -->
     <ProgressBar
@@ -87,7 +90,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="24dp"
         android:visibility="gone" />
 
 </LinearLayout>
