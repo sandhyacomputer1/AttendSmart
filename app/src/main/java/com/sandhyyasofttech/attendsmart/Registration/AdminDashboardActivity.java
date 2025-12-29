@@ -25,7 +25,11 @@ import com.sandhyyasofttech.attendsmart.Models.EmployeeModel;
 import com.sandhyyasofttech.attendsmart.R;
 import com.sandhyyasofttech.attendsmart.Utils.PrefManager;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;import java.util.concurrent.atomic.AtomicInteger; // ✅ Add this import
+
 
 public class AdminDashboardActivity extends AppCompatActivity {
 
@@ -43,6 +47,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
     private TextView tvShiftCount;
     private MaterialButton btnManageShifts;
     private DatabaseReference shiftsRef;
+    private DatabaseReference attendanceRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +97,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
         employeesRef = companyRef.child("employees");
         departmentsRef = companyRef.child("departments");
         shiftsRef = companyRef.child("shifts");
+        attendanceRef = companyRef.child("attendance");
+
         fetchShiftCount();
         btnManageShifts.setOnClickListener(v ->
                 startActivity(new Intent(this, ShiftActivity.class)));
@@ -174,36 +181,46 @@ public class AdminDashboardActivity extends AppCompatActivity {
     }
 
     // ================= DASHBOARD COUNTS =================
+
     private void fetchDashboardData() {
+        String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+
+        // Load both employees and attendance together
         employeesRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!snapshot.exists()) {
-                    tvTotalEmployees.setText("0");
-                    tvPresent.setText("0");
-                    tvAbsent.setText("0");
-                    tvLate.setText("0");
-                    return;
-                }
+            public void onDataChange(@NonNull DataSnapshot empSnapshot) {
+                int total = (int) empSnapshot.getChildrenCount();
 
-                int totalEmployees = (int) snapshot.getChildrenCount();
-                // Temporary logic (attendance not implemented yet)
-                int present = totalEmployees;
-                int absent = 0;
-                int late = 0;
+                attendanceRef.child(today).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot attSnapshot) {
+                        int presentCount = 0;
+                        int lateCount = 0;
 
-                tvTotalEmployees.setText(String.valueOf(totalEmployees));
-                tvPresent.setText(String.valueOf(present));
-                tvAbsent.setText(String.valueOf(absent));
-                tvLate.setText(String.valueOf(late));
+                        // Count attendance
+                        for (DataSnapshot att : attSnapshot.getChildren()) {
+                            if (att.hasChild("checkInTime")) {
+                                String status = att.child("status").getValue(String.class);
+                                if ("Present".equals(status) || status == null) {
+                                    presentCount++;
+                                } else if ("Late".equals(status)) {
+                                    lateCount++;
+                                }
+                            }
+                        }
+
+                        int absentCount = total - (presentCount + lateCount);
+
+                        // Update UI
+                        tvTotalEmployees.setText(String.valueOf(total));
+                        tvPresent.setText(String.valueOf(presentCount));
+                        tvAbsent.setText(String.valueOf(absentCount));
+                        tvLate.setText(String.valueOf(lateCount));
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError error) {}
+                });
             }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(AdminDashboardActivity.this,
-                        "Failed to load dashboard data",
-                        Toast.LENGTH_SHORT).show();
-            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 
