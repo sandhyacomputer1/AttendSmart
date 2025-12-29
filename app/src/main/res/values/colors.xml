@@ -1,15 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
 
     <color name="primary">#1976D2</color> <!-- Professional Blue -->
     <color name="primary_variant">#1565C0</color>
     <color name="primary_light">#42A5F5</color>
 
-    <!-- Secondary Colors -->
-    <color name="secondary">#388E3C</color> <!-- Success Green -->
-    <color name="secondary_variant">#2E7D32</color>
 
     <!-- Backgrounds -->
     <color name="light_gray">#F5F5F5</color>
@@ -29,7 +25,25 @@
     <color name="surface">#FFFFFF</color>
     <color name="on_surface">#000000</color>
 
-    **<color name="green">#4CAF50</color>
+
+    <!-- Primary Colors -->
+
+
+    <!-- Secondary Colors -->
+    <color name="secondary">#388E3C</color>
+    <color name="secondary_variant">#2E7D32</color>
+
+    <!-- Status Colors -->
+    <color name="green">#4CAF50</color>
     <color name="orange">#FF9800</color>
-    <color name="red">#F44336</color>**
+    <color name="red">#F44336</color>
+
+    <!-- Grays -->
+    <color name="gray_200">#F5F5F5</color>
+    <color name="gray_400">#BDBDBD</color>
+    <color name="gray_600">#616161</color>
+    <color name="white">#FFFFFF</color>
+
+    <!-- Navigation -->
+    <color name="nav_item_color">#1976D2</color>
 </resources>

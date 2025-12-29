@@ -1,175 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    android:background="@color/white">
+    tools:context=".Activities.EmployeeDashboardActivity">
 
-    <LinearLayout
+    <!-- Main Content -->
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
+        android:layout_height="match_parent">
 
-        <!-- Header -->
-        <TextView
-            android:id="@+id/tvCurrentTime"
+        <!-- AppBar -->
+        <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Dec 25, 2025 1:15 PM"
-            android:textSize="16sp"
-            android:textColor="@color/gray"
-            android:layout_marginBottom="8dp"
-            android:gravity="center" />
+            android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
-        <TextView
-            android:id="@+id/tvWelcome"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Welcome, John!"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:textColor="@color/black"
-            android:layout_marginBottom="32dp" />
-
-        <!-- Info Card -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="8dp">
-
-            <LinearLayout
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="24dp">
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                app:title="Dashboard"
+                app:titleTextColor="@android:color/white"
+                app:navigationIcon="@drawable/ic_menu"
+                app:navigationIconTint="@android:color/white" />
 
-                <TextView
-                    android:id="@+id/tvCompany"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Company: sss@gmail.com"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="12dp" />
+        </com.google.android.material.appbar.AppBarLayout>
 
-                <TextView
-                    android:id="@+id/tvRole"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Role: Employee (Android)"
-                    android:textSize="16sp"
-                    android:layout_marginBottom="12dp" />
-
-                <TextView
-                    android:id="@+id/tvShift"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Shift: Morning (9:00 AM - 6:00 PM)"
-                    android:textSize="16sp"
-                    android:textColor="@color/primary" />
-
-                <TextView
-                    android:id="@+id/tvLocation"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="📍 Getting location..."
-                    android:textSize="14sp"
-                    android:padding="8dp" />
-
-
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Status Card -->
-        <com.google.android.material.card.MaterialCardView
+        <!-- Content Frame -->
+        <androidx.fragment.app.FragmentContainerView
+            android:id="@+id/fragment_container"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="8dp">
+            android:layout_height="match_parent"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior"
+            android:background="@color/white" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="24dp">
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Today's Status"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="12dp" />
+    <!-- Navigation Drawer -->
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/nav_view"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        app:headerLayout="@layout/nav_header_employee"
+        app:menu="@menu/employee_nav_menu"
+        app:itemTextAppearance="@style/TextAppearance.Material3.BodyMedium"
+        app:itemIconTint="@color/nav_item_color"
+        app:itemBackground="@drawable/nav_item_background" />
 
-                <TextView
-                    android:id="@+id/tvTodayStatus"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Today: Absent"
-                    android:textSize="24sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="8dp" />
-
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Check In Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCheckIn"
-            android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:text="📸 Check In"
-            android:textSize="18sp"
-            android:textAllCaps="false"
-            app:cornerRadius="16dp"
-            app:iconSize="24dp"
-            android:layout_marginBottom="16dp" />
-
-        <!-- Check Out Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnCheckOut"
-            android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:text="📸 Check Out"
-            android:textSize="18sp"
-            android:textAllCaps="false"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            app:cornerRadius="16dp"
-            app:iconSize="24dp" />
-        <!-- Attendance Report Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnAttendanceReport"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="📊 Attendance Report"
-            android:textSize="16sp"
-            android:textAllCaps="false"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            app:cornerRadius="16dp"
-            app:iconSize="20dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="24dp" />
-
-        <!-- Logout Button -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnLogout"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="🚪 Logout"
-            android:textSize="16sp"
-            android:textAllCaps="false"
-            app:cornerRadius="16dp"
-            app:iconSize="20dp"
-            app:strokeColor="@color/red"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="24dp" />
-
-
-    </LinearLayout>
-
-</ScrollView>
+</androidx.drawerlayout.widget.DrawerLayout>
