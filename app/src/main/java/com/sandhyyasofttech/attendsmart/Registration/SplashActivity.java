@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.sandhyyasofttech.attendsmart.Activities.EmployeeDashboardActivity;
 import com.sandhyyasofttech.attendsmart.R;
 import com.sandhyyasofttech.attendsmart.Utils.PrefManager;
 
@@ -41,13 +42,19 @@ public class SplashActivity extends AppCompatActivity {
             return;
         }
 
+        String userType = prefManager.getUserType();
         String email = prefManager.getUserEmail();
+        String companyKey = prefManager.getCompanyKey();
 
-        if (email == null) {
+        // Not logged in
+        if (userType == null || email == null || companyKey == null) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
-        } else {
+            return;
+        }
 
+        if (userType.equals("ADMIN")) {
+            // ✅ Admin: check company status
             String safeEmail = email.replace(".", ",");
 
             rootRef.child(safeEmail)
@@ -55,7 +62,7 @@ public class SplashActivity extends AppCompatActivity {
                     .child("status")
                     .get()
                     .addOnSuccessListener(snapshot -> {
-                        String status = snapshot.getValue(String.class);  // String, not Boolean [web:2][web:23]
+                        String status = snapshot.getValue(String.class);
 
                         if ("ACTIVE".equals(status)) {
                             startActivity(new Intent(this, AdminDashboardActivity.class));
@@ -74,6 +81,18 @@ public class SplashActivity extends AppCompatActivity {
                         startActivity(new Intent(this, LoginActivity.class));
                         finish();
                     });
+
+        } else if (userType.equals("EMPLOYEE")) {
+            // ✅ Employee: go directly to dashboard, companyKey already saved
+            Intent intent = new Intent(this, EmployeeDashboardActivity.class);
+            intent.putExtra("companyKey", companyKey);
+            startActivity(intent);
+            finish();
+        } else {
+            // Unknown type → force login
+            prefManager.logout();
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
         }
     }
 

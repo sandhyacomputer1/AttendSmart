@@ -3,6 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     android:background="@color/white">
 
     <LinearLayout
@@ -153,6 +154,21 @@
             app:iconSize="20dp"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="24dp" />
+
+        <!-- Logout Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLogout"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="🚪 Logout"
+            android:textSize="16sp"
+            android:textAllCaps="false"
+            app:cornerRadius="16dp"
+            app:iconSize="20dp"
+            app:strokeColor="@color/red"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="24dp" />
+
 
     </LinearLayout>
 

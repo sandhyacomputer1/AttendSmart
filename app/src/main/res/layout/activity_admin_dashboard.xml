@@ -261,6 +261,26 @@
                         android:text="Manage"
                         android:textAllCaps="false" />
                 </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+            <!-- Logout Button Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                app:cardElevation="6dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnLogout"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="🚪 Logout"
+                    android:textSize="16sp"
+                    android:textAllCaps="false"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    app:cornerRadius="12dp"
+                    app:strokeColor="@color/red"
+                    android:layout_margin="12dp" />
             </com.google.android.material.card.MaterialCardView>
 
             <TextView

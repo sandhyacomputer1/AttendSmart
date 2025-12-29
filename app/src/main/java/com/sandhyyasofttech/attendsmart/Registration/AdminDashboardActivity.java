@@ -69,6 +69,12 @@ public class AdminDashboardActivity extends AppCompatActivity {
         rvEmployees.setAdapter(adapter);
         tvShiftCount = findViewById(R.id.tvShiftCount);
         btnManageShifts = findViewById(R.id.btnManageShifts);
+
+        // ✅ Add these lines in onCreate()
+        MaterialButton btnLogout = findViewById(R.id.btnLogout);
+        btnLogout.setOnClickListener(v -> showLogoutConfirmation());
+
+
         // Get logged-in company
         PrefManager prefManager = new PrefManager(this);
         String email = prefManager.getUserEmail();
@@ -102,6 +108,27 @@ public class AdminDashboardActivity extends AppCompatActivity {
         btnManageDepartments.setOnClickListener(v ->
                 startActivity(new Intent(this, DepartmentActivity.class)));
     }
+
+    // Logout with confirmation
+    private void showLogoutConfirmation() {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Logout?")
+                .setMessage("Are you sure you want to logout?")
+                .setPositiveButton("Yes, Logout", (dialog, which) -> logout())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void logout() {
+        PrefManager pref = new PrefManager(this);
+        pref.logout();  // ✅ Clears all saved data
+
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
     private void fetchShiftCount() {
         shiftsRef.addValueEventListener(new ValueEventListener() {
             @Override

@@ -29,6 +29,7 @@ import com.google.firebase.database.*;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.sandhyyasofttech.attendsmart.R;
+import com.sandhyyasofttech.attendsmart.Registration.LoginActivity;
 import com.sandhyyasofttech.attendsmart.Utils.PrefManager;
 
 import java.io.ByteArrayOutputStream;
@@ -102,6 +103,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         tvCurrentTime = findViewById(R.id.tvCurrentTime);
         tvLocation = findViewById(R.id.tvLocation); // 🆕 Location TextView
         MaterialButton btnAttendanceReport = findViewById(R.id.btnAttendanceReport);
+        MaterialButton btnLogout = findViewById(R.id.btnLogout);  // ✅ Add this
 
         btnCheckIn = findViewById(R.id.btnCheckIn);
         btnCheckOut = findViewById(R.id.btnCheckOut);
@@ -112,8 +114,30 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         btnCheckIn.setOnClickListener(v -> tryCheckIn());
         btnCheckOut.setOnClickListener(v -> tryCheckOut());
         btnAttendanceReport.setOnClickListener(v -> openAttendanceReport());
+        btnLogout.setOnClickListener(v -> showLogoutConfirmation());  // ✅ Confirmation
 
     }
+
+    private void showLogoutConfirmation() {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Logout?")
+                .setMessage("Are you sure you want to logout?")
+                .setPositiveButton("Yes, Logout", (dialog, which) -> logout())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void logout() {
+        PrefManager pref = new PrefManager(this);
+        pref.logout();  // ✅ Clears all saved data
+
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
+
+
     // 🆕 ATTENDANCE REPORT
     private void openAttendanceReport() {
         if (employeeMobile == null || companyKey == null) {
