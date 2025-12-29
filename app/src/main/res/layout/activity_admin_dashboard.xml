@@ -2,193 +2,264 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:fitsSystemWindows="true"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    >
 
-    <!-- Top App Bar -->
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/topAppBar"
+    <!-- App Bar with Elevation -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:title="Admin Dashboard"
-        android:titleTextColor="@android:color/white"
-        android:background="?attr/colorPrimary"
-        app:titleCentered="true"/>
+        android:fitsSystemWindows="true"
+        app:elevation="4dp">
 
-    <ScrollView
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/topAppBar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="#FF5722"
+            android:elevation="4dp"
+            app:title="Admin Dashboard"
+            app:titleTextColor="@android:color/white"
+            app:titleCentered="true"
+            app:titleTextAppearance="@style/TextAppearance.MaterialComponents.Headline6"/>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Main Content -->
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="?attr/actionBarSize">
+        android:fillViewport="true"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@color/white"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="10dp">
 
-            <!-- Cards Row 1 -->
+            <!-- Statistics Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Today's Overview"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="12dp"/>
+
+            <!-- Statistics Cards Row 1 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:weightSum="2">
+                android:weightSum="2"
+                android:layout_marginBottom="12dp">
 
-                <!-- Total Employees -->
+                <!-- Total Employees Card -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_margin="8dp"
-                    app:cardElevation="6dp">
+                    android:layout_marginEnd="6dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                   >
 
                     <LinearLayout
-                        android:padding="16dp"
-                        android:orientation="vertical"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@color/white"
+                        android:padding="10dp">
+
+
 
                         <TextView
-                            android:text="Total Employees"
-                            android:textStyle="bold"
-                            android:textSize="14sp"
-                            android:textColor="@android:color/black"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
+                            android:layout_height="wrap_content"
+                            android:text="Total Employees"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary"
+                            android:textStyle="normal"/>
 
                         <TextView
                             android:id="@+id/tvTotalEmployees"
-                            android:text="0"
-                            android:textSize="26sp"
-                            android:textStyle="bold"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textSize="22sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginTop="4dp"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Present Today -->
+                <!-- Present Today Card -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_margin="8dp"
-                    app:cardElevation="6dp">
+                    android:layout_marginStart="6dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                   >
 
                     <LinearLayout
-                        android:padding="16dp"
-                        android:orientation="vertical"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@color/white"
+
+                        android:padding="10dp">
+
 
                         <TextView
-                            android:text="Present Today"
-                            android:textStyle="bold"
-                            android:textSize="14sp"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
+                            android:layout_height="wrap_content"
+                            android:text="Present Today"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary"/>
 
                         <TextView
                             android:id="@+id/tvPresent"
-                            android:text="0"
-                            android:textSize="26sp"
-                            android:textStyle="bold"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textSize="22sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/success"
+                            android:layout_marginTop="4dp"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
 
-            <!-- Cards Row 2 -->
+            <!-- Statistics Cards Row 2 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:weightSum="2">
+                android:weightSum="2"
+                android:layout_marginBottom="24dp">
 
-                <!-- Absent -->
+                <!-- Absent Card -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_margin="8dp"
-                    app:cardElevation="6dp">
+                    android:layout_marginEnd="6dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    >
 
                     <LinearLayout
-                        android:padding="16dp"
-                        android:orientation="vertical"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:background="@color/white"
+
+                        android:padding="10dp">
+
 
                         <TextView
-                            android:text="Absent"
-                            android:textStyle="bold"
-                            android:textSize="14sp"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
+                            android:layout_height="wrap_content"
+                            android:text="Absent"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary"/>
 
                         <TextView
                             android:id="@+id/tvAbsent"
-                            android:text="0"
-                            android:textSize="26sp"
-                            android:textStyle="bold"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textSize="22sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/error"
+                            android:layout_marginTop="4dp"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Late -->
+                <!-- Late Today Card -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_margin="8dp"
-                    app:cardElevation="6dp">
+                    android:layout_marginStart="6dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    >
 
                     <LinearLayout
-                        android:padding="16dp"
-                        android:orientation="vertical"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                        android:layout_height="wrap_content"
+                        android:background="@color/white"
+
+                        android:orientation="vertical"
+                        android:padding="10dp">
+
 
                         <TextView
-                            android:text="Late Today"
-                            android:textStyle="bold"
-                            android:textSize="14sp"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
+                            android:layout_height="wrap_content"
+                            android:text="Late Today"
+                            android:textSize="12sp"
+                            android:textColor="@color/text_secondary"/>
 
                         <TextView
                             android:id="@+id/tvLate"
-                            android:text="0"
-                            android:textSize="26sp"
-                            android:textStyle="bold"
                             android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"/>
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textSize="22sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/warning"
+                            android:layout_marginTop="4dp"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
-
             </LinearLayout>
 
-            <!-- Below Cards Row 2 and above "Employees" title -->
+            <!-- Management Section -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Management"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="12dp"/>
 
+            <!-- Departments Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardDepartments"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                app:cardElevation="6dp">
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+               >
 
                 <LinearLayout
-                    android:padding="16dp"
-                    android:orientation="horizontal"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="@color/white"
+                    android:padding="10dp"
+                    android:gravity="center_vertical">
+
+
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:orientation="vertical"
+                        android:layout_marginStart="16dp">
 
                         <TextView
                             android:id="@+id/tvDepartmentTitle"
@@ -196,7 +267,8 @@
                             android:layout_height="wrap_content"
                             android:text="Departments"
                             android:textStyle="bold"
-                            android:textSize="16sp" />
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary"/>
 
                         <TextView
                             android:id="@+id/tvDepartmentCount"
@@ -204,38 +276,48 @@
                             android:layout_height="wrap_content"
                             android:text="0 departments"
                             android:textSize="14sp"
-                            android:textColor="@color/text_secondary" />
+                            android:textColor="@color/text_secondary"
+                            android:layout_marginTop="2dp"/>
                     </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnManageDepartments"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        style="@style/Widget.Material3.Button.TonalButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Manage"
-                        android:textAllCaps="false" />
+                        app:backgroundTint="@color/gray_200"
+                        android:textAllCaps="false"
+                        app:cornerRadius="8dp"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-            <!-- Add this AFTER Department card, BEFORE "Employees" title -->
 
+            <!-- Shifts Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardShifts"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                app:cardElevation="6dp">
+                android:layout_marginBottom="14dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+               >
 
                 <LinearLayout
-                    android:padding="16dp"
-                    android:orientation="horizontal"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="10dp"
+                    android:background="@color/white"
+                    android:gravity="center_vertical">
+
+
 
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:orientation="vertical">
+                        android:orientation="vertical"
+                        android:layout_marginStart="16dp">
 
                         <TextView
                             android:id="@+id/tvShiftTitle"
@@ -243,7 +325,8 @@
                             android:layout_height="wrap_content"
                             android:text="Shifts"
                             android:textStyle="bold"
-                            android:textSize="16sp" />
+                            android:textSize="16sp"
+                            android:textColor="@color/text_primary"/>
 
                         <TextView
                             android:id="@+id/tvShiftCount"
@@ -251,64 +334,95 @@
                             android:layout_height="wrap_content"
                             android:text="0 shifts"
                             android:textSize="14sp"
-                            android:textColor="@color/text_secondary" />
+                            android:textColor="@color/text_secondary"
+                            android:layout_marginTop="2dp"/>
                     </LinearLayout>
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnManageShifts"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        style="@style/Widget.Material3.Button.TonalButton"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        app:backgroundTint="@color/gray_200"
                         android:text="Manage"
-                        android:textAllCaps="false" />
+                        android:textAllCaps="false"
+                        app:cornerRadius="8dp"/>
                 </LinearLayout>
-
             </com.google.android.material.card.MaterialCardView>
-            <!-- Logout Button Card -->
-            <com.google.android.material.card.MaterialCardView
+
+            <!-- Employees Section -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                app:cardElevation="6dp">
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="10dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Employees"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="@color/text_primary"/>
 
                 <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnLogout"
-                    android:layout_width="match_parent"
-                    android:layout_height="56dp"
-                    android:text="🚪 Logout"
-                    android:textSize="16sp"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="View All"
                     android:textAllCaps="false"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    app:cornerRadius="12dp"
-                    app:strokeColor="@color/red"
-                    android:layout_margin="12dp" />
-            </com.google.android.material.card.MaterialCardView>
+                    app:iconGravity="end"/>
+            </LinearLayout>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Employees"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:layout_marginTop="16dp"/>
-
+            <!-- Employees RecyclerView -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvEmployees"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"/>
-        </LinearLayout>
+                android:clipToPadding="false"
+                android:paddingBottom="80dp"
+                tools:listitem="@layout/item_employee"/>
 
-    </ScrollView>
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+            <!-- Logout Button -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:strokeColor="@color/error"
+                app:strokeWidth="1dp"
+                app:cardBackgroundColor="@android:color/transparent">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnLogout"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="56dp"
+                    android:text="Logout"
+                    android:textSize="16sp"
+                    android:textAllCaps="false"
+                    android:textColor="@color/error"
+                  />
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Floating Action Button -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fabAddEmployee"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
-        android:contentDescription="Add Employee"
-        app:backgroundTint="?attr/colorPrimary"/>
-
-
+        android:text="Add Employee"
+        android:textColor="@android:color/white"
+        app:iconTint="@android:color/white"
+        app:backgroundTint="#FF5722"
+        app:elevation="6dp"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
