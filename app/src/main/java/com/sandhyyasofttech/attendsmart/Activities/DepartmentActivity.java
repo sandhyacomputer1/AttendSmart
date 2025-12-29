@@ -2,16 +2,20 @@ package com.sandhyyasofttech.attendsmart.Activities;
 
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.ListView;
-import android.widget.ArrayAdapter;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.database.*;
+import com.sandhyyasofttech.attendsmart.Adapters.DepartmentAdapter;
+import com.sandhyyasofttech.attendsmart.Models.DepartmentModel;
 import com.sandhyyasofttech.attendsmart.R;
 import com.sandhyyasofttech.attendsmart.Utils.PrefManager;
 
@@ -20,67 +24,86 @@ import java.util.HashMap;
 
 public class DepartmentActivity extends AppCompatActivity {
 
-    private EditText etNewDepartment;
-    private ImageButton btnAddDepartment;
-    private ListView lvDepartments;
+    private TextInputEditText etNewDepartment;
+    private MaterialButton btnAddDepartment;
+    private RecyclerView rvDepartments;
 
-    private ArrayAdapter<String> adapter;
-    private ArrayList<String> departmentList;
+    private DepartmentAdapter adapter;
+    private ArrayList<DepartmentModel> list;
 
     private DatabaseReference departmentsRef;
-    private String companyKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_department);
 
+        setupToolbar();
+        initViews();
+        setupFirebase();
+        loadDepartments();
+
+        btnAddDepartment.setOnClickListener(v -> addDepartment());
+    }
+
+    private void setupToolbar() {
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void initViews() {
         etNewDepartment = findViewById(R.id.etNewDepartment);
         btnAddDepartment = findViewById(R.id.btnAddDepartment);
-        lvDepartments = findViewById(R.id.lvDepartments);
+        rvDepartments = findViewById(R.id.rvDepartments);
 
-        departmentList = new ArrayList<>();
-        adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_list_item_1, departmentList);
-        lvDepartments.setAdapter(adapter);
+        list = new ArrayList<>();
+        adapter = new DepartmentAdapter(list);
+        rvDepartments.setLayoutManager(new LinearLayoutManager(this));
+        rvDepartments.setAdapter(adapter);
+    }
 
+    private void setupFirebase() {
         PrefManager prefManager = new PrefManager(this);
         String email = prefManager.getUserEmail();
+
         if (email == null) {
-            Toast.makeText(this, "Session expired. Please login again.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Session expired", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
-        companyKey = email.replace(".", ",");
 
+        String companyKey = email.replace(".", ",");
         departmentsRef = FirebaseDatabase.getInstance()
                 .getReference("Companies")
                 .child(companyKey)
                 .child("departments");
-
-        btnAddDepartment.setOnClickListener(v -> addDepartment());
-        loadDepartments();
     }
 
     private void addDepartment() {
         String name = etNewDepartment.getText().toString().trim();
+
         if (TextUtils.isEmpty(name)) {
             etNewDepartment.setError("Enter department name");
             return;
         }
 
-        String key = name; // use name as node key
         HashMap<String, Object> map = new HashMap<>();
         map.put("createdAt", System.currentTimeMillis());
 
-        departmentsRef.child(key).setValue(map)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Toast.makeText(this, "Department added", Toast.LENGTH_SHORT).show();
-                        etNewDepartment.setText("");
-                    } else {
-                        Toast.makeText(this, "Failed to add", Toast.LENGTH_SHORT).show();
-                    }
+        departmentsRef.child(name).setValue(map)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Department added", Toast.LENGTH_SHORT).show();
+                    etNewDepartment.setText("");
                 });
     }
 
@@ -88,9 +111,9 @@ public class DepartmentActivity extends AppCompatActivity {
         departmentsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                departmentList.clear();
+                list.clear();
                 for (DataSnapshot ds : snapshot.getChildren()) {
-                    departmentList.add(ds.getKey());
+                    list.add(new DepartmentModel(ds.getKey()));
                 }
                 adapter.notifyDataSetChanged();
             }
