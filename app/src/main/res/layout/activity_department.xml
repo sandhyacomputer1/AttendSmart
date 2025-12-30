@@ -55,13 +55,14 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAddDepartment"
-                android:layout_width="match_parent"
-                android:layout_height="56dp"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
                 android:text="Add Department"
                 android:textAllCaps="false"
+                android:layout_gravity="end"
                 android:backgroundTint="#FF5722"
                 app:cornerRadius="12dp"
-                app:icon="@drawable/ic_check"
+                app:icon="@drawable/ic_add"
                 app:iconTint="@android:color/white"
                 android:layout_marginBottom="16dp"/>
 

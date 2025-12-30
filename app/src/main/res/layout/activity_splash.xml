@@ -1,22 +1,98 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
+    android:background="@drawable/splash_gradient_bg"
     android:layout_height="match_parent"
-    android:background="#FFFFFF"
-    android:gravity="center">
+    >
 
-    <ImageView
-        android:layout_width="130dp"
-        android:layout_height="130dp"
-        android:src="@mipmap/ic_launcher"
-        android:layout_centerInParent="true"/>
+    <!-- Top Gradient Background -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:background="@drawable/splash_gradient_bg"
+        android:layout_alignParentTop="true"/>
 
-    <TextView
-        android:layout_width="wrap_content"
+    <!-- Main Content Container -->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="ServiceControl Manager"
-        android:textColor="#212121"
-        android:textSize="18sp"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="16dp"/>
+        android:layout_centerInParent="true"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp">
+
+        <!-- App Logo -->
+        <ImageView
+            android:id="@+id/app_logo"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@drawable/salarylogo"
+            android:elevation="8dp"/>
+
+        <!-- App Name -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:fontFamily="sans-serif-medium"
+            android:text="S Salary"
+            android:textColor="#000000"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <!-- Loading Animation -->
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginTop="32dp"
+            android:indeterminateTint="#000000"/>
+
+    </LinearLayout>
+
+    <!-- Bottom Branding -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="24dp">
+
+        <!-- Company Name -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Sandhya Softtech Pvt Ltd"
+            android:textColor="#424242"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"/>
+
+        <!-- Made in India with Flag -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Made with ❤️ in India"
+                android:textColor="#757575"
+                android:textSize="12sp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" 🇮🇳"
+                android:textSize="16sp"
+                android:layout_marginStart="4dp"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
 </RelativeLayout>

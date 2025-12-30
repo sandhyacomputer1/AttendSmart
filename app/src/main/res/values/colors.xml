@@ -6,6 +6,32 @@
     <color name="primary_variant">#1565C0</color>
     <color name="primary_light">#42A5F5</color>
 
+    <color name="colorPrimary">#FF5722</color>
+    <color name="colorPrimaryDark">#E64A19</color>
+    <color name="colorAccent">#FF9800</color>
+
+    <!-- Status Colors -->
+    <color name="colorOnTime">#4CAF50</color>
+    <color name="colorLate">#FF9800</color>
+    <color name="colorAbsent">#F44336</color>
+
+    <!-- Background Colors -->
+    <color name="backgroundColor">#F5F5F5</color>
+    <color name="cardBackground">#FFFFFF</color>
+    <color name="lateCardBackground">#FFF8E1</color>
+
+    <!-- Text Colors -->
+    <color name="textPrimary">#212121</color>
+    <color name="textSecondary">#757575</color>
+    <color name="textTertiary">#9E9E9E</color>
+
+    <!-- Divider -->
+    <color name="dividerColor">#E0E0E0</color>
+
+    <!-- Working Hours Background -->
+    <color name="workingHoursBackground">#E8F5E9</color>
+    <color name="workingHoursText">#2E7D32</color>
+
 
     <!-- Backgrounds -->
     <color name="light_gray">#F5F5F5</color>

@@ -2,13 +2,12 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-   >
+    android:background="#F5F5F5">
 
-    <!-- App Bar with Back Button -->
+    <!-- App Bar -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
@@ -20,11 +19,10 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="#FF5722"
+            android:background="@drawable/toolbar_gradient"
             android:elevation="4dp"
             app:title="Add New Employee"
             app:titleTextColor="@android:color/white"
-            app:titleTextAppearance="@style/TextAppearance.MaterialComponents.Headline6"
             app:navigationIcon="@drawable/ic_arrow_back"
             app:navigationIconTint="@android:color/white"/>
 
@@ -34,7 +32,6 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/white"
         android:fillViewport="true"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
@@ -42,252 +39,411 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="16dp">
 
-            <!-- Header Card with Icon -->
+            <!-- Personal Information Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="16dp"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
-                app:cardBackgroundColor="#FF5722">
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Personal Information Section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Personal Information"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                android:layout_marginBottom="12dp"
-                android:drawablePadding="8dp"
-                android:drawableTint="#FF5722"/>
-
-            <!-- Name -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                app:boxStrokeColor="#FF5722"
-                app:hintTextColor="#FF5722"
-                app:startIconTint="#FF5722"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusBottomEnd="12dp">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etEmpName"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Full Name"
-                    android:inputType="textPersonName"
-                    android:textSize="16sp"/>
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Mobile -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                app:boxStrokeColor="#FF5722"
-                app:hintTextColor="#FF5722"
-                app:startIconTint="#FF5722"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusBottomEnd="12dp">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etEmpMobile"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Mobile Number"
-                    android:inputType="phone"
-                    android:maxLength="10"
-                    android:textSize="16sp"/>
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Email -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                app:boxStrokeColor="#FF5722"
-                app:hintTextColor="#FF5722"
-                app:startIconTint="#FF5722"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusBottomEnd="12dp">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etEmpEmail"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Email Address"
-                    android:inputType="textEmailAddress"
-                    android:textSize="16sp"/>
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Password -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                app:boxStrokeColor="#FF5722"
-                app:hintTextColor="#FF5722"
-                app:startIconTint="#FF5722"
-                app:endIconMode="password_toggle"
-                app:endIconTint="#FF5722"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusBottomEnd="12dp">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etEmpPassword"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Password (min 6 characters)"
-                    android:inputType="textPassword"
-                    android:textSize="16sp"/>
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Work Details Section -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Work Details"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                android:layout_marginBottom="12dp"
-                android:drawablePadding="8dp"
-                android:drawableTint="#FF5722"/>
-
-            <!-- Department Spinner Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="1dp"
-                app:strokeColor="#FF5722"
-                app:strokeWidth="1dp"
                 app:cardBackgroundColor="@android:color/white">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="12dp"
-                    android:gravity="center_vertical">
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-
-
-                    <Spinner
-                        android:id="@+id/spinnerDepartment"
-                        android:layout_width="0dp"
+                    <!-- Section Header -->
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:spinnerMode="dropdown"
-                        android:minHeight="48dp"/>
+                        android:text="📋 Personal Information"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#212121"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Name -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        app:boxStrokeColor="#FF5722"
+                        app:hintTextColor="#FF5722"
+                        app:boxCornerRadiusTopStart="8dp"
+                        app:boxCornerRadiusTopEnd="8dp"
+                        app:boxCornerRadiusBottomStart="8dp"
+                        app:boxCornerRadiusBottomEnd="8dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etEmpName"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Full Name *"
+                            android:inputType="textPersonName|textCapWords"
+                            android:textSize="15sp"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Mobile -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        app:boxStrokeColor="#FF5722"
+                        app:hintTextColor="#FF5722"
+                        app:prefixText="+91 "
+                        app:boxCornerRadiusTopStart="8dp"
+                        app:boxCornerRadiusTopEnd="8dp"
+                        app:boxCornerRadiusBottomStart="8dp"
+                        app:boxCornerRadiusBottomEnd="8dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etEmpMobile"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Mobile Number *"
+                            android:inputType="phone"
+                            android:maxLength="10"
+                            android:textSize="15sp"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Email -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        app:boxStrokeColor="#FF5722"
+                        app:hintTextColor="#FF5722"
+                        app:boxCornerRadiusTopStart="8dp"
+                        app:boxCornerRadiusTopEnd="8dp"
+                        app:boxCornerRadiusBottomStart="8dp"
+                        app:boxCornerRadiusBottomEnd="8dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etEmpEmail"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Email Address *"
+                            android:inputType="textEmailAddress"
+                            android:textSize="15sp"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Password -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        app:boxStrokeColor="#FF5722"
+                        app:hintTextColor="#FF5722"
+                        app:endIconMode="password_toggle"
+                        app:endIconTint="#FF5722"
+                        app:boxCornerRadiusTopStart="8dp"
+                        app:boxCornerRadiusTopEnd="8dp"
+                        app:boxCornerRadiusBottomStart="8dp"
+                        app:boxCornerRadiusBottomEnd="8dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etEmpPassword"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Password (min 6 chars) *"
+                            android:inputType="textPassword"
+                            android:textSize="15sp"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Emergency Contact -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        app:boxStrokeColor="#FF5722"
+                        app:hintTextColor="#FF5722"
+                        app:prefixText="+91 "
+                        app:boxCornerRadiusTopStart="8dp"
+                        app:boxCornerRadiusTopEnd="8dp"
+                        app:boxCornerRadiusBottomStart="8dp"
+                        app:boxCornerRadiusBottomEnd="8dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etEmergencyContact"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Emergency Contact (Optional)"
+                            android:inputType="phone"
+                            android:maxLength="10"
+                            android:textSize="15sp"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Role Spinner Card -->
+            <!-- Work Details Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="16dp"
                 app:cardCornerRadius="12dp"
-                app:cardElevation="1dp"
-                app:strokeColor="#FF5722"
-                app:strokeWidth="1dp"
+                app:cardElevation="2dp"
                 app:cardBackgroundColor="@android:color/white">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="12dp"
-                    android:gravity="center_vertical">
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-
-
-                    <Spinner
-                        android:id="@+id/spinnerRole"
-                        android:layout_width="0dp"
+                    <!-- Section Header -->
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:spinnerMode="dropdown"
-                        android:minHeight="48dp"/>
+                        android:text="💼 Work Details"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#212121"
+                        android:layout_marginBottom="16dp"/>
+
+                    <!-- Joining Date -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        app:boxStrokeColor="#FF5722"
+                        app:hintTextColor="#FF5722"
+                        app:startIconDrawable="@drawable/ic_calendar"
+                        app:startIconTint="#FF5722"
+                        app:boxCornerRadiusTopStart="8dp"
+                        app:boxCornerRadiusTopEnd="8dp"
+                        app:boxCornerRadiusBottomStart="8dp"
+                        app:boxCornerRadiusBottomEnd="8dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etJoiningDate"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Joining Date *"
+                            android:focusable="false"
+                            android:clickable="true"
+                            android:textSize="15sp"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Department Spinner -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        app:cardCornerRadius="8dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="#FF5722"
+                        app:strokeWidth="1dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:padding="8dp"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="🏢"
+                                android:textSize="20sp"
+                                android:layout_marginEnd="8dp"/>
+
+                            <Spinner
+                                android:id="@+id/spinnerDepartment"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:spinnerMode="dropdown"
+                                android:minHeight="48dp"/>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Role Spinner -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        app:cardCornerRadius="8dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="#FF5722"
+                        app:strokeWidth="1dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:padding="8dp"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="👤"
+                                android:textSize="20sp"
+                                android:layout_marginEnd="8dp"/>
+
+                            <Spinner
+                                android:id="@+id/spinnerRole"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:spinnerMode="dropdown"
+                                android:minHeight="48dp"/>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Shift Spinner -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        app:cardCornerRadius="8dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="#FF5722"
+                        app:strokeWidth="1dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:padding="8dp"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="🕐"
+                                android:textSize="20sp"
+                                android:layout_marginEnd="8dp"/>
+
+                            <Spinner
+                                android:id="@+id/spinnerShift"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:spinnerMode="dropdown"
+                                android:minHeight="48dp"/>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Weekly Holiday Spinner -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        app:cardCornerRadius="8dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="#FF5722"
+                        app:strokeWidth="1dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:padding="8dp"
+                            android:gravity="center_vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="📅"
+                                android:textSize="20sp"
+                                android:layout_marginEnd="8dp"/>
+
+                            <Spinner
+                                android:id="@+id/spinnerHoliday"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:spinnerMode="dropdown"
+                                android:minHeight="48dp"/>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Salary -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        app:boxStrokeColor="#FF5722"
+                        app:hintTextColor="#FF5722"
+                        app:prefixText="₹ "
+                        app:boxCornerRadiusTopStart="8dp"
+                        app:boxCornerRadiusTopEnd="8dp"
+                        app:boxCornerRadiusBottomStart="8dp"
+                        app:boxCornerRadiusBottomEnd="8dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etSalary"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Monthly Salary (Optional)"
+                            android:inputType="numberDecimal"
+                            android:textSize="15sp"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Shift Spinner Card -->
+            <!-- Additional Info Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
+                android:layout_marginBottom="16dp"
                 app:cardCornerRadius="12dp"
-                app:cardElevation="1dp"
-                app:strokeColor="#FF5722"
-                app:strokeWidth="1dp"
+                app:cardElevation="2dp"
                 app:cardBackgroundColor="@android:color/white">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="12dp"
-                    android:gravity="center_vertical">
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-
-                    <Spinner
-                        android:id="@+id/spinnerShift"
-                        android:layout_width="0dp"
+                    <!-- Section Header -->
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:spinnerMode="dropdown"
-                        android:minHeight="48dp"/>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+                        android:text="ℹ️ Additional Information"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#212121"
+                        android:layout_marginBottom="16dp"/>
 
-            <!-- Weekly Holiday Spinner Card -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="1dp"
-                app:strokeColor="#FF5722"
-                app:strokeWidth="1dp"
-                app:cardBackgroundColor="@android:color/white">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="12dp"
-                    android:gravity="center_vertical">
-
-
-                    <Spinner
-                        android:id="@+id/spinnerHoliday"
-                        android:layout_width="0dp"
+                    <!-- Address -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:spinnerMode="dropdown"
-                        android:minHeight="48dp"/>
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        app:boxStrokeColor="#FF5722"
+                        app:hintTextColor="#FF5722"
+                        app:boxCornerRadiusTopStart="8dp"
+                        app:boxCornerRadiusTopEnd="8dp"
+                        app:boxCornerRadiusBottomStart="8dp"
+                        app:boxCornerRadiusBottomEnd="8dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etAddress"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Residential Address (Optional)"
+                            android:inputType="textMultiLine|textCapSentences"
+                            android:minLines="2"
+                            android:maxLines="3"
+                            android:gravity="top"
+                            android:textSize="15sp"/>
+                    </com.google.android.material.textfield.TextInputLayout>
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -295,7 +451,7 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSaveEmployee"
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
+                android:layout_height="56dp"
                 android:text="Save Employee"
                 android:textSize="16sp"
                 android:textAllCaps="false"
@@ -306,6 +462,16 @@
                 app:iconGravity="textStart"
                 app:iconTint="@android:color/white"
                 android:elevation="4dp"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Info Text -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="* Required fields"
+                android:textSize="12sp"
+                android:textColor="#757575"
+                android:gravity="center"
                 android:layout_marginBottom="16dp"/>
 
         </LinearLayout>

@@ -30,10 +30,10 @@
 
                 <ImageView
                     android:id="@+id/ivPrevMonth"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
                     android:src="@drawable/ic_arrow_left"
-                    android:background="@color/white"
+                    android:background="@drawable/stats_bg_white"
                     android:padding="8dp"
                     android:contentDescription="Previous Month" />
 
@@ -50,11 +50,11 @@
 
                 <ImageView
                     android:id="@+id/ivNextMonth"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
                     android:src="@drawable/ic_arrow_right"
                     android:padding="8dp"
-                    android:background="@color/white"
+                    android:background="@drawable/stats_bg_white"
                     android:contentDescription="Next Month" />
             </LinearLayout>
 
@@ -76,7 +76,7 @@
                     android:orientation="vertical"
                     android:gravity="center"
                     android:background="@drawable/stats_bg_white"
-                    android:padding="12dp"
+                    android:padding="10dp"
                     android:layout_marginEnd="8dp">
 
                     <TextView
@@ -84,7 +84,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0"
-                        android:textSize="28sp"
+                        android:textSize="24sp"
                         android:textStyle="bold"
                         android:textColor="#4CAF50"/>
 
@@ -105,7 +105,7 @@
                     android:orientation="vertical"
                     android:gravity="center"
                     android:background="@drawable/stats_bg_white"
-                    android:padding="12dp"
+                    android:padding="10dp"
                     android:layout_marginEnd="8dp">
 
                     <TextView
@@ -113,7 +113,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0"
-                        android:textSize="28sp"
+                        android:textSize="24sp"
                         android:textStyle="bold"
                         android:textColor="#FF9800"/>
 
@@ -134,14 +134,14 @@
                     android:orientation="vertical"
                     android:gravity="center"
                     android:background="@drawable/stats_bg_white"
-                    android:padding="12dp">
+                    android:padding="10dp">
 
                     <TextView
                         android:id="@+id/tvAbsentDaysCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0"
-                        android:textSize="28sp"
+                        android:textSize="24sp"
                         android:textStyle="bold"
                         android:textColor="#F44336"/>
 
