@@ -198,6 +198,8 @@ public class AttendanceReportActivity extends AppCompatActivity {
                         if (snapshot.exists()) {
                             DataSnapshot empData = snapshot.getChildren().iterator().next();
                             currentEmployeeMobile = empData.getKey(); // ✅ 8605042157
+                            currentEmployeeMobile = empData.getKey();
+                            calendarAdapter.updateFirebaseData(companyKey, currentEmployeeMobile); // ✅ ONE LINE!
                             String joiningDate = empData.child("info/joiningDate").getValue(String.class);
 
                             Log.d(TAG, "Employee mobile: " + currentEmployeeMobile);
@@ -681,17 +683,29 @@ public class AttendanceReportActivity extends AppCompatActivity {
         private int[] weeklyHolidays;
         private DateClickListener listener;
         private String today;
+        private String companyKey;
+        private String employeeMobile;
 
         public interface DateClickListener {
             void onDateSelected(String date);
         }
 
+        // ✅ BACKWARDS COMPATIBLE CONSTRUCTOR (4 args - YOUR ORIGINAL)
         public CalendarAdapter(Calendar monthCalendar, List<String> attendanceDates,
                                int[] weeklyHolidays, DateClickListener listener) {
+            this(monthCalendar, attendanceDates, weeklyHolidays, listener, null, null);
+        }
+
+        // ✅ FULL CONSTRUCTOR (6 args - for Late detection)
+        public CalendarAdapter(Calendar monthCalendar, List<String> attendanceDates,
+                               int[] weeklyHolidays, DateClickListener listener,
+                               String companyKey, String employeeMobile) {
             this.monthCalendar = (Calendar) monthCalendar.clone();
             this.attendanceDates = new ArrayList<>(attendanceDates);
             this.weeklyHolidays = weeklyHolidays;
             this.listener = listener;
+            this.companyKey = companyKey;
+            this.employeeMobile = employeeMobile;
 
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
             this.today = sdf.format(new Date());
@@ -716,6 +730,7 @@ public class AttendanceReportActivity extends AppCompatActivity {
                 holder.containerDay.setBackground(null);
                 holder.itemView.setClickable(false);
                 holder.itemView.setAlpha(1f);
+                holder.itemView.setTag(null);
                 return;
             }
 
@@ -727,32 +742,44 @@ public class AttendanceReportActivity extends AppCompatActivity {
                 String dateStr = getDateString(day);
                 boolean hasAttendance = attendanceDates.contains(dateStr);
                 boolean isHolidayDay = isHolidayDay(day);
-                boolean isToday = dateStr.equals(today);
-                boolean isAbsentDay = !hasAttendance && !isHolidayDay && isPastDate(dateStr);
+                boolean isTodayDay = dateStr.equals(today);
+                boolean isPastDateDay = isPastDate(dateStr);
 
                 holder.tvDay.setText(String.valueOf(day));
                 holder.tvDay.setVisibility(View.VISIBLE);
                 holder.tvDay.setTextSize(16);
                 holder.itemView.setAlpha(1f);
 
-                if (hasAttendance) {
+                // ✅ PERFECT COLOR LOGIC
+                if (hasAttendance && companyKey != null && employeeMobile != null) {
+                    // 🔥 REAL Late detection
+                    checkRealStatus(holder, dateStr);
+                } else if (hasAttendance) {
+                    // Fallback: Green (no Firebase access)
                     holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_green);
                     holder.tvDay.setTextColor(Color.WHITE);
+                    holder.itemView.setTag("🟢 Present");
                 } else if (isHolidayDay) {
                     holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_orange);
                     holder.tvDay.setTextColor(Color.WHITE);
-                } else if (isAbsentDay) {
+                    holder.itemView.setTag("🟠 Holiday");
+                } else if (isPastDateDay && !isHolidayDay) {
                     holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_red);
                     holder.tvDay.setTextColor(Color.WHITE);
-                } else if (isToday) {
+                    holder.itemView.setTag("🔴 Absent");
+                } else if (isTodayDay) {
                     holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_blue);
                     holder.tvDay.setTextColor(Color.WHITE);
+                    holder.itemView.setTag("🔵 Today");
                 } else {
                     holder.containerDay.setBackground(null);
                     holder.tvDay.setTextColor(Color.parseColor("#212121"));
+                    holder.itemView.setTag("⚪ Future");
                 }
 
                 holder.itemView.setOnClickListener(v -> {
+                    String status = (String) holder.itemView.getTag();
+                    Toast.makeText(v.getContext(), status + " (" + dateStr + ")", Toast.LENGTH_SHORT).show();
                     if (listener != null) {
                         listener.onDateSelected(dateStr);
                     }
@@ -763,12 +790,55 @@ public class AttendanceReportActivity extends AppCompatActivity {
                 holder.itemView.setAlpha(0.3f);
                 holder.containerDay.setBackground(null);
                 holder.itemView.setOnClickListener(null);
+                holder.itemView.setTag(null);
             }
         }
 
         @Override
         public int getItemCount() { return 49; }
 
+        private void checkRealStatus(ViewHolder holder, String dateStr) {
+            DatabaseReference ref = FirebaseDatabase.getInstance()
+                    .getReference("Companies").child(companyKey).child("attendance")
+                    .child(dateStr).child(employeeMobile);
+
+            ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        String status = snapshot.child("status").getValue(String.class);
+                        if (status != null && !status.isEmpty()) {
+                            if (status.equalsIgnoreCase("Late")) {
+                                holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_yellow);
+                                holder.itemView.setTag("🟡 Late");
+                            } else {
+                                holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_green);
+                                holder.itemView.setTag("🟢 " + status);
+                            }
+                        } else {
+                            String checkInTime = snapshot.child("checkInTime").getValue(String.class);
+                            if (checkInTime != null && !checkInTime.isEmpty()) {
+                                holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_green);
+                                holder.itemView.setTag("🟢 Present");
+                            } else {
+                                holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_yellow);
+                                holder.itemView.setTag("🟡 Unknown");
+                            }
+                        }
+                    }
+                    holder.tvDay.setTextColor(Color.WHITE);
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_green);
+                    holder.itemView.setTag("🟢 Error");
+                    holder.tvDay.setTextColor(Color.WHITE);
+                }
+            });
+        }
+
+        // All other methods remain SAME (getDayOfMonth, isCurrentMonthDay, etc.)
         private int getDayOfMonth(int position) {
             monthCalendar.set(Calendar.DAY_OF_MONTH, 1);
             int firstDayOffset = monthCalendar.get(Calendar.DAY_OF_WEEK) - 1;
@@ -779,11 +849,9 @@ public class AttendanceReportActivity extends AppCompatActivity {
                 prevMonth.add(Calendar.MONTH, -1);
                 return prevMonth.getActualMaximum(Calendar.DAY_OF_MONTH) + offset + 1;
             }
-
             if (offset >= monthCalendar.getActualMaximum(Calendar.DAY_OF_MONTH)) {
                 return offset - monthCalendar.getActualMaximum(Calendar.DAY_OF_MONTH) + 1;
             }
-
             return offset + 1;
         }
 
@@ -832,6 +900,13 @@ public class AttendanceReportActivity extends AppCompatActivity {
         public void updateMonth(Calendar newMonth) {
             this.monthCalendar = (Calendar) newMonth.clone();
             notifyDataSetChanged();
+        }
+
+        // Update with Firebase data later
+        public void updateFirebaseData(String companyKey, String employeeMobile) {
+            this.companyKey = companyKey;
+            this.employeeMobile = employeeMobile;
+            notifyDataSetChanged(); // Refresh for Late detection
         }
 
         static class ViewHolder extends RecyclerView.ViewHolder {

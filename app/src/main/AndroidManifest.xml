@@ -35,6 +35,9 @@
                 android:resource="@xml/file_paths" />
         </provider> <!-- All your existing activities -->
         <activity
+            android:name=".Activities.AttendanceDayDetailsActivity"
+            android:exported="false" />
+        <activity
             android:name=".Activities.AttendanceReportActivity"
             android:exported="false" />
         <activity
