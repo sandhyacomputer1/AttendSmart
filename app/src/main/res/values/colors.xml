@@ -75,4 +75,7 @@
 
     <!-- Navigation -->
     <color name="nav_item_color">#1976D2</color>
+
+    <color name="yellow">#FF9800</color>
+
 </resources>

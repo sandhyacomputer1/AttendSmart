@@ -12,7 +12,8 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import android.net.ConnectivityManager;
+import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -77,6 +78,9 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
     private Handler timeHandler;
     private Runnable timeRunnable;
     private boolean locationReady = false;
+    private int LATE_MINUTES = 15;        // Late threshold
+    private int HALF_DAY_MINUTES = 240;   // 4 hours minimum
+    private int EARLY_OUT_MINUTES = 30;   // Must stay 30min before end
 
     // ----------------------------------------------------
 
@@ -94,7 +98,28 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
     }
 
     // ----------------------------------------------------
+    private String calculateAttendanceStatus(String shiftStart, String checkInTime, String checkOutTime) {
+        if (checkInTime == null) return "Absent";
 
+        long lateMins = getDiffMinutes(shiftStart, checkInTime);
+
+        // Check-in Status (Live)
+        if (checkOutTime == null) {
+            if (lateMins <= 15) return "Present (In)";
+            if (lateMins <= 60) return "Late (In)";
+            return "Late (In)";
+        }
+
+        // Check-out Status (Final)
+        long totalMins = getDiffMinutes(checkInTime, checkOutTime);
+        if (totalMins < 240) return "Half Day";
+        if (totalMins < 360) return "Present";
+        return "Full Day";
+    }
+    private boolean isInternetAvailable() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnected();
+    }
     private void initViews() {
         tvWelcome = findViewById(R.id.tvWelcome);
         tvCompany = findViewById(R.id.tvCompany);
@@ -403,45 +428,45 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
     }
 
     private void loadTodayStatus() {
-
-        if (employeeMobile == null || shiftStart == null || shiftEnd == null) {
-            // Wait for shifts to load first
-            return;
-        }
+        if (employeeMobile == null) return;
 
         String today = getTodayDate();
-
         attendanceRef.child(today).child(employeeMobile)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot s) {
+                        String checkIn = s.child("checkInTime").getValue(String.class);
+                        String checkOut = s.child("checkOutTime").getValue(String.class);
 
-                        boolean in = s.hasChild("checkInTime");
-                        boolean out = s.hasChild("checkOutTime");
-
-                        if (!in) todayStatus = "Absent";
-                        else if (in && !out) {
-                            long late = getDiffMinutes(
-                                    shiftStart,
-                                    s.child("checkInTime").getValue(String.class));
-                            todayStatus = late > 15 ? "Late" : "Present (In)";
-                        } else todayStatus = "Present";
-
+                        todayStatus = calculateAttendanceStatus(shiftStart, checkIn, checkOut);
+                        boolean in = checkIn != null;
+                        boolean out = checkOut != null;
                         updateUI(in, out);
                     }
 
                     @Override
-                    public void onCancelled(@NonNull DatabaseError error) { }
+                    public void onCancelled(@NonNull DatabaseError error) {}
                 });
     }
     private void updateUI(boolean in, boolean out) {
         tvTodayStatus.setText("Today: " + todayStatus);
-        int color = todayStatus.contains("Present") ? R.color.green :
-                todayStatus.equals("Late") ? R.color.orange : R.color.red;
+
+        int color;
+        switch (todayStatus) {
+            case "Full Day": case "Present": case "Present (In)":
+                color = R.color.green; break;
+            case "Late": case "Late (In)": case "Multiple In":
+                color = R.color.orange; break;
+            case "Half Day":
+                color = R.color.yellow; break;
+            default:
+                color = R.color.red; break;
+        }
         tvTodayStatus.setTextColor(ContextCompat.getColor(this, color));
 
-        btnCheckIn.setEnabled(!in && locationReady);  // ✅ Location required
-        btnCheckOut.setEnabled(in && !out);
+        // ✅ BOTH BUTTONS ALWAYS ENABLED (Multiple punches)
+        btnCheckIn.setEnabled(locationReady);
+        btnCheckOut.setEnabled(locationReady);
     }
 //    private void tryCheckIn() {
 //        if (!locationReady) {
@@ -463,32 +488,29 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
 //    }
 
     private void tryCheckIn() {
+        if (!isInternetAvailable()) {
+            toast("❌ No Internet");
+            return;
+        }
         if (!locationReady) {
-            toast("⏳ Wait for GPS location");
-            return;
-        }
-        if (shiftStart == null) {  // ✅ ADD THIS
-            toast("⏳ Wait for shift loading...");
-            return;
-        }
-        if (!withinWindow(shiftStart, 60)) {
-            toast("⏰ Check-in allowed ±60 min of " + shiftStart);
+            toast("⏳ GPS Loading...");
             return;
         }
         openCamera("checkIn");
     }
 
     private void tryCheckOut() {
-        if (shiftEnd == null) {  // ✅ ADD THIS
-            toast("⏳ Wait for shift loading...");
+        if (!isInternetAvailable()) {
+            toast("❌ No Internet");
             return;
         }
-        if (!withinWindow(shiftEnd, 120)) {
-            toast("⏰ Check-out allowed ±2 hrs of " + shiftEnd);
+        if (!locationReady) {
+            toast("⏳ GPS Loading...");
             return;
         }
         openCamera("checkOut");
     }
+
 
     private boolean withinWindow(String base, int grace) {
         try {
@@ -562,6 +584,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
     }
 
 
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -577,6 +600,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                 data.getExtras() != null) {
 
             currentPhotoBitmap = (Bitmap) data.getExtras().get("data");
+
             uploadPhotoAndSaveAttendance();
         }
     }
@@ -612,57 +636,65 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
 
     // 🆕 SAVE ATTENDANCE WITH LOCATION
     private void saveAttendance(String photoUrl, String time) {
-
         String today = getTodayDate();
         DatabaseReference node = attendanceRef.child(today).child(employeeMobile);
 
         node.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot s) {
+                boolean alreadyCheckedIn = s.hasChild("checkInTime");
+                boolean alreadyCheckedOut = s.hasChild("checkOutTime");
 
-                if (pendingAction.equals("checkIn") && !s.hasChild("checkInTime")) {
+                if (pendingAction.equals("checkIn")) {
+                    // ✅ MULTIPLE CHECK-IN ALLOWED
+                    String status = alreadyCheckedIn ? "Multiple In" : calculateAttendanceStatus(shiftStart, time, null);
 
-                    long late = getDiffMinutes(shiftStart, time);
-
+                    // Save/Overwrite Check-in
                     node.child("checkInTime").setValue(time);
                     node.child("checkInPhoto").setValue(photoUrl);
-                    node.child("status").setValue(late > 15 ? "Late" : "Present");
+                    node.child("status").setValue(status);
 
-                    // 🆕 LOCATION DATA
+                    // GPS Data
                     node.child("checkInLat").setValue(currentLat);
                     node.child("checkInLng").setValue(currentLng);
                     node.child("checkInAddress").setValue(currentAddress);
-                    node.child("checkInGPS").setValue(true);
 
-                    toast("✅ Check-in saved with GPS location");
+                    toast("✅ Check-in: " + status);
 
-                } else if (pendingAction.equals("checkOut")
-                        && s.hasChild("checkInTime")
-                        && !s.hasChild("checkOutTime")) {
-
+                } else if (pendingAction.equals("checkOut")) {
+                    // ✅ MULTIPLE CHECK-OUT ALLOWED
                     String inTime = s.child("checkInTime").getValue(String.class);
-                    long mins = getDiffMinutes(inTime, time);
+                    if (inTime == null) {
+                        toast("⚠️ First Check-in करा!");
+                        return;
+                    }
 
+                    // Calculate FINAL status based on total hours
+                    String finalStatus = calculateAttendanceStatus(shiftStart, inTime, time);
+                    long totalMins = getDiffMinutes(inTime, time);
+
+                    // Save Check-out
                     node.child("checkOutTime").setValue(time);
                     node.child("checkOutPhoto").setValue(photoUrl);
-                    node.child("totalMinutes").setValue(mins);
-                    node.child("totalHours")
-                            .setValue(String.format(Locale.US, "%.2f", mins / 60.0));
+                    node.child("status").setValue(finalStatus);
+                    node.child("totalMinutes").setValue(totalMins);
+                    node.child("totalHours").setValue(String.format("%.1f", totalMins / 60.0));
 
-                    // 🆕 CHECKOUT LOCATION DATA
+                    // GPS Data
                     node.child("checkOutLat").setValue(currentLat);
                     node.child("checkOutLng").setValue(currentLng);
                     node.child("checkOutAddress").setValue(currentAddress);
-                    node.child("checkOutGPS").setValue(true);
 
-                    toast("✅ Check-out saved with GPS location");
+                    toast("✅ Check-out Complete!\nStatus: " + finalStatus + "\nTotal: " + (totalMins/60) + "h");
                 }
 
-                loadTodayStatus();
+                loadTodayStatus(); // Refresh UI
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) { }
+            public void onCancelled(@NonNull DatabaseError error) {
+                toast("Save failed!");
+            }
         });
     }
 

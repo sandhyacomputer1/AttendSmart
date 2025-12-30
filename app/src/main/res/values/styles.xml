@@ -20,4 +20,11 @@
     <style name="NavItemBackground">
         <item name="android:background">@drawable/nav_item_background</item>
     </style>
+
+
+    <style name="EmptyStateImage">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
 </resources>

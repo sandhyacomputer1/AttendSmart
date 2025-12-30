@@ -2,23 +2,29 @@ package com.sandhyyasofttech.attendsmart.Registration;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.sandhyyasofttech.attendsmart.Activities.DepartmentActivity;
+import com.sandhyyasofttech.attendsmart.Activities.EmployeeListActivity;
 import com.sandhyyasofttech.attendsmart.Activities.ShiftActivity;
 import com.sandhyyasofttech.attendsmart.Adapters.EmployeeAdapter;
 import com.sandhyyasofttech.attendsmart.Admin.AddEmployeeActivity;
@@ -56,7 +62,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
     private DatabaseReference employeesRef, departmentsRef, shiftsRef, attendanceRef;
     private String companyKey;
     private MaterialButton btnViewReports;
-
+    private DrawerLayout drawerLayout;
+    private NavigationView navigationView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,6 +71,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         // Initialize all views
         initializeViews();
+        setupDrawer();  // ADD THIS
 
         // Setup toolbar
         setupToolbar();
@@ -82,7 +90,51 @@ public class AdminDashboardActivity extends AppCompatActivity {
         // Fetch all data
         fetchAllData();
     }
+    private void setupDrawer() {
+        drawerLayout = findViewById(R.id.drawer_layout);
+        navigationView = findViewById(R.id.nav_view);
 
+        // Set drawer toggle
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawerLayout, topAppBar, R.string.nav_open, R.string.nav_close);
+        drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
+
+        // Handle navigation item clicks
+        navigationView.setNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+
+            if (id == R.id.nav_dashboard) {
+                // Already on dashboard
+            } else if (id == R.id.nav_employees) {
+                startActivity(new Intent(this, EmployeeListActivity.class));
+            } else if (id == R.id.nav_departments) {
+                startActivity(new Intent(this, DepartmentActivity.class));
+            } else if (id == R.id.nav_shifts) {
+                startActivity(new Intent(this, ShiftActivity.class));
+            } else if (id == R.id.nav_logout) {
+                showLogoutConfirmation();
+            }
+
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        });
+
+        // Set active item
+        navigationView.setCheckedItem(R.id.nav_dashboard);
+
+        // Update header with company info
+        updateNavHeader();
+    }
+    private void updateNavHeader() {
+        View headerView = navigationView.getHeaderView(0);
+        TextView tvCompanyName = headerView.findViewById(R.id.tvCompanyName);
+        TextView tvUserEmail = headerView.findViewById(R.id.tvUserEmail);
+
+        PrefManager prefManager = new PrefManager(this);
+        tvUserEmail.setText(prefManager.getUserEmail());
+        tvCompanyName.setText("Sandhya Soft Tech"); // Or fetch from prefs
+    }
     /**
      * Initialize all views
      */
@@ -125,9 +177,20 @@ public class AdminDashboardActivity extends AppCompatActivity {
     private void setupToolbar() {
         setSupportActionBar(topAppBar);
         if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("Admin Dashboard");
         }
+
+        // Handle hamburger menu click
+        topAppBar.setNavigationOnClickListener(v -> {
+            if (drawerLayout.isDrawerVisible(GravityCompat.START)) {
+                drawerLayout.closeDrawer(GravityCompat.START);
+            } else {
+                drawerLayout.openDrawer(GravityCompat.START);
+            }
+        });
     }
+
 
     /**
      * Setup company session and validate user
@@ -217,7 +280,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 for (DataSnapshot empSnap : snapshot.getChildren()) {
                     DataSnapshot infoSnap = empSnap.child("info");
                     if (infoSnap.exists()) {
-                        EmployeeModel model = infoSnap.getValue(EmployeeModel.class);
+// ✅ FIXED CODE
+                        EmployeeModel model = parseEmployeeSafely(infoSnap);
                         if (model != null) {
                             employeeList.add(model);
                         }
@@ -234,6 +298,40 @@ public class AdminDashboardActivity extends AppCompatActivity {
                         Toast.LENGTH_SHORT).show();
             }
         });
+    }
+    // ✅ ADD THESE METHODS (Copy exactly)
+    private EmployeeModel parseEmployeeSafely(DataSnapshot infoSnap) {
+        try {
+            EmployeeModel model = new EmployeeModel();
+            model.setEmployeeId(safeToString(infoSnap.child("employeeId")));
+            model.setEmployeeName(safeToString(infoSnap.child("employeeName")));
+            model.setEmployeeMobile(safeToString(infoSnap.child("employeeMobile")));
+            model.setEmployeeRole(safeToString(infoSnap.child("employeeRole")));
+            model.setEmployeeEmail(safeToString(infoSnap.child("employeeEmail")));
+            model.setEmployeeDepartment(safeToString(infoSnap.child("employeeDepartment")));
+            model.setEmployeeStatus(safeToString(infoSnap.child("employeeStatus")));
+            model.setEmployeeShift(safeToString(infoSnap.child("employeeShift")));
+            model.setCreatedAt(safeToString(infoSnap.child("createdAt")));
+            model.setWeeklyHoliday(safeToString(infoSnap.child("weeklyHoliday")));
+            model.setJoinDate(safeToString(infoSnap.child("joinDate")));
+
+            if (model.getEmployeeName() == null || model.getEmployeeName().trim().isEmpty()) {
+                return null;
+            }
+            return model;
+        } catch (Exception e) {
+            android.util.Log.e("Dashboard", "Parse error: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private String safeToString(DataSnapshot dataSnap) {
+        if (!dataSnap.exists()) return null;
+        Object value = dataSnap.getValue();
+        if (value == null) return null;
+        if (value instanceof Long) return ((Long) value).toString();
+        if (value instanceof Number) return String.valueOf(value);
+        return value.toString();
     }
 
     // ================= DASHBOARD STATISTICS =================
