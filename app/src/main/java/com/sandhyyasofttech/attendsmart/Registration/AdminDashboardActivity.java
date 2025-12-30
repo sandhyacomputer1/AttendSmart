@@ -2,7 +2,6 @@ package com.sandhyyasofttech.attendsmart.Registration;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -56,6 +55,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
     // Firebase References
     private DatabaseReference employeesRef, departmentsRef, shiftsRef, attendanceRef;
     private String companyKey;
+    private MaterialButton btnViewReports;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -164,6 +164,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
      * Setup all click listeners
      */
     private void setupClickListeners() {
+
+
         // FAB - Add Employee
         fabAddEmployee.setOnClickListener(v -> {
             Intent intent = new Intent(AdminDashboardActivity.this, AddEmployeeActivity.class);
