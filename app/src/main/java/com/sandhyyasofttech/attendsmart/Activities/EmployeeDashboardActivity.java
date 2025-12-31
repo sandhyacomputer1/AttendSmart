@@ -77,6 +77,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
     private Handler timeHandler, workTimerHandler;
     private Runnable timeRunnable, workTimerRunnable;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -116,6 +117,11 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         cardCheckOut.setOnClickListener(v -> tryCheckOut());
         cardAttendanceReport.setOnClickListener(v -> openAttendanceReport());
         cardLogout.setOnClickListener(v -> showLogoutConfirmation());
+        View btnMenu = findViewById(R.id.btnMenu);
+        btnMenu.setOnClickListener(v -> {
+            Intent intent = new Intent(EmployeeDashboardActivity.this, SettingsActivity.class);
+            startActivity(intent);
+        });
 
         updateButtonStates();
     }
