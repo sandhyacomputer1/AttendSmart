@@ -269,6 +269,7 @@
                         android:layout_height="wrap_content"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                         app:startIconTint="#A855F7"
+                        android:visibility="gone"
                         app:boxStrokeColor="#A855F7">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -276,6 +277,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="Religion"
+                            android:visibility="gone"
                             android:inputType="textCapWords" />
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
@@ -402,6 +404,7 @@
                 android:layout_height="wrap_content"
                 app:cardBackgroundColor="#FFFFFF"
                 app:cardCornerRadius="16dp"
+                android:visibility="gone"
                 app:cardElevation="2dp"
                 android:layout_marginBottom="16dp">
 
@@ -545,6 +548,8 @@
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                         app:startIconDrawable="@drawable/ic_person"
                         app:startIconTint="#64748B"
+                        android:visibility="gone"
+
                         app:boxStrokeColor="#64748B">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -552,6 +557,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="Mother's Name"
+                            android:visibility="gone"
+
                             android:inputType="textCapWords" />
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -612,12 +619,14 @@
                         android:layout_height="wrap_content"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                         app:startIconTint="#F43F5E"
+                        android:visibility="gone"
                         app:boxStrokeColor="#F43F5E">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etEmergencyRelation"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:visibility="gone"
                             android:hint="Relationship"
                             android:inputType="textCapWords" />
                     </com.google.android.material.textfield.TextInputLayout>
