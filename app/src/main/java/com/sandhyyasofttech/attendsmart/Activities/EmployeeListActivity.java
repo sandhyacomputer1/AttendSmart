@@ -178,27 +178,26 @@ public class EmployeeListActivity extends AppCompatActivity {
         try {
             EmployeeModel model = new EmployeeModel();
 
-            // ✅ SAFE conversion for ALL fields - Long → String
-            model.setEmployeeId(safeToString(infoSnap.child("employeeId")));
+            // ✅ FIXED: Set mobile as employeeId (matches Firebase key)
+            model.setEmployeeId(safeToString(infoSnap.child("employeeMobile")));  // Use mobile as ID
+
             model.setEmployeeName(safeToString(infoSnap.child("employeeName")));
             model.setEmployeeMobile(safeToString(infoSnap.child("employeeMobile")));
-            model.setEmployeeRole(safeToString(infoSnap.child("employeeRole")));
             model.setEmployeeEmail(safeToString(infoSnap.child("employeeEmail")));
+            model.setEmployeeRole(safeToString(infoSnap.child("employeeRole")));
             model.setEmployeeDepartment(safeToString(infoSnap.child("employeeDepartment")));
             model.setEmployeeStatus(safeToString(infoSnap.child("employeeStatus")));
             model.setEmployeeShift(safeToString(infoSnap.child("employeeShift")));
-            model.setCreatedAt(safeToString(infoSnap.child("createdAt")));
             model.setWeeklyHoliday(safeToString(infoSnap.child("weeklyHoliday")));
             model.setJoinDate(safeToString(infoSnap.child("joinDate")));
+            model.setCreatedAt(safeToString(infoSnap.child("createdAt")));
 
-            // Return null if no essential data
             if (model.getEmployeeName() == null || model.getEmployeeName().trim().isEmpty()) {
                 return null;
             }
 
             return model;
         } catch (Exception e) {
-            // Log error but don't crash
             android.util.Log.e("EmployeeList", "Failed to parse employee: " + e.getMessage());
             return null;
         }

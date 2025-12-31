@@ -15,6 +15,9 @@ public class EmployeeModel implements Serializable {
     private String createdAt;
     private String weeklyHoliday;
     private String joinDate;
+    private String salary;
+    private String address;
+    private String emergencyContact;
 
     // Default constructor REQUIRED for Firebase
     public EmployeeModel() {}
@@ -65,4 +68,15 @@ public class EmployeeModel implements Serializable {
 
     public String getJoinDate() { return joinDate; }
     public void setJoinDate(String joinDate) { this.joinDate = joinDate; }
+
+    // ✅ ADD THESE GETTERS/SETTERS
+    public String getSalary() { return salary; }
+    public void setSalary(String salary) { this.salary = salary; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
+    public String getEmergencyContact() { return emergencyContact; }
+    public void setEmergencyContact(String emergencyContact) { this.emergencyContact = emergencyContact; }
+
 }
