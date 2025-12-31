@@ -164,7 +164,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
         rvEmployees.setHasFixedSize(true);
 
         employeeList = new ArrayList<>();
-        adapter = new EmployeeAdapter(employeeList);
+// In AdminDashboardActivity.java - CHANGE THIS LINE ONLY
+        adapter = new EmployeeAdapter(employeeList, this); // Add 'this' parameter
         rvEmployees.setAdapter(adapter);
 
         // FAB
@@ -267,35 +268,75 @@ public class AdminDashboardActivity extends AppCompatActivity {
      * Fetch and display employee list
      */
     private void fetchEmployeeList() {
-        employeesRef.addValueEventListener(new ValueEventListener() {
+        String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+
+        DatabaseReference companyRef = FirebaseDatabase.getInstance()
+                .getReference("Companies").child(companyKey);
+
+        companyRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 employeeList.clear();
+                ArrayList<EmployeeModel> presentList = new ArrayList<>();
+                ArrayList<EmployeeModel> absentList = new ArrayList<>();
 
-                if (!snapshot.exists()) {
+                DataSnapshot employeesSnap = snapshot.child("employees");
+                DataSnapshot todayAttSnap = snapshot.child("attendance").child(today);
+
+                if (!employeesSnap.exists()) {
                     adapter.notifyDataSetChanged();
                     return;
                 }
 
-                for (DataSnapshot empSnap : snapshot.getChildren()) {
+                // ✅ LOOP THROUGH EMPLOYEES
+                for (DataSnapshot empSnap : employeesSnap.getChildren()) {
                     DataSnapshot infoSnap = empSnap.child("info");
                     if (infoSnap.exists()) {
-// ✅ FIXED CODE
                         EmployeeModel model = parseEmployeeSafely(infoSnap);
                         if (model != null) {
-                            employeeList.add(model);
+                            String phone = model.getEmployeeMobile();
+
+                            // ✅ GET ATTENDANCE RECORD FOR THIS EMPLOYEE
+                            DataSnapshot attRecord = todayAttSnap.child(phone);
+
+                            if (attRecord.exists() && attRecord.hasChild("checkInTime")) {
+                                // ✅ PRESENT EMPLOYEE - SET ALL ATTENDANCE DATA
+                                String status = safeToString(attRecord.child("status"));
+                                model.setTodayStatus("Present".equals(status) || "Half Day".equals(status) ?
+                                        "Present" : (status != null ? status : "Absent"));
+
+                                // ✅ PUNCH-IN TIME
+                                model.setCheckInTime(safeToString(attRecord.child("checkInTime")));
+                                model.setTotalHours(safeToString(attRecord.child("totalHours")));
+
+                                // ✅ 🔥 CHECK-IN PHOTO (CRITICAL FIX)
+                                model.setCheckInPhoto(safeToString(attRecord.child("checkInPhoto")));
+                                android.util.Log.d("Dashboard", "Photo for " + model.getEmployeeName() + ": " + model.getCheckInPhoto());
+
+                                presentList.add(model);
+                            } else {
+                                // ABSENT EMPLOYEE
+                                model.setTodayStatus("Absent");
+                                model.setCheckInPhoto(null); // No photo for absent
+                                absentList.add(model);
+                            }
                         }
                     }
                 }
+
+                // PRESENT FIRST + ABSENT
+                employeeList.addAll(presentList);
+                employeeList.addAll(absentList);
+
+                android.util.Log.d("Dashboard", "Loaded " + employeeList.size() + " employees, " +
+                        presentList.size() + " present with photos");
 
                 adapter.notifyDataSetChanged();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(AdminDashboardActivity.this,
-                        "Failed to load employees: " + error.getMessage(),
-                        Toast.LENGTH_SHORT).show();
+                Toast.makeText(AdminDashboardActivity.this, "Failed to load employees", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -314,6 +355,10 @@ public class AdminDashboardActivity extends AppCompatActivity {
             model.setCreatedAt(safeToString(infoSnap.child("createdAt")));
             model.setWeeklyHoliday(safeToString(infoSnap.child("weeklyHoliday")));
             model.setJoinDate(safeToString(infoSnap.child("joinDate")));
+
+            // ✅ CRITICAL: FETCH CHECK-IN PHOTO FROM ATTENDANCE
+            // This gets photo from today's attendance record (not employee info)
+            // Will be set later in fetchEmployeeList()
 
             if (model.getEmployeeName() == null || model.getEmployeeName().trim().isEmpty()) {
                 return null;
@@ -360,7 +405,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
                             if (att.hasChild("checkInTime")) {
                                 String status = att.child("status").getValue(String.class);
 
-                                if ("Present".equals(status) || status == null) {
+                                if ("Present".equals(status) || "Half Day".equals(status) || status == null) {
                                     presentCount++;
                                 } else if ("Late".equals(status)) {
                                     lateCount++;

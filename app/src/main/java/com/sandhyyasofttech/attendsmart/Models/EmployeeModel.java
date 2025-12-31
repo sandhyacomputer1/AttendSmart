@@ -18,6 +18,11 @@ public class EmployeeModel implements Serializable {
     private String salary;
     private String address;
     private String emergencyContact;
+    private String todayStatus; // "Present", "Absent", "Late", "Half Day"
+    private String checkInTime;
+    private String totalHours;
+    private String checkInPhoto;
+
 
     // Default constructor REQUIRED for Firebase
     public EmployeeModel() {}
@@ -30,7 +35,14 @@ public class EmployeeModel implements Serializable {
         this.employeeRole = employeeRole;
         this.employeeEmail = employeeEmail;
     }
-
+    public String getCheckInPhoto() { return checkInPhoto; }
+    public void setCheckInPhoto(String checkInPhoto) { this.checkInPhoto = checkInPhoto;}
+    public String getCheckInTime() { return checkInTime; }
+    public void setCheckInTime(String checkInTime) { this.checkInTime = checkInTime; }
+    public String getTotalHours() { return totalHours; }
+    public void setTotalHours(String totalHours) { this.totalHours = totalHours; }
+    public String getTodayStatus() { return todayStatus; }
+    public void setTodayStatus(String todayStatus) { this.todayStatus = todayStatus; }
     // ✅ ALL 11 GETTERS & SETTERS
     public String getEmployeeId() { return employeeId; }
     public void setEmployeeId(String employeeId) { this.employeeId = employeeId; }

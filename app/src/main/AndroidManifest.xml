@@ -25,7 +25,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AttendSmart"
         tools:targetApi="31">
-
+        <activity
+            android:name=".Activities.CameraActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activities.ReportsActivity"
+            android:exported="false" />
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -47,6 +52,12 @@
             android:exported="false" />
         <activity
             android:name=".Activities.AttendanceReportActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activities.EmployeeListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activities.EmployeeDetailsActivity"
             android:exported="false" />
         <activity
             android:name=".Activities.ShiftActivity"
