@@ -58,17 +58,17 @@
                     android:contentDescription="Next Month" />
             </LinearLayout>
 
-            <!-- Monthly Statistics -->
+            <!-- ✅ 4-COLUMN MONTHLY STATISTICS -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="8dp"
-                android:weightSum="3"
+                android:weightSum="4"
                 android:gravity="center">
 
-                <!-- Present Days Count -->
+                <!-- 1. Present Days (Green) -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -77,10 +77,10 @@
                     android:gravity="center"
                     android:background="@drawable/stats_bg_white"
                     android:padding="10dp"
-                    android:layout_marginEnd="8dp">
+                    android:layout_marginEnd="4dp">
 
                     <TextView
-                        android:id="@+id/tvPresentDaysCount"
+                        android:id="@+id/tvPresentCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0"
@@ -91,13 +91,13 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Present Days"
+                        android:text="Present"
                         android:textSize="11sp"
                         android:textColor="#2E7D32"
                         android:layout_marginTop="4dp"/>
                 </LinearLayout>
 
-                <!-- Late Days Count -->
+                <!-- 2. Late Days (Orange) -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -106,10 +106,10 @@
                     android:gravity="center"
                     android:background="@drawable/stats_bg_white"
                     android:padding="10dp"
-                    android:layout_marginEnd="8dp">
+                    android:layout_marginEnd="4dp">
 
                     <TextView
-                        android:id="@+id/tvLateDaysCount"
+                        android:id="@+id/tvLateCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0"
@@ -120,13 +120,42 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Late Days"
+                        android:text="Late"
                         android:textSize="11sp"
                         android:textColor="#E65100"
                         android:layout_marginTop="4dp"/>
                 </LinearLayout>
 
-                <!-- Absent Days Count -->
+                <!-- 3. Half Day (Blue) -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:background="@drawable/stats_bg_white"
+                    android:padding="10dp"
+                    android:layout_marginEnd="4dp">
+
+                    <TextView
+                        android:id="@+id/tvHalfDayCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        android:textColor="#2196F3"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Half Day"
+                        android:textSize="11sp"
+                        android:textColor="#1565C0"
+                        android:layout_marginTop="4dp"/>
+                </LinearLayout>
+
+                <!-- 4. Absent Days (Red) -->
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -137,7 +166,7 @@
                     android:padding="10dp">
 
                     <TextView
-                        android:id="@+id/tvAbsentDaysCount"
+                        android:id="@+id/tvAbsentCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0"
@@ -148,7 +177,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Absent Days"
+                        android:text="Absent"
                         android:textSize="11sp"
                         android:textColor="#C62828"
                         android:layout_marginTop="4dp"/>
@@ -171,7 +200,7 @@
                     android:padding="4dp"
                     android:background="@color/white"
                     android:gravity="center_vertical"
-                    android:layout_marginEnd="20dp">
+                    android:layout_marginEnd="16dp">
                     <View
                         android:layout_width="10dp"
                         android:layout_height="10dp"
@@ -191,17 +220,17 @@
                     android:orientation="horizontal"
                     android:background="@color/white"
                     android:padding="4dp"
-                    android:layout_marginEnd="20dp"
+                    android:layout_marginEnd="16dp"
                     android:gravity="center_vertical">
                     <View
                         android:layout_width="10dp"
                         android:layout_height="10dp"
-                        android:background="@drawable/calendar_bg_red"
+                        android:background="@drawable/circle_orange"
                         android:layout_marginEnd="6dp"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Absent"
+                        android:text="Late"
                         android:textSize="12sp"
                         android:textColor="#0B0B0B"/>
                 </LinearLayout>
@@ -216,12 +245,12 @@
                     <View
                         android:layout_width="10dp"
                         android:layout_height="10dp"
-                        android:background="@drawable/circle_orange"
+                        android:background="#2196F3"
                         android:layout_marginEnd="6dp"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Late"
+                        android:text="Half Day"
                         android:textSize="12sp"
                         android:textColor="#0B0B0B"/>
                 </LinearLayout>
@@ -235,7 +264,6 @@
         android:layout_height="wrap_content"
         app:cardElevation="2dp"
         app:cardCornerRadius="8dp"
-        android:layout_marginTop="15dp"
         android:layout_margin="8dp">
 
         <androidx.recyclerview.widget.RecyclerView
