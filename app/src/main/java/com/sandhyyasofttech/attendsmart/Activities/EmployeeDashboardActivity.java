@@ -52,13 +52,6 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import android.content.IntentSender;
 
-import com.google.android.gms.common.api.ResolvableApiException;
-import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResponse;
-import com.google.android.gms.location.SettingsClient;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-
 public class EmployeeDashboardActivity extends AppCompatActivity {
 
     // UI Elements
@@ -80,8 +73,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
     private double currentLat = 0, currentLng = 0;
     private Bitmap currentPhotoBitmap;
     private boolean isCheckedIn = false;  // ONE TIME CHECK-IN ONLY
-    private SettingsClient settingsClient;
-
 
     // Location
     private FusedLocationProviderClient fusedLocationClient;
@@ -165,32 +156,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                 .getReference().child("Companies").child(companyKey).child("attendance_photos");
     }
 
-    private void promptLocationIfOff() {
-        if (settingsClient == null) {
-            settingsClient = LocationServices.getSettingsClient(this);
-        }
-
-        LocationSettingsRequest.Builder builder =
-                new LocationSettingsRequest.Builder().addLocationRequest(locationRequest);
-
-        settingsClient.checkLocationSettings(builder.build())
-                .addOnSuccessListener(locationSettingsResponse -> {
-                    // Location ON - get location and continue
-                    getCurrentLocation();
-                })
-                .addOnFailureListener(e -> {
-                    if (e instanceof ResolvableApiException) {
-                        // Location OFF - show popup
-                        try {
-                            ResolvableApiException resolvable = (ResolvableApiException) e;
-                            resolvable.startResolutionForResult(this, REQUEST_CHECK_SETTINGS);
-                        } catch (Exception ignored) {
-                            toast("📍 Enable location");
-                        }
-                    }
-                });
-    }
-
     private void setupLocation() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 3000)
@@ -238,14 +203,12 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
     }
 
     private void getCurrentLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) return;
-
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return;
         fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
             if (location != null) {
                 currentLat = location.getLatitude();
                 currentLng = location.getLongitude();
-                locationReady = true;  // ✅ Mark ready
+                locationReady = true;
                 tvLocation.setText(String.format("%.4f, %.4f", currentLat, currentLng));
                 locationStatusDot.setBackgroundResource(R.drawable.status_dot_active);
                 getAddressFromLatLng(currentLat, currentLng);
@@ -253,9 +216,8 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
             startLocationUpdates();
             updateButtonStates();
         }).addOnFailureListener(e -> {
-            toast("📍 GPS Error");
+            toast("GPS Error");
             startLocationUpdates();
-            updateButtonStates();
         });
     }
     private void startLocationUpdates() {
@@ -454,22 +416,20 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
             toast("❌ No Internet");
             return;
         }
-
-        // **NEW: Check location ON button click**
         if (!locationReady) {
-            promptLocationIfOff();
+            toast("⏳ Waiting for GPS");
             return;
         }
-
         if (isCheckedIn) {
             toast("⚠️ Already checked in!");
             return;
         }
 
-        // Your existing logic...
+        // **INSTANT LATE CALCULATION & DISPLAY**
         String currentTime = getCurrentTime();
         String lateStatus = isLateCheckIn(shiftStart, currentTime) ? "Late" : "Present";
 
+        // **SHOW LATE STATUS IMMEDIATELY**
         tvTodayStatus.setText(lateStatus);
         tvTodayStatus.setTextColor(lateStatus.equals("Late") ?
                 ContextCompat.getColor(this, R.color.orange) :
@@ -477,30 +437,18 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         statusIndicator.setBackgroundResource(lateStatus.equals("Late") ?
                 R.drawable.status_dot_late : R.drawable.status_dot_present);
 
+        // **CONFIRMATION TOAST**
         toast("📸 Taking photo for " + lateStatus + " check-in...");
+
+        // **THEN OPEN CAMERA**
         openCamera("checkIn");
     }
-
     private void tryCheckOut() {
-        if (!isInternetAvailable()) {
-            toast("❌ No Internet");
-            return;
-        }
-
-        // **NEW: Check location ON button click**
-        if (!locationReady) {
-            promptLocationIfOff();
-            return;
-        }
-
-        if (!isCheckedIn) {
-            toast("⚠️ Please check-in first!");
-            return;
-        }
-
+        if (!isInternetAvailable()) { toast("❌ No Internet"); return; }
+        if (!locationReady) { toast("⏳ Waiting for GPS"); return; }
+        if (!isCheckedIn) { toast("⚠️ Please check-in first!"); return; }
         openCamera("checkOut");
     }
-
 
     private boolean isInternetAvailable() {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -568,28 +516,30 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         });
     }
 
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == REQUEST_CHECK_SETTINGS) {
             if (resultCode == RESULT_OK) {
-                // User enabled location ✅
+                // User turned ON location
                 getCurrentLocation();
             } else {
-                toast("📍 Location required for attendance");
+                // User cancelled
+                tvLocation.setText("Location off");
+                toast("📍 Please enable location to mark attendance");
             }
             return;
         }
 
-        // Your existing camera code...
+        // existing camera result
         if (requestCode == CAMERA_REQUEST_CODE && resultCode == RESULT_OK
                 && data != null && data.getExtras() != null) {
             currentPhotoBitmap = (Bitmap) data.getExtras().get("data");
             if (currentPhotoBitmap != null) uploadPhotoAndSaveAttendance();
         }
     }
-
 
 
     private void uploadPhotoAndSaveAttendance() {
