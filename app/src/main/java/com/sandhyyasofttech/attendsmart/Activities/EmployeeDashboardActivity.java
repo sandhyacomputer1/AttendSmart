@@ -42,6 +42,23 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import com.google.android.gms.common.api.ResolvableApiException;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.SettingsClient;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import android.content.IntentSender;
+
+import com.google.android.gms.common.api.ResolvableApiException;
+import com.google.android.gms.location.LocationSettingsRequest;
+import com.google.android.gms.location.LocationSettingsResponse;
+import com.google.android.gms.location.SettingsClient;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+
 public class EmployeeDashboardActivity extends AppCompatActivity {
 
     // UI Elements
@@ -63,6 +80,8 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
     private double currentLat = 0, currentLng = 0;
     private Bitmap currentPhotoBitmap;
     private boolean isCheckedIn = false;  // ONE TIME CHECK-IN ONLY
+    private SettingsClient settingsClient;
+
 
     // Location
     private FusedLocationProviderClient fusedLocationClient;
@@ -71,11 +90,13 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
     private boolean locationReady = false;
     private static final int LOCATION_PERMISSION_CODE = 101;
     private static final int CAMERA_REQUEST_CODE = 102;
+    private static final int REQUEST_CHECK_SETTINGS = 103; // <-- add this
     private String pendingAction = "";
 
     // Timers
     private Handler timeHandler, workTimerHandler;
     private Runnable timeRunnable, workTimerRunnable;
+
 
 
     @Override
@@ -125,7 +146,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
 
         updateButtonStates();
     }
-
     private void updateGreeting() {
         Calendar cal = Calendar.getInstance();
         int hour = cal.get(Calendar.HOUR_OF_DAY);
@@ -143,6 +163,32 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         shiftsRef = db.getReference("Companies").child(companyKey).child("shifts");
         attendancePhotoRef = FirebaseStorage.getInstance()
                 .getReference().child("Companies").child(companyKey).child("attendance_photos");
+    }
+
+    private void promptLocationIfOff() {
+        if (settingsClient == null) {
+            settingsClient = LocationServices.getSettingsClient(this);
+        }
+
+        LocationSettingsRequest.Builder builder =
+                new LocationSettingsRequest.Builder().addLocationRequest(locationRequest);
+
+        settingsClient.checkLocationSettings(builder.build())
+                .addOnSuccessListener(locationSettingsResponse -> {
+                    // Location ON - get location and continue
+                    getCurrentLocation();
+                })
+                .addOnFailureListener(e -> {
+                    if (e instanceof ResolvableApiException) {
+                        // Location OFF - show popup
+                        try {
+                            ResolvableApiException resolvable = (ResolvableApiException) e;
+                            resolvable.startResolutionForResult(this, REQUEST_CHECK_SETTINGS);
+                        } catch (Exception ignored) {
+                            toast("📍 Enable location");
+                        }
+                    }
+                });
     }
 
     private void setupLocation() {
@@ -180,21 +226,26 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
     }
 
     private void requestLocationPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{
-                    Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, LOCATION_PERMISSION_CODE);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                    LOCATION_PERMISSION_CODE);
         } else {
-            getCurrentLocation();
+            // Permission already granted
+            checkLocationSettings();   // <-- show popup if GPS is OFF
         }
     }
 
     private void getCurrentLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return;
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) return;
+
         fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
             if (location != null) {
                 currentLat = location.getLatitude();
                 currentLng = location.getLongitude();
-                locationReady = true;
+                locationReady = true;  // ✅ Mark ready
                 tvLocation.setText(String.format("%.4f, %.4f", currentLat, currentLng));
                 locationStatusDot.setBackgroundResource(R.drawable.status_dot_active);
                 getAddressFromLatLng(currentLat, currentLng);
@@ -202,16 +253,15 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
             startLocationUpdates();
             updateButtonStates();
         }).addOnFailureListener(e -> {
-            toast("GPS Error");
+            toast("📍 GPS Error");
             startLocationUpdates();
+            updateButtonStates();
         });
     }
-
     private void startLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) return;
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
     }
-
     private void getAddressFromLatLng(double lat, double lng) {
         new Thread(() -> {
             try {
@@ -227,7 +277,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
             } catch (Exception ignored) {}
         }).start();
     }
-
     private void loadEmployeeData() {
         String email = new PrefManager(this).getEmployeeEmail();
 
@@ -284,8 +333,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                     }
                 });
     }
-
-
     private void loadShiftFromEmployeeData(DataSnapshot emp) {
         String employeeShift = emp.child("info").child("employeeShift").getValue(String.class);
         if (employeeShift == null || employeeShift.isEmpty()) {
@@ -351,69 +398,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
-
-//    private void updateUI() {
-//        // Update times
-//        tvCheckInTime.setText(checkInTime != null ? checkInTime : "Not marked");
-//        tvCheckOutTime.setText(checkOutTime != null ? checkOutTime : "Not marked");
-//
-//        // Update status & colors
-//        int statusColor;
-//        int dotDrawable;
-//
-//        if (checkInTime == null) {
-//            tvTodayStatus.setText("Not Checked In");
-//            statusColor = ContextCompat.getColor(this, R.color.red);
-//            dotDrawable = R.drawable.status_dot_absent;
-//        } else if (checkOutTime == null) {
-//            tvTodayStatus.setText("Checked In");
-//            statusColor = ContextCompat.getColor(this, R.color.green);
-//            dotDrawable = R.drawable.status_dot_present;
-//        } else {
-//            tvTodayStatus.setText(finalStatus != null ? finalStatus : "Completed");
-//            switch (finalStatus) {
-//                case "Full Day":
-//                    statusColor = ContextCompat.getColor(this, R.color.green);
-//                    dotDrawable = R.drawable.status_dot_present;
-//                    break;
-//                case "Present":
-//                    statusColor = ContextCompat.getColor(this, R.color.green);
-//                    dotDrawable = R.drawable.status_dot_present;
-//                    break;
-//                case "Late":
-//                    statusColor = ContextCompat.getColor(this, R.color.orange);
-//                    dotDrawable = R.drawable.status_dot_late;
-//                    break;
-//                case "Half Day":
-//                    statusColor = ContextCompat.getColor(this, R.color.yellow);
-//                    dotDrawable = R.drawable.status_dot_halfday;
-//                    break;
-//                default:
-//                    statusColor = ContextCompat.getColor(this, R.color.red);
-//                    dotDrawable = R.drawable.status_dot_absent;
-//                    break;
-//            }
-//        }
-//
-//        tvTodayStatus.setTextColor(statusColor);
-//        statusIndicator.setBackgroundResource(dotDrawable);
-//        updateButtonStates();
-//
-//        // Update work hours if checked out
-//        if (checkInTime != null && checkOutTime != null) {
-//            long totalMins = getDiffMinutes(checkInTime, checkOutTime);
-//            tvWorkHours.setText(String.format("%dh %dm", totalMins / 60, totalMins % 60));
-//        }
-//    }
-
-    // **NEW: Check-in logic with late marking**
-//    private void tryCheckIn() {
-//        if (!isInternetAvailable()) { toast("❌ No Internet"); return; }
-//        if (!locationReady) { toast("⏳ Waiting for GPS"); return; }
-//        if (isCheckedIn) { toast("⚠️ Already checked in!"); return; }
-//        openCamera("checkIn");
-//    }
-
     private void updateUI() {
         tvCheckInTime.setText(checkInTime != null ? checkInTime : "Not marked");
         tvCheckOutTime.setText(checkOutTime != null ? checkOutTime : "Not marked");
@@ -470,20 +454,22 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
             toast("❌ No Internet");
             return;
         }
+
+        // **NEW: Check location ON button click**
         if (!locationReady) {
-            toast("⏳ Waiting for GPS");
+            promptLocationIfOff();
             return;
         }
+
         if (isCheckedIn) {
             toast("⚠️ Already checked in!");
             return;
         }
 
-        // **INSTANT LATE CALCULATION & DISPLAY**
+        // Your existing logic...
         String currentTime = getCurrentTime();
         String lateStatus = isLateCheckIn(shiftStart, currentTime) ? "Late" : "Present";
 
-        // **SHOW LATE STATUS IMMEDIATELY**
         tvTodayStatus.setText(lateStatus);
         tvTodayStatus.setTextColor(lateStatus.equals("Late") ?
                 ContextCompat.getColor(this, R.color.orange) :
@@ -491,20 +477,30 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         statusIndicator.setBackgroundResource(lateStatus.equals("Late") ?
                 R.drawable.status_dot_late : R.drawable.status_dot_present);
 
-        // **CONFIRMATION TOAST**
         toast("📸 Taking photo for " + lateStatus + " check-in...");
-
-        // **THEN OPEN CAMERA**
         openCamera("checkIn");
     }
 
-
     private void tryCheckOut() {
-        if (!isInternetAvailable()) { toast("❌ No Internet"); return; }
-        if (!locationReady) { toast("⏳ Waiting for GPS"); return; }
-        if (!isCheckedIn) { toast("⚠️ Please check-in first!"); return; }
+        if (!isInternetAvailable()) {
+            toast("❌ No Internet");
+            return;
+        }
+
+        // **NEW: Check location ON button click**
+        if (!locationReady) {
+            promptLocationIfOff();
+            return;
+        }
+
+        if (!isCheckedIn) {
+            toast("⚠️ Please check-in first!");
+            return;
+        }
+
         openCamera("checkOut");
     }
+
 
     private boolean isInternetAvailable() {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -521,29 +517,80 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == LOCATION_PERMISSION_CODE) {
             boolean granted = true;
             for (int result : grantResults) {
                 if (result != PackageManager.PERMISSION_GRANTED) granted = false;
             }
-            if (granted) getCurrentLocation();
-            else {
+            if (granted) {
+                checkLocationSettings();   // <-- instead of directly getCurrentLocation()
+            } else {
                 tvLocation.setText("Location denied");
                 toast("📍 GPS permission required");
             }
         }
     }
+    private void checkLocationSettings() {
+        // use your existing locationRequest
+        LocationSettingsRequest.Builder builder =
+                new LocationSettingsRequest.Builder().addLocationRequest(locationRequest);
+
+        SettingsClient client = LocationServices.getSettingsClient(this);
+        Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
+
+        task.addOnSuccessListener(this, new OnSuccessListener<LocationSettingsResponse>() {
+            @Override
+            public void onSuccess(LocationSettingsResponse locationSettingsResponse) {
+                // All location settings are satisfied
+                getCurrentLocation();   // now safe to start
+            }
+        });
+
+        task.addOnFailureListener(this, new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                if (e instanceof ResolvableApiException) {
+                    try {
+                        ((ResolvableApiException) e).startResolutionForResult(
+                                EmployeeDashboardActivity.this,
+                                REQUEST_CHECK_SETTINGS
+                        );
+                    } catch (IntentSender.SendIntentException sendEx) {
+                        // ignore
+                    }
+                } else {
+                    toast("📍 Enable location to continue");
+                }
+            }
+        });
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == CAMERA_REQUEST_CODE && resultCode == RESULT_OK && data != null && data.getExtras() != null) {
+
+        if (requestCode == REQUEST_CHECK_SETTINGS) {
+            if (resultCode == RESULT_OK) {
+                // User enabled location ✅
+                getCurrentLocation();
+            } else {
+                toast("📍 Location required for attendance");
+            }
+            return;
+        }
+
+        // Your existing camera code...
+        if (requestCode == CAMERA_REQUEST_CODE && resultCode == RESULT_OK
+                && data != null && data.getExtras() != null) {
             currentPhotoBitmap = (Bitmap) data.getExtras().get("data");
             if (currentPhotoBitmap != null) uploadPhotoAndSaveAttendance();
         }
     }
+
+
 
     private void uploadPhotoAndSaveAttendance() {
         String today = getTodayDate();
@@ -561,61 +608,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                                 saveAttendance(uri.toString(), time)))
                 .addOnFailureListener(e -> toast("❌ Upload failed"));
     }
-
-    // **CORE LOGIC: Save attendance with late/half/full day calculation**
-//    private void saveAttendance(String photoUrl, String time) {
-//        String today = getTodayDate();
-//        DatabaseReference node = attendanceRef.child(today).child(employeeMobile);
-//
-//        node.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                if (pendingAction.equals("checkIn")) {
-//                    // **LATE LOGIC: 9:00-9:10 = ON TIME, after 9:10 = LATE**
-//                    String initialStatus = isLateCheckIn(shiftStart, time) ? "Late" : "Present";
-//
-//                    node.child("checkInTime").setValue(time);
-//                    node.child("checkInPhoto").setValue(photoUrl);
-//                    node.child("status").setValue(initialStatus);
-//                    node.child("checkInLat").setValue(currentLat);
-//                    node.child("checkInLng").setValue(currentLng);
-//                    node.child("checkInAddress").setValue(currentAddress);
-//
-//                    checkInTime = time;
-//                    isCheckedIn = true;
-//                    toast("✅ Checked In! " + initialStatus);
-//                    startWorkTimer();
-//
-//                } else if (pendingAction.equals("checkOut")) {
-//                    if (checkInTime == null) {
-//                        toast("⚠️ Check-in first!");
-//                        return;
-//                    }
-//
-//                    // **HALF/FULL DAY LOGIC: Total work <4hr = Half, >8hr = Full**
-//                    long totalMins = getDiffMinutes(checkInTime, time);
-//                    String finalStatus = getFinalStatus(totalMins);
-//
-//                    node.child("checkOutTime").setValue(time);
-//                    node.child("checkOutPhoto").setValue(photoUrl);
-//                    node.child("status").setValue(finalStatus);
-//                    node.child("totalMinutes").setValue(totalMins);
-//                    node.child("totalHours").setValue(String.format("%.1f", totalMins / 60.0));
-//                    node.child("checkOutLat").setValue(currentLat);
-//                    node.child("checkOutLng").setValue(currentLng);
-//                    node.child("checkOutAddress").setValue(currentAddress);
-//
-//                    checkOutTime = time;
-//                    isCheckedIn = false;
-//                    toast("✅ Checked Out!\n" + finalStatus + " (" + (totalMins/60) + "h " + (totalMins%60) + "m)");
-//                    stopWorkTimer();
-//                }
-//                loadTodayAttendance();  // Refresh UI
-//            }
-//            @Override public void onCancelled(@NonNull DatabaseError error) { toast("Save failed!"); }
-//        });
-//    }
-
 
     private void saveAttendance(String photoUrl, String time) {
         if (employeeMobile == null) {
@@ -693,13 +685,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
     }
 
 
-    // **LATE CHECK-IN LOGIC: Within 10min of shift = Present, after = Late**
-//    private boolean isLateCheckIn(String shiftStartTime, String checkInTime) {
-//        if (shiftStartTime == null) return false;
-//        long lateMins = getDiffMinutes(shiftStartTime, checkInTime);
-//        return lateMins > 10;  // After 10 minutes = Late
-//    }
-
     // **LATE LOGIC: 10min grace period**
     private boolean isLateCheckIn(String shiftStartTime, String checkInTime) {
         if (shiftStartTime == null || shiftStartTime.isEmpty()) {
@@ -713,12 +698,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         }
     }
 
-    // **FINAL STATUS LOGIC**
-//    private String getFinalStatus(long totalMinutes) {
-//        if (totalMinutes < 240) return "Half Day";    // < 4 hours
-//        if (totalMinutes >= 480) return "Full Day";   // >= 8 hours
-//        return "Present";  // 4-8 hours
-//    }
     private String getFinalStatus(long totalMinutes) {
         if (totalMinutes < 240) {      // LESS THAN 4 HOURS
             return "Half Day";
@@ -740,25 +719,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
             return 0;
         }
     }
-
-
-//    // **FINAL STATUS LOGIC: Half Day <4hr, Full Day >8hr**
-//    private String getFinalStatus(long totalMinutes) {
-//        if (totalMinutes < 240) return "Half Day";  // Less than 4 hours
-//        if (totalMinutes >= 480) return "Full Day"; // 8+ hours
-//        return "Present";  // 4-8 hours
-//    }
-//
-//    private long getDiffMinutes(String start, String end) {
-//        try {
-//            SimpleDateFormat sdf = new SimpleDateFormat("h:mm a", Locale.ENGLISH);
-//            Date startDate = sdf.parse(start);
-//            Date endDate = sdf.parse(end);
-//            return Math.max(0, (endDate.getTime() - startDate.getTime()) / 60000);
-//        } catch (Exception e) {
-//            return 0;
-//        }
-//    }
 
     private void startWorkTimer() {
         workTimerHandler = new Handler();
