@@ -25,7 +25,31 @@
     <color name="textSecondary">#757575</color>
     <color name="textTertiary">#9E9E9E</color>
 
-    <!-- Divider -->
+        <color name="background_gray">#F5F7FA</color>
+        <color name="background_light">#F8F9FA</color>
+
+        <!-- Text Colors -->
+        <color name="text_primary">#1A1A1A</color>
+        <color name="text_secondary">#666666</color>
+
+        <!-- Status Colors -->
+        <color name="present">#4CAF50</color>
+        <color name="present_bg">#E8F5E9</color>
+
+        <color name="late">#FF9800</color>
+        <color name="late_bg">#FFF3E0</color>
+
+        <color name="halfday">#2196F3</color>
+        <color name="halfday_bg">#E3F2FD</color>
+
+        <color name="absent">#F44336</color>
+        <color name="absent_bg">#FFEBEE</color>
+
+        <!-- Card Styling -->
+        <color name="card_stroke">#E0E0E0</color>
+
+        <!-- Primary Color -->
+
     <color name="dividerColor">#E0E0E0</color>
 
     <!-- Working Hours Background -->
@@ -42,8 +66,6 @@
     <color name="orange_light">#FFE0B2</color>
 
     <!-- Text Colors -->
-    <color name="text_primary">#000000</color>
-    <color name="text_secondary">#757575</color>
 
     <!-- Status Colors -->
     <color name="success">#4CAF50</color>

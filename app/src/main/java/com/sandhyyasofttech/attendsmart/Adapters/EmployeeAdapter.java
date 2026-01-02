@@ -1,6 +1,7 @@
 package com.sandhyyasofttech.attendsmart.Adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +14,7 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.sandhyyasofttech.attendsmart.Activities.AdminEmployeeAttendanceActivity;
 import com.sandhyyasofttech.attendsmart.Models.EmployeeModel;
 import com.sandhyyasofttech.attendsmart.R;
 
@@ -54,7 +56,7 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.Employ
 
         safeSetText(holder.tvCheckInTime, model.getCheckInTime() != null ? model.getCheckInTime() : "");
 
-        // 🔥 PHOTO LOGIC WITH DEBUG
+        // Photo logic
         if (holder.ivPhoto != null) {
             String photoUrl = model.getCheckInPhoto();
             android.util.Log.d("EmployeeAdapter", "Loading photo for " + model.getEmployeeName() + ": " + photoUrl);
@@ -72,7 +74,7 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.Employ
             }
         }
 
-        // Status icon logic (unchanged)
+        // Status icon
         if (holder.ivStatus != null) {
             if ("Present".equals(status) || "Half Day".equals(status)) {
                 holder.ivStatus.setImageResource(R.drawable.ic_check_circle);
@@ -82,9 +84,17 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.Employ
                 holder.ivStatus.setColorFilter(ContextCompat.getColor(context, R.color.error));
             }
         }
+
+        // ✅ ADD CLICK LISTENER TO OPEN ATTENDANCE REPORT
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, AdminEmployeeAttendanceActivity.class);
+            intent.putExtra("employeeMobile", model.getEmployeeMobile());
+            intent.putExtra("employeeName", model.getEmployeeName());
+            intent.putExtra("employeeRole", model.getEmployeeRole());
+            context.startActivity(intent);
+        });
     }
 
-    // ✅ NULL-SAFE TEXT SETTER
     private void safeSetText(TextView textView, String text) {
         if (textView != null) {
             textView.setText(text);
@@ -99,7 +109,6 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.Employ
 
         public EmployeeViewHolder(@NonNull View itemView) {
             super(itemView);
-            // ✅ NULL-SAFE FINDVIEWBYID
             tvName = itemView.findViewById(R.id.tvEmpName);
             tvMobile = itemView.findViewById(R.id.tvEmpMobile);
             tvDepartment = itemView.findViewById(R.id.tvEmpDepartment);
@@ -108,7 +117,6 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.Employ
             ivStatus = itemView.findViewById(R.id.ivStatus);
             ivPhoto = itemView.findViewById(R.id.ivPhoto);
 
-            // ✅ LOG MISSING VIEWS
             if (tvName == null) Log.e("EmployeeVH", "tvEmpName NOT FOUND in item_employee.xml");
             if (tvMobile == null) Log.e("EmployeeVH", "tvEmpMobile NOT FOUND in item_employee.xml");
             if (tvDepartment == null) Log.e("EmployeeVH", "tvEmpDepartment NOT FOUND");

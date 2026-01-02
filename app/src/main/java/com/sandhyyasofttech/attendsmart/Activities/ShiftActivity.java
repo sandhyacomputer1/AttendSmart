@@ -113,7 +113,6 @@ public class ShiftActivity extends AppCompatActivity {
         etEndTime.setOnClickListener(v -> showTimePicker(etEndTime));
         btnAddShift.setOnClickListener(v -> addShift());
     }
-
     /* ---------------- Time Picker ---------------- */
     private void showTimePicker(TextInputEditText target) {
         Calendar cal = Calendar.getInstance();
@@ -124,7 +123,6 @@ public class ShiftActivity extends AppCompatActivity {
                 (view, h, m) -> target.setText(formatTime(h, m)),
                 hour, minute, false).show();
     }
-
     private String formatTime(int hour, int minute) {
         String amPm = hour < 12 ? "AM" : "PM";
         int h = hour % 12;

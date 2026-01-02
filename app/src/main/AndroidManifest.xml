@@ -62,6 +62,9 @@
             android:name=".Activities.PersonalDetailsActivity"
             android:exported="false" />
         <activity
+            android:name=".Activities.AdminEmployeeAttendanceActivity"
+            android:exported="false" />
+        <activity
             android:name=".Activities.SettingsActivity"
             android:exported="false" />
         <activity
