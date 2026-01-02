@@ -1,6 +1,7 @@
 package com.sandhyyasofttech.attendsmart.Registration;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
@@ -23,6 +24,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.sandhyyasofttech.attendsmart.Activities.DepartmentActivity;
 import com.sandhyyasofttech.attendsmart.Activities.EmployeeListActivity;
 import com.sandhyyasofttech.attendsmart.Activities.ShiftActivity;
@@ -64,6 +66,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
     private MaterialButton btnViewReports;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
+    private static final int NOTIF_PERMISSION = 201;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -83,12 +87,65 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         // Initialize Firebase references
         initializeFirebaseReferences();
+        saveAdminFcmToken();
+        ensureNotificationSetting(); // 👈 ADD THIS
 
         // Setup click listeners
         setupClickListeners();
+        requestNotificationPermission();
 
         // Fetch all data
         fetchAllData();
+    }
+
+    private void saveAdminFcmToken() {
+        FirebaseMessaging.getInstance().getToken()
+                .addOnSuccessListener(token -> {
+                    if (token == null || token.isEmpty()) return;
+
+                    FirebaseDatabase.getInstance()
+                            .getReference("Companies")
+                            .child(companyKey)
+                            .child("companyInfo")
+                            .child("adminFcmToken")
+                            .setValue(token);
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "FCM token failed", Toast.LENGTH_SHORT).show()
+                );
+    }
+    private void ensureNotificationSetting() {
+        DatabaseReference notifyRef = FirebaseDatabase.getInstance()
+                .getReference("Companies")
+                .child(companyKey)
+                .child("companyInfo")
+                .child("notifyAttendance");
+
+        notifyRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!snapshot.exists()) {
+                    // 🔔 Default ON
+                    notifyRef.setValue(true);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+            }
+        });
+    }
+
+    private void requestNotificationPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(
+                        new String[]{android.Manifest.permission.POST_NOTIFICATIONS},
+                        NOTIF_PERMISSION
+                );
+            }
+        }
     }
     private void setupDrawer() {
         drawerLayout = findViewById(R.id.drawer_layout);
@@ -112,7 +169,12 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 startActivity(new Intent(this, DepartmentActivity.class));
             } else if (id == R.id.nav_shifts) {
                 startActivity(new Intent(this, ShiftActivity.class));
-            } else if (id == R.id.nav_logout) {
+            } else if (id == R.id.nav_settings) {
+                startActivity(new Intent(this,
+                        com.sandhyyasofttech.attendsmart.Settings.SettingsActivity.class));
+            }
+
+            else if (id == R.id.nav_logout) {
                 showLogoutConfirmation();
             }
 

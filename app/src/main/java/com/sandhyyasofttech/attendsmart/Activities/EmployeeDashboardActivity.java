@@ -52,6 +52,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import android.content.IntentSender;
 
+
 public class EmployeeDashboardActivity extends AppCompatActivity {
 
     // UI Elements
@@ -571,9 +572,10 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         node.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                String lateStatus = null;
                 if (pendingAction.equals("checkIn")) {
                     // **CHECK-IN: Save Late Status**
-                    String lateStatus = isLateCheckIn(shiftStart, time) ? "Late" : "Present";
+                    lateStatus = isLateCheckIn(shiftStart, time) ? "Late" : "Present";
 
                     // **ALL CHECK-IN DATA SAVED**
                     node.child("checkInTime").setValue(time);
@@ -619,13 +621,16 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
 
                     checkOutTime = time;
                     isCheckedIn = false;
-                    toast("✅ Checked Out!\n" + displayStatus + "\nTotal: " + (totalMins/60) + "h " + (totalMins%60) + "m");
+                    toast("✅ Checked Out!\n" + displayStatus + "\nTotal: " + (totalMins / 60) + "h " + (totalMins % 60) + "m");
                     stopWorkTimer();
+
                 }
 
                 // **REFRESH UI**
                 loadTodayAttendance();
             }
+
+
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {

@@ -2,38 +2,22 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_dashboard"
+            android:id="@+id/nav_employee_dashboard"
             android:icon="@drawable/ic_dashboard"
             android:title="Dashboard" />
         <item
-            android:id="@+id/nav_attendance"
-            android:icon="@drawable/ic_attendance"
+            android:id="@+id/nav_employee_attendance"
+            android:icon="@drawable/ic_calendar"
             android:title="Attendance" />
         <item
-            android:id="@+id/nav_leaves"
-            android:title="Leaves" />
-        <item
-            android:id="@+id/nav_shifts"
-            android:icon="@drawable/ic_clock"
+            android:id="@+id/nav_employee_shifts"
             android:title="Shifts" />
-        <item
-            android:id="@+id/nav_profile"
-            android:icon="@drawable/ic_profile"
-            android:title="Profile" />
-        <item
-            android:id="@+id/nav_reports"
-            android:icon="@drawable/ic_report"
-            android:title="Reports" />
     </group>
-    <item android:title="Settings">
-        <menu>
-            <item
-                android:id="@+id/nav_settings"
-                android:title="Settings" />
-        </menu>
-    </item>
     <item
-        android:id="@+id/nav_logout"
+        android:id="@+id/nav_employee_settings"
+        android:title="Settings" />
+    <item
+        android:id="@+id/nav_employee_logout"
         android:icon="@drawable/ic_logout"
         android:title="Logout" />
 </menu>
