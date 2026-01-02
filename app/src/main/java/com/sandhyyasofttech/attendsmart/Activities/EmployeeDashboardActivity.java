@@ -28,6 +28,7 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
 import com.google.firebase.database.*;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.sandhyyasofttech.attendsmart.R;
@@ -104,6 +105,22 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         loadTodayAttendance();  // Load today's status
         startClock();
         updateGreeting();
+
+    }
+    private void saveEmployeeFcmToken() {
+        FirebaseMessaging.getInstance().getToken()
+                .addOnSuccessListener(token -> {
+                    if (token == null || token.isEmpty()) return;
+
+                    FirebaseDatabase.getInstance()
+                            .getReference("Companies")
+                            .child(companyKey)
+                            .child("employees")
+                            .child(employeeMobile)
+                            .child("info")
+                            .child("fcmToken")
+                            .setValue(token);
+                });
     }
 
     private void initViews() {
@@ -126,7 +143,9 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         cardLogout = findViewById(R.id.cardLogout);
 
         // Click Listeners
-        cardCheckIn.setOnClickListener(v -> tryCheckIn());
+//        cardCheckIn.setOnClickListener(v -> tryCheckIn());
+        cardCheckIn.setOnClickListener(v -> checkApprovedLeaveThenCheckIn());
+
         cardCheckOut.setOnClickListener(v -> tryCheckOut());
         cardAttendanceReport.setOnClickListener(v -> openAttendanceReport());
         cardLogout.setOnClickListener(v -> showLogoutConfirmation());
@@ -253,6 +272,8 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                     if (email.equals(empEmail)) {
                         employeeMobile = emp.getKey();
                         employeeName = info.child("employeeName").getValue(String.class);
+
+                        saveEmployeeFcmToken();
 
                         // **FIX 1: Set Employee Details**
                         tvEmployeeName.setText(employeeName != null ? employeeName : "User");
@@ -754,6 +775,50 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         if (fusedLocationClient != null && locationCallback != null) {
             fusedLocationClient.removeLocationUpdates(locationCallback);
         }
+    }
+    private void checkApprovedLeaveThenCheckIn() {
+
+        String todayDate = getTodayDate();
+
+        DatabaseReference leaveRef = FirebaseDatabase.getInstance()
+                .getReference("Companies")
+                .child(companyKey)
+                .child("leaves");
+
+        leaveRef.orderByChild("employeeMobile")
+                .equalTo(employeeMobile)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                        for (DataSnapshot s : snapshot.getChildren()) {
+
+                            String status = s.child("status").getValue(String.class);
+                            String fromDate = s.child("fromDate").getValue(String.class);
+                            String toDate = s.child("toDate").getValue(String.class);
+
+                            if ("APPROVED".equals(status)
+                                    && isDateBetween(todayDate, fromDate, toDate)) {
+
+                                toast("❌ You are on approved leave today.\nCheck-in is disabled");
+                                return; // 🚫 STOP HERE
+                            }
+                        }
+
+                        // ✅ No approved leave → continue normal flow
+                        tryCheckIn();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        // fail-safe → allow check-in
+                        tryCheckIn();
+                    }
+                });
+    }
+    private boolean isDateBetween(String today, String from, String to) {
+        if (from == null || to == null) return false;
+        return today.compareTo(from) >= 0 && today.compareTo(to) <= 0;
     }
 
     private void toast(String msg) {

@@ -10,6 +10,9 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -19,21 +22,28 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/salarylogo"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/salarylogo"
         android:supportsRtl="true"
         android:theme="@style/Theme.AttendSmart"
         tools:targetApi="31">
+        <activity
+            android:name=".Activities.AdminLeaveListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activities.MyLeavesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activities.ApplyLeaveActivity"
+            android:exported="false" />
 
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/salarylogo" />
-
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/primary" />
-
 
         <activity
             android:name=".Settings.SettingsActivity"
@@ -98,7 +108,18 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity> <!-- 🔔 Attendance Reminder Receiver -->
+        <receiver
+            android:name=".Utils.AttendanceReminderReceiver"
+            android:exported="false" /> <!-- 🔁 Boot Receiver (optional but recommended) -->
+        <receiver
+            android:name=".Utils.BootReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

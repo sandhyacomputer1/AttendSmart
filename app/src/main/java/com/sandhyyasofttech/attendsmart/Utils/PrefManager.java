@@ -278,14 +278,16 @@ public class PrefManager {
         return prefs.getString("shiftName", "");
     }
 
+    // ✅ FOR NOTIFICATION SYSTEM (NEW – CORRECT)
     public void setShiftStartTime(String startTime) {
-        editor.putString("shiftStartTime_old", startTime);
+        editor.putString("shiftStartTime", startTime);
         editor.apply();
     }
 
-    public String getShiftStartTime_old() {
-        return prefs.getString("shiftStartTime_old", "");
-    }
+//    public String getShiftStartTime() {
+//        return prefs.getString("shiftStartTime", null);
+//    }
+
 
     public void setShiftEndTime(String endTime) {
         editor.putString("shiftEndTime", endTime);

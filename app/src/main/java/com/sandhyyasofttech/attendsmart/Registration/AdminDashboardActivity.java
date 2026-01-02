@@ -169,7 +169,11 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 startActivity(new Intent(this, DepartmentActivity.class));
             } else if (id == R.id.nav_shifts) {
                 startActivity(new Intent(this, ShiftActivity.class));
-            } else if (id == R.id.nav_settings) {
+            } else if (id == R.id.nav_leaves) {
+                startActivity(new Intent(this,
+                        com.sandhyyasofttech.attendsmart.Activities.AdminLeaveListActivity.class));
+            }
+            else if (id == R.id.nav_settings) {
                 startActivity(new Intent(this,
                         com.sandhyyasofttech.attendsmart.Settings.SettingsActivity.class));
             }

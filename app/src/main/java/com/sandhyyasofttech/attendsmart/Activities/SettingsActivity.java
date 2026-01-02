@@ -1,277 +1,4 @@
-//package com.sandhyyasofttech.attendsmart.Activities;
-//
-//import android.Manifest;
-//import android.content.pm.PackageManager;
-//import android.os.Build;
-//import android.os.Bundle;
-//import android.widget.Switch;
-//import android.widget.TextView;
-//import android.widget.Toast;
-//
-//import androidx.annotation.NonNull;
-//import androidx.appcompat.app.AppCompatActivity;
-//import androidx.core.app.ActivityCompat;
-//
-//import com.google.firebase.database.DataSnapshot;
-//import com.google.firebase.database.DatabaseError;
-//import com.google.firebase.database.DatabaseReference;
-//import com.google.firebase.database.FirebaseDatabase;
-//import com.google.firebase.database.ValueEventListener;
-//import com.sandhyyasofttech.attendsmart.R;
-//import com.sandhyyasofttech.attendsmart.Utils.AttendanceReminderHelper;
-//import com.sandhyyasofttech.attendsmart.Utils.PrefManager;
-//
-//import android.content.Intent;
-//import android.view.View;
-//import android.widget.ImageView;
-//
-//public class SettingsActivity extends AppCompatActivity {
-//
-//    private Switch switchNotifications;
-//    private TextView tvShiftTiming;
-//
-//    private DatabaseReference dbRef;
-//    private String companyKey, employeeMobile;
-//    private PrefManager pref;
-//
-//    private ImageView ivProfile;
-//    private View cardPersonalDetails;
-//    private View cardAttendanceReport;
-//    private View cardEmployment;
-//    private View cardShiftTiming;
-//    private View cardNotifications;
-//
-//    private static final int NOTIFICATION_PERMISSION_CODE = 101;
-//
-//    @Override
-//    protected void onCreate(Bundle savedInstanceState) {
-//        super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_settings);
-//
-//        switchNotifications = findViewById(R.id.switchNotifications);
-//        tvShiftTiming = findViewById(R.id.tvShiftTiming);
-//
-//        ivProfile = findViewById(R.id.ivProfile);
-//        cardPersonalDetails = findViewById(R.id.cardPersonalDetails);
-//        cardEmployment = findViewById(R.id.cardEmployment);
-//        cardShiftTiming = findViewById(R.id.cardShiftTiming);
-//        cardAttendanceReport = findViewById(R.id.cardAttendanceReport);
-//        cardNotifications = findViewById(R.id.cardNotifications);
-//
-//        pref = new PrefManager(this);
-//        companyKey = pref.getCompanyKey();
-//        employeeMobile = pref.getEmployeeMobile();
-//
-//        dbRef = FirebaseDatabase.getInstance().getReference();
-//
-//        // Setup click listeners
-//        setupClickListeners();
-//
-//        // Load shift timing
-//        loadShiftTiming();
-//
-//        // Load notification preference
-//        boolean notificationsEnabled = pref.getNotificationsEnabled();
-//        switchNotifications.setChecked(notificationsEnabled);
-//
-//        // Set up switch listener
-//        switchNotifications.setOnCheckedChangeListener((buttonView, isChecked) -> {
-//            if (isChecked) {
-//                if (checkNotificationPermission()) {
-//                    enableNotifications();
-//                } else {
-//                    requestNotificationPermission();
-//                    // Will be enabled after permission is granted
-//                    switchNotifications.setChecked(false);
-//                }
-//            } else {
-//                disableNotifications();
-//            }
-//        });
-//    }
-//
-//    private void setupClickListeners() {
-//        // Profile image click
-//        ivProfile.setOnClickListener(v -> {
-//            startActivity(new Intent(SettingsActivity.this, PersonalDetailsActivity.class));
-//        });
-//
-//        // Personal Details card click
-//        cardPersonalDetails.setOnClickListener(v -> {
-//            startActivity(new Intent(SettingsActivity.this, PersonalDetailsActivity.class));
-//        });
-//
-//        // Attendance Report card click
-//        cardAttendanceReport.setOnClickListener(v -> {
-//            startActivity(new Intent(SettingsActivity.this, AttendanceReportActivity.class));
-//        });
-//    }
-//
-//    private void loadShiftTiming() {
-//        dbRef.child("Companies")
-//                .child(companyKey)
-//                .child("employees")
-//                .child(employeeMobile)
-//                .child("info")
-//                .child("employeeShift")
-//                .addListenerForSingleValueEvent(new ValueEventListener() {
-//                    @Override
-//                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                        String shiftId = snapshot.getValue(String.class);
-//
-//                        if (shiftId != null && !shiftId.isEmpty()) {
-//                            loadShiftDetails(shiftId);
-//                        } else {
-//                            tvShiftTiming.setText("No shift assigned");
-//                            switchNotifications.setEnabled(false);
-//                        }
-//                    }
-//
-//                    @Override
-//                    public void onCancelled(@NonNull DatabaseError error) {
-//                        toast("Failed to load shift information");
-//                    }
-//                });
-//    }
-//
-//    private void loadShiftDetails(String shiftId) {
-//        dbRef.child("Companies")
-//                .child(companyKey)
-//                .child("shifts")
-//                .child(shiftId)
-//                .addListenerForSingleValueEvent(new ValueEventListener() {
-//                    @Override
-//                    public void onDataChange(@NonNull DataSnapshot s) {
-//                        String start = s.child("startTime").getValue(String.class);
-//                        String end = s.child("endTime").getValue(String.class);
-//
-//                        if (start != null && end != null) {
-//                            tvShiftTiming.setText(start + " - " + end);
-//
-//                            // If notifications are enabled, reschedule with current shift time
-//                            if (pref.getNotificationsEnabled()) {
-//                                scheduleReminder(start);
-//                            }
-//                        } else {
-//                            tvShiftTiming.setText("Invalid shift data");
-//                            switchNotifications.setEnabled(false);
-//                        }
-//                    }
-//
-//                    @Override
-//                    public void onCancelled(@NonNull DatabaseError error) {
-//                        toast("Failed to load shift details");
-//                    }
-//                });
-//    }
-//
-//    private void enableNotifications() {
-//        dbRef.child("Companies")
-//                .child(companyKey)
-//                .child("employees")
-//                .child(employeeMobile)
-//                .child("info")
-//                .child("employeeShift")
-//                .addListenerForSingleValueEvent(new ValueEventListener() {
-//                    @Override
-//                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                        String shiftId = snapshot.getValue(String.class);
-//
-//                        if (shiftId != null && !shiftId.isEmpty()) {
-//                            getShiftStartTime(shiftId);
-//                        } else {
-//                            toast("No shift assigned");
-//                            switchNotifications.setChecked(false);
-//                        }
-//                    }
-//
-//                    @Override
-//                    public void onCancelled(@NonNull DatabaseError error) {
-//                        toast("Failed to enable notifications");
-//                        switchNotifications.setChecked(false);
-//                    }
-//                });
-//    }
-//
-//    private void getShiftStartTime(String shiftId) {
-//        dbRef.child("Companies")
-//                .child(companyKey)
-//                .child("shifts")
-//                .child(shiftId)
-//                .child("startTime")
-//                .addListenerForSingleValueEvent(new ValueEventListener() {
-//                    @Override
-//                    public void onDataChange(@NonNull DataSnapshot s) {
-//                        String startTime = s.getValue(String.class);
-//
-//                        if (startTime != null && !startTime.isEmpty()) {
-//                            scheduleReminder(startTime);
-//                            pref.setNotificationsEnabled(true);
-//                            toast("Reminder enabled");
-//                        } else {
-//                            toast("Invalid shift time");
-//                            switchNotifications.setChecked(false);
-//                        }
-//                    }
-//
-//                    @Override
-//                    public void onCancelled(@NonNull DatabaseError error) {
-//                        toast("Failed to get shift time");
-//                        switchNotifications.setChecked(false);
-//                    }
-//                });
-//    }
-//
-//    private void scheduleReminder(String startTime) {
-//        AttendanceReminderHelper.schedule(this, startTime);
-//    }
-//
-//    private void disableNotifications() {
-//        AttendanceReminderHelper.cancel(this);
-//        pref.setNotificationsEnabled(false);
-//        toast("Reminder disabled");
-//    }
-//
-//    private boolean checkNotificationPermission() {
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-//            return ActivityCompat.checkSelfPermission(
-//                    this,
-//                    Manifest.permission.POST_NOTIFICATIONS
-//            ) == PackageManager.PERMISSION_GRANTED;
-//        }
-//        return true; // Permission not required for Android < 13
-//    }
-//
-//    private void requestNotificationPermission() {
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-//            ActivityCompat.requestPermissions(
-//                    this,
-//                    new String[]{Manifest.permission.POST_NOTIFICATIONS},
-//                    NOTIFICATION_PERMISSION_CODE
-//            );
-//        }
-//    }
-//
-//    @Override
-//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
-//                                           @NonNull int[] grantResults) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-//
-//        if (requestCode == NOTIFICATION_PERMISSION_CODE) {
-//            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                switchNotifications.setChecked(true);
-//                enableNotifications();
-//            } else {
-//                toast("Notification permission denied");
-//                switchNotifications.setChecked(false);
-//            }
-//        }
-//    }
-//
-//    private void toast(String msg) {
-//        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-//    }
-//}
+
 package com.sandhyyasofttech.attendsmart.Activities;
 
 import android.Manifest;
@@ -321,9 +48,11 @@ public class SettingsActivity extends AppCompatActivity {
     private ImageView ivProfile;
     private View cardPersonalDetails;
     private View cardAttendanceReport;
+    private View cardApplyLeave;
     private View cardEmployment;
     private View cardShiftTimingView;
     private View cardNotifications;
+    private View cardMyLeaves;
 
     private static final int NOTIFICATION_PERMISSION_CODE = 101;
     private static final int PICK_IMAGE_REQUEST = 1001;
@@ -362,6 +91,9 @@ public class SettingsActivity extends AppCompatActivity {
         cardEmployment = findViewById(R.id.cardEmployment);
         cardShiftTimingView = findViewById(R.id.cardShiftTiming);
         cardAttendanceReport = findViewById(R.id.cardAttendanceReport);
+        cardApplyLeave = findViewById(R.id.cardApplyLeave);
+        cardMyLeaves = findViewById(R.id.cardMyLeaves);
+
         cardNotifications = findViewById(R.id.cardNotifications);
     }
 
@@ -576,6 +308,29 @@ public class SettingsActivity extends AppCompatActivity {
                 intent.putExtra("date", todayDate);
                 intent.putExtra("companyKey", companyKey);
                 intent.putExtra("employeeMobile", employeeMobile);
+                startActivity(intent);
+            });
+        }
+        if (cardApplyLeave != null) {
+            cardApplyLeave.setOnClickListener(v -> {
+                Intent intent = new Intent(SettingsActivity.this, ApplyLeaveActivity.class);
+
+                // OPTIONAL (future use / safety)
+                intent.putExtra("companyKey", companyKey);
+                intent.putExtra("employeeMobile", employeeMobile);
+
+                startActivity(intent);
+            });
+        }
+
+        if (cardMyLeaves != null) {
+            cardMyLeaves.setOnClickListener(v -> {
+                Intent intent = new Intent(SettingsActivity.this, MyLeavesActivity.class);
+
+                // Optional – future safe
+                intent.putExtra("companyKey", companyKey);
+                intent.putExtra("employeeMobile", employeeMobile);
+
                 startActivity(intent);
             });
         }
