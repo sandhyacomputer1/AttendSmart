@@ -122,10 +122,12 @@ public class EmployeeDetailsActivity extends AppCompatActivity {
             showDeactivateDialog();
             return true;
         }
-//        else if (id == R.id.nav_reports) {  // ✅ ADD THIS LINE
-//            startActivity(new Intent(this, ReportsActivity.class));
-//            return true;
-//        }
+        else if (id == R.id.nav_salery) {
+            Intent intent = new Intent(this, SalaryConfigActivity.class);
+            intent.putExtra("employeeMobile", employee.getEmployeeMobile());
+            startActivity(intent);
+            return true;
+        }
         return super.onOptionsItemSelected(item);
     }
 

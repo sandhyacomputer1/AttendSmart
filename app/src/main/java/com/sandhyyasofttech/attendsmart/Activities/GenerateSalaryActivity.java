@@ -1,0 +1,373 @@
+package com.sandhyyasofttech.attendsmart.Activities;
+
+import android.app.DatePickerDialog;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.sandhyyasofttech.attendsmart.Models.MonthlyAttendanceSummary;
+import com.sandhyyasofttech.attendsmart.Models.SalaryCalculationResult;
+import com.sandhyyasofttech.attendsmart.Models.SalaryConfig;
+import com.sandhyyasofttech.attendsmart.Models.SalarySnapshot;
+import com.sandhyyasofttech.attendsmart.R;
+import com.sandhyyasofttech.attendsmart.Utils.PrefManager;
+import com.sandhyyasofttech.attendsmart.payroll.SalaryCalculator;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Locale;
+
+public class GenerateSalaryActivity extends AppCompatActivity {
+
+    private EditText etMonth;
+    private Spinner spEmployee;
+    private Button btnGenerate;
+
+    private String companyKey;
+    private DatabaseReference companyRef;
+    private Button btnViewSalary;
+
+    private final ArrayList<String> employeeMobiles = new ArrayList<>();
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_generate_salary);
+
+        etMonth = findViewById(R.id.etMonth);
+        spEmployee = findViewById(R.id.spEmployee);
+        btnGenerate = findViewById(R.id.btnGenerateSalary);
+
+        PrefManager pref = new PrefManager(this);
+        companyKey = pref.getUserEmail().replace(".", ",");
+
+        companyRef = FirebaseDatabase.getInstance()
+                .getReference("Companies")
+                .child(companyKey);
+
+        setupMonthPicker();
+        loadEmployees();
+        btnViewSalary = findViewById(R.id.btnViewSalary);
+
+        btnGenerate.setOnClickListener(v -> validateAndGenerate());
+    }
+
+    // ================= MONTH PICKER =================
+    private void setupMonthPicker() {
+        etMonth.setOnClickListener(v -> {
+            Calendar c = Calendar.getInstance();
+            DatePickerDialog dialog = new DatePickerDialog(
+                    this,
+                    (view, year, month, day) -> {
+                        String value = String.format(
+                                Locale.getDefault(),
+                                "%02d-%d",
+                                month + 1, year);
+                        etMonth.setText(value);
+                    },
+                    c.get(Calendar.YEAR),
+                    c.get(Calendar.MONTH),
+                    c.get(Calendar.DAY_OF_MONTH)
+            );
+            dialog.show();
+        });
+    }
+
+    // ================= LOAD EMPLOYEES =================
+    private void loadEmployees() {
+        companyRef.child("employees")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        employeeMobiles.clear();
+                        for (DataSnapshot s : snapshot.getChildren()) {
+                            employeeMobiles.add(s.getKey());
+                        }
+
+                        ArrayAdapter<String> adapter =
+                                new ArrayAdapter<>(GenerateSalaryActivity.this,
+                                        android.R.layout.simple_spinner_item,
+                                        employeeMobiles);
+                        adapter.setDropDownViewResource(
+                                android.R.layout.simple_spinner_dropdown_item);
+                        spEmployee.setAdapter(adapter);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(GenerateSalaryActivity.this,
+                                "Failed to load employees",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    // ================= VALIDATE =================
+    private void validateAndGenerate() {
+        String month = etMonth.getText().toString().trim();
+        if (month.isEmpty()) {
+            etMonth.setError("Select month");
+            return;
+        }
+
+        if (spEmployee.getSelectedItem() == null) {
+            Toast.makeText(this, "Select employee", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String employeeMobile = spEmployee.getSelectedItem().toString();
+        fetchSalaryConfigAndAttendance(month, employeeMobile);
+    }
+
+    // ================= FETCH CONFIG + ATTENDANCE =================
+    private void fetchSalaryConfigAndAttendance(
+            String month,
+            String employeeMobile
+    ) {
+
+        companyRef.child("employees")
+                .child(employeeMobile)
+                .child("salaryConfig")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                        if (!snapshot.exists()) {
+                            Toast.makeText(GenerateSalaryActivity.this,
+                                    "Salary config not set",
+                                    Toast.LENGTH_LONG).show();
+                            return;
+                        }
+
+                        SalaryConfig config = parseSalaryConfig(snapshot);
+
+                        if (config.monthlySalary <= 0 || config.workingDays <= 0) {
+                            Toast.makeText(GenerateSalaryActivity.this,
+                                    "Invalid salary configuration",
+                                    Toast.LENGTH_LONG).show();
+                            return;
+                        }
+
+                        buildMonthlyAttendanceSummary(
+                                month,
+                                employeeMobile,
+                                new AttendanceCallback() {
+                                    @Override
+                                    public void onReady(MonthlyAttendanceSummary summary) {
+                                        generateAndSaveSalary(
+                                                month,
+                                                employeeMobile,
+                                                summary,
+                                                config
+                                        );
+                                    }
+
+                                    @Override
+                                    public void onError(String error) {
+                                        Toast.makeText(GenerateSalaryActivity.this,
+                                                error,
+                                                Toast.LENGTH_LONG).show();
+                                    }
+                                }
+                        );
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(GenerateSalaryActivity.this,
+                                "Failed to fetch salary config",
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    // ================= ATTENDANCE SUMMARY =================
+    private void buildMonthlyAttendanceSummary(
+            String month,
+            String employeeMobile,
+            AttendanceCallback callback
+    ) {
+
+        MonthlyAttendanceSummary summary = new MonthlyAttendanceSummary();
+
+        companyRef.child("attendance")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                        for (DataSnapshot dateSnap : snapshot.getChildren()) {
+
+                            String dateKey = dateSnap.getKey(); // 2025-12-31
+                            if (dateKey == null || dateKey.length() < 7) continue;
+
+                            String recordMonth =
+                                    dateKey.substring(5, 7) + "-" +
+                                            dateKey.substring(0, 4);
+
+                            if (!recordMonth.equals(month)) continue;
+
+                            DataSnapshot empSnap =
+                                    dateSnap.child(employeeMobile);
+
+                            if (!empSnap.exists()) continue;
+
+                            String status =
+                                    empSnap.child("status")
+                                            .getValue(String.class);
+
+                            if (status == null) continue;
+
+                            switch (status) {
+                                case "Present":
+                                    summary.presentDays++;
+                                    break;
+
+                                case "Half Day":
+                                    summary.halfDays++;
+                                    break;
+
+                                case "Late":
+                                    summary.presentDays++;
+                                    summary.lateCount++;
+                                    break;
+
+                                default:
+                                    summary.absentDays++;
+                                    break;
+                            }
+                        }
+
+                        callback.onReady(summary);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        callback.onError(error.getMessage());
+                    }
+                });
+    }
+
+    // ================= GENERATE & SAVE =================
+    private void generateAndSaveSalary(
+            String month,
+            String employeeMobile,
+            MonthlyAttendanceSummary summary,
+            SalaryConfig config
+    ) {
+
+        SalaryCalculationResult result =
+                SalaryCalculator.calculateSalary(summary, config);
+
+        SalarySnapshot snapshot = new SalarySnapshot();
+        snapshot.month = month;
+        snapshot.employeeMobile = employeeMobile;
+        snapshot.generatedAt = System.currentTimeMillis();
+        snapshot.attendanceSummary = summary;
+        snapshot.calculationResult = result;
+        snapshot.salaryConfigSnapshot = config;
+
+        companyRef.child("salary")
+                .child(month)
+                .child(employeeMobile)
+                .setValue(snapshot)
+                .addOnSuccessListener(aVoid -> {
+
+                    Toast.makeText(
+                            GenerateSalaryActivity.this,
+                            "Salary generated successfully",
+                            Toast.LENGTH_SHORT
+                    ).show();
+
+                    // ✅ NOW show View Salary button
+                    btnViewSalary.setVisibility(View.VISIBLE);
+
+                    btnViewSalary.setOnClickListener(v -> {
+                        Intent intent = new Intent(
+                                GenerateSalaryActivity.this,
+                                SalaryDetailActivity.class
+                        );
+                        intent.putExtra("month", month);
+                        intent.putExtra("employeeMobile", employeeMobile);
+                        startActivity(intent);
+                    });
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(
+                                GenerateSalaryActivity.this,
+                                "Error: " + e.getMessage(),
+                                Toast.LENGTH_LONG
+                        ).show()
+                );
+    }
+
+
+    // ================= SAFE PARSING =================
+    private SalaryConfig parseSalaryConfig(DataSnapshot s) {
+        SalaryConfig c = new SalaryConfig();
+
+        c.monthlySalary = getDouble(s, "monthlySalary");
+        c.workingDays   = getInt(s, "workingDays");
+        c.paidLeaves    = getInt(s, "paidLeaves");
+
+        c.pfPercent     = getDouble(s, "pfPercent");
+        c.esiPercent    = getDouble(s, "esiPercent");
+        c.otherDeduction= getDouble(s, "otherDeduction");
+
+        c.deductionEnabled =
+                Boolean.TRUE.equals(
+                        s.child("deductionEnabled").getValue(Boolean.class));
+
+        c.lateRule      = getString(s, "lateRule");
+        c.effectiveFrom = getString(s, "effectiveFrom");
+        c.deductionNote = getString(s, "deductionNote");
+
+        return c;
+    }
+
+    private double getDouble(DataSnapshot s, String key) {
+        try {
+            Object v = s.child(key).getValue();
+            if (v == null) return 0;
+            if (v instanceof Number) return ((Number) v).doubleValue();
+            return Double.parseDouble(v.toString());
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private int getInt(DataSnapshot s, String key) {
+        try {
+            Object v = s.child(key).getValue();
+            if (v == null) return 0;
+            if (v instanceof Number) return ((Number) v).intValue();
+            return Integer.parseInt(v.toString());
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private String getString(DataSnapshot s, String key) {
+        Object v = s.child(key).getValue();
+        return v == null ? "" : v.toString();
+    }
+
+    // ================= CALLBACK =================
+    private interface AttendanceCallback {
+        void onReady(MonthlyAttendanceSummary summary);
+        void onError(String error);
+    }
+}

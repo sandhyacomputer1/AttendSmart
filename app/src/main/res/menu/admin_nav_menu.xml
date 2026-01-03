@@ -29,6 +29,13 @@
             android:id="@+id/nav_leaves"
             android:icon="@drawable/ic_attendance"
             android:title="Leave Requests"/>
+        <item
+            android:id="@+id/nav_view_salary"
+            android:title="💰 Viewww Salary"/>
+        <item
+            android:id="@+id/nav_generate_salary"
+            android:title="💰 Generate Salary"/>
+
     </group>
     <item android:title="Settings">
         <menu>

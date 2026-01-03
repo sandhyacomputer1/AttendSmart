@@ -29,6 +29,41 @@
         android:theme="@style/Theme.AttendSmart"
         tools:targetApi="31">
         <activity
+            android:name=".Activities.EmployeeSalaryListActivity"
+            android:exported="false" />
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <activity
+            android:name=".Activities.SalaryListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activities.SalaryDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activities.GenerateSalaryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activities.SalaryConfigActivity"
+            android:exported="false" />
+        <activity
             android:name=".Activities.AdminLeaveListActivity"
             android:exported="false" />
         <activity
@@ -47,17 +82,7 @@
 
         <activity
             android:name=".Settings.SettingsActivity"
-            android:exported="false" />
-
-        <provider
-            android:name="androidx.core.content.FileProvider"
-            android:authorities="${applicationId}.provider"
-            android:exported="false"
-            android:grantUriPermissions="true">
-            <meta-data
-                android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths" />
-        </provider> <!-- All your existing activities -->
+            android:exported="false" /> <!-- All your existing activities -->
         <activity
             android:name=".Activities.PersonalDetailsActivity"
             android:exported="false" />

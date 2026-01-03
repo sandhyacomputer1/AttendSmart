@@ -169,9 +169,16 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 startActivity(new Intent(this, DepartmentActivity.class));
             } else if (id == R.id.nav_shifts) {
                 startActivity(new Intent(this, ShiftActivity.class));
-            } else if (id == R.id.nav_leaves) {
+            }else if (id == R.id.nav_leaves) {
                 startActivity(new Intent(this,
                         com.sandhyyasofttech.attendsmart.Activities.AdminLeaveListActivity.class));
+            } else if (id == R.id.nav_view_salary) {
+                startActivity(new Intent(this,
+                        com.sandhyyasofttech.attendsmart.Activities.SalaryListActivity.class));
+            }
+            else if (id == R.id.nav_generate_salary) {
+                startActivity(new Intent(this,
+                        com.sandhyyasofttech.attendsmart.Activities.GenerateSalaryActivity.class));
             }
             else if (id == R.id.nav_settings) {
                 startActivity(new Intent(this,

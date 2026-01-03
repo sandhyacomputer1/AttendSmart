@@ -53,6 +53,7 @@ public class SettingsActivity extends AppCompatActivity {
     private View cardShiftTimingView;
     private View cardNotifications;
     private View cardMyLeaves;
+    private View cardMySalary;
 
     private static final int NOTIFICATION_PERMISSION_CODE = 101;
     private static final int PICK_IMAGE_REQUEST = 1001;
@@ -93,6 +94,7 @@ public class SettingsActivity extends AppCompatActivity {
         cardAttendanceReport = findViewById(R.id.cardAttendanceReport);
         cardApplyLeave = findViewById(R.id.cardApplyLeave);
         cardMyLeaves = findViewById(R.id.cardMyLeaves);
+        cardMySalary = findViewById(R.id.cardMySalary);
 
         cardNotifications = findViewById(R.id.cardNotifications);
     }
@@ -322,6 +324,16 @@ public class SettingsActivity extends AppCompatActivity {
                 startActivity(intent);
             });
         }
+        if (cardMySalary != null) {
+            cardMySalary.setOnClickListener(v -> {
+                Intent intent = new Intent(
+                        SettingsActivity.this,
+                        EmployeeSalaryListActivity.class
+                );
+                startActivity(intent);
+            });
+        }
+
 
         if (cardMyLeaves != null) {
             cardMyLeaves.setOnClickListener(v -> {
