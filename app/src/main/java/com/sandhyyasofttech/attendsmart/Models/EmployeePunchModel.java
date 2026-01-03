@@ -155,6 +155,7 @@ public class EmployeePunchModel {
     // Calculated fields
     public boolean isLate;
     public String workingHours;
+    public String lateStatus;
 
     public EmployeePunchModel() {}
 

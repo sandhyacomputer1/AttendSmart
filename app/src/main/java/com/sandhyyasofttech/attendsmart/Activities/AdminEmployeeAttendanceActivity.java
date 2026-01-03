@@ -1,7 +1,6 @@
 package com.sandhyyasofttech.attendsmart.Activities;
 
 import android.app.AlertDialog;
-import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.graphics.Color;
@@ -165,7 +164,6 @@ public class AdminEmployeeAttendanceActivity extends AppCompatActivity {
         tvEmployeeRole.setText(employeeRole != null ? employeeRole : "N/A");
         tvEmployeeMobile.setText(employeeMobile);
 
-        // Fetch joining date
         employeesRef.child(employeeMobile).child("info").child("joiningDate")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -320,240 +318,16 @@ public class AdminEmployeeAttendanceActivity extends AppCompatActivity {
     }
 
     private void showDateDetails(String date) {
-        progressBar.setVisibility(View.VISIBLE);
-
-        attendanceRef.child(date).child(employeeMobile)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        progressBar.setVisibility(View.GONE);
-                        showEditAttendanceDialog(date, snapshot);
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        progressBar.setVisibility(View.GONE);
-                        Toast.makeText(AdminEmployeeAttendanceActivity.this,
-                                "Failed to load data", Toast.LENGTH_SHORT).show();
-                    }
-                });
+        Intent intent = new Intent(this, AdminDayAttendanceDetailActivity.class);
+        intent.putExtra("companyKey", companyKey);
+        intent.putExtra("employeeMobile", employeeMobile);
+        intent.putExtra("employeeName", employeeName);
+        intent.putExtra("employeeRole", employeeRole);
+        intent.putExtra("date", date);
+        startActivity(intent);
     }
 
-    private void showEditAttendanceDialog(String date, DataSnapshot snapshot) {
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_edit_attendance, null);
-
-        TextView tvDate = dialogView.findViewById(R.id.tvDate);
-        EditText etCheckIn = dialogView.findViewById(R.id.etCheckInTime);
-        EditText etCheckOut = dialogView.findViewById(R.id.etCheckOutTime);
-        AutoCompleteTextView spinnerStatus = dialogView.findViewById(R.id.spinnerStatus);
-        AutoCompleteTextView spinnerLateStatus = dialogView.findViewById(R.id.spinnerLateStatus);
-        TextView tvTotalHours = dialogView.findViewById(R.id.tvTotalHours);
-        MaterialButton btnSave = dialogView.findViewById(R.id.btnSave);
-        MaterialButton btnDelete = dialogView.findViewById(R.id.btnDelete);
-        MaterialButton btnCancel = dialogView.findViewById(R.id.btnCancel);
-
-        tvDate.setText(date);
-
-        // Get existing data
-        String checkInTime = snapshot.child("checkInTime").getValue(String.class);
-        String checkOutTime = snapshot.child("checkOutTime").getValue(String.class);
-        String status = snapshot.child("status").getValue(String.class);
-        String lateStatus = snapshot.child("lateStatus").getValue(String.class);
-        String totalHours = snapshot.child("totalHours").getValue(String.class);
-
-        etCheckIn.setText(checkInTime != null ? checkInTime : "");
-        etCheckOut.setText(checkOutTime != null ? checkOutTime : "");
-        tvTotalHours.setText(totalHours != null ? totalHours : "0h");
-
-        // Setup Status Dropdown
-        String[] statusOptions = {"Present", "Half Day", "Absent", "Full Day"};
-        ArrayAdapter<String> statusAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_dropdown_item_1line, statusOptions);
-        spinnerStatus.setAdapter(statusAdapter);
-        spinnerStatus.setText(status != null ? status : "Present", false);
-
-        // Setup Late Status Dropdown
-        String[] lateStatusOptions = {"On Time", "Late"};
-        ArrayAdapter<String> lateAdapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_dropdown_item_1line, lateStatusOptions);
-        spinnerLateStatus.setAdapter(lateAdapter);
-        spinnerLateStatus.setText(lateStatus != null ? lateStatus : "On Time", false);
-
-        AlertDialog dialog = new AlertDialog.Builder(this)
-                .setView(dialogView)
-                .setCancelable(true)
-                .create();
-
-        // Time picker for check-in
-        etCheckIn.setOnClickListener(v -> showTimePicker((time) -> {
-            etCheckIn.setText(time);
-            calculateAndDisplayHours(etCheckIn.getText().toString(),
-                    etCheckOut.getText().toString(), tvTotalHours);
-        }));
-
-        // Time picker for check-out
-        etCheckOut.setOnClickListener(v -> showTimePicker((time) -> {
-            etCheckOut.setText(time);
-            calculateAndDisplayHours(etCheckIn.getText().toString(),
-                    etCheckOut.getText().toString(), tvTotalHours);
-        }));
-
-        btnSave.setOnClickListener(v -> {
-            String newCheckIn = etCheckIn.getText().toString().trim();
-            String newCheckOut = etCheckOut.getText().toString().trim();
-            String newStatus = spinnerStatus.getText().toString();
-            String newLateStatus = spinnerLateStatus.getText().toString();
-
-            if (newCheckIn.isEmpty()) {
-                Toast.makeText(this, "Check-in time required", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            updateAttendance(date, newCheckIn, newCheckOut, newStatus, newLateStatus);
-            dialog.dismiss();
-        });
-
-        btnDelete.setOnClickListener(v -> {
-            new AlertDialog.Builder(this)
-                    .setTitle("Delete Attendance")
-                    .setMessage("Are you sure you want to delete this attendance record?")
-                    .setPositiveButton("Delete", (d, w) -> {
-                        deleteAttendance(date);
-                        dialog.dismiss();
-                    })
-                    .setNegativeButton("Cancel", null)
-                    .show();
-        });
-
-        btnCancel.setOnClickListener(v -> dialog.dismiss());
-
-        dialog.show();
-    }
-
-    private void calculateAndDisplayHours(String checkIn, String checkOut, TextView tvDisplay) {
-        if (checkIn.isEmpty() || checkOut.isEmpty()) {
-            tvDisplay.setText("0h");
-            return;
-        }
-
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
-            Date inTime = sdf.parse(checkIn);
-            Date outTime = sdf.parse(checkOut);
-
-            if (inTime != null && outTime != null) {
-                long diffMillis = outTime.getTime() - inTime.getTime();
-                if (diffMillis < 0) {
-                    // Handle next day checkout
-                    diffMillis += 24 * 60 * 60 * 1000;
-                }
-
-                long hours = diffMillis / (1000 * 60 * 60);
-                long minutes = (diffMillis % (1000 * 60 * 60)) / (1000 * 60);
-
-                String totalTime = hours + "h " + minutes + "m";
-                tvDisplay.setText(totalTime);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            tvDisplay.setText("0h");
-        }
-    }
-
-    private void showTimePicker(TimePickerListener listener) {
-        Calendar cal = Calendar.getInstance();
-        TimePickerDialog picker = new TimePickerDialog(this,
-                (view, hourOfDay, minute) -> {
-                    String time = String.format(Locale.getDefault(), "%02d:%02d", hourOfDay, minute);
-                    listener.onTimeSelected(time);
-                },
-                cal.get(Calendar.HOUR_OF_DAY),
-                cal.get(Calendar.MINUTE),
-                true);
-        picker.show();
-    }
-
-    interface TimePickerListener {
-        void onTimeSelected(String time);
-    }
-
-    private void updateAttendance(String date, String checkIn, String checkOut,
-                                  String status, String lateStatus) {
-        progressBar.setVisibility(View.VISIBLE);
-
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("checkInTime", checkIn);
-        updates.put("status", status);
-        updates.put("lateStatus", lateStatus);
-
-        if (checkOut != null && !checkOut.isEmpty()) {
-            updates.put("checkOutTime", checkOut);
-
-            // Calculate total hours and minutes
-            try {
-                SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
-                Date inTime = sdf.parse(checkIn);
-                Date outTime = sdf.parse(checkOut);
-
-                if (inTime != null && outTime != null) {
-                    long diffMillis = outTime.getTime() - inTime.getTime();
-                    if (diffMillis < 0) {
-                        diffMillis += 24 * 60 * 60 * 1000;
-                    }
-
-                    long hours = diffMillis / (1000 * 60 * 60);
-                    long minutes = (diffMillis % (1000 * 60 * 60)) / (1000 * 60);
-                    long totalMinutes = (diffMillis / (1000 * 60));
-
-                    String totalHoursStr = hours + "h " + minutes + "m";
-                    updates.put("totalHours", totalHoursStr);
-                    updates.put("totalMinutes", totalMinutes);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                updates.put("totalHours", "0h");
-                updates.put("totalMinutes", 0);
-            }
-        } else {
-            updates.put("checkOutTime", "");
-            updates.put("totalHours", "0h");
-            updates.put("totalMinutes", 0);
-        }
-
-        // Add timestamp
-        updates.put("updatedAt", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss",
-                Locale.getDefault()).format(new Date()));
-        updates.put("updatedBy", "Admin");
-
-        attendanceRef.child(date).child(employeeMobile).updateChildren(updates)
-                .addOnSuccessListener(aVoid -> {
-                    progressBar.setVisibility(View.GONE);
-                    Toast.makeText(this, "Attendance updated successfully", Toast.LENGTH_SHORT).show();
-                    loadAllAttendanceDates();
-                })
-                .addOnFailureListener(e -> {
-                    progressBar.setVisibility(View.GONE);
-                    Toast.makeText(this, "Update failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
-    }
-
-    private void deleteAttendance(String date) {
-        progressBar.setVisibility(View.VISIBLE);
-
-        attendanceRef.child(date).child(employeeMobile).removeValue()
-                .addOnSuccessListener(aVoid -> {
-                    progressBar.setVisibility(View.GONE);
-                    Toast.makeText(this, "Attendance deleted successfully", Toast.LENGTH_SHORT).show();
-                    loadAllAttendanceDates();
-                })
-                .addOnFailureListener(e -> {
-                    progressBar.setVisibility(View.GONE);
-                    Toast.makeText(this, "Delete failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
-    }
-
-    // Remove old calculateHours method - no longer needed
-
+    // NEW: Calculate final status from total minutes
     private boolean isHoliday(String dateStr) {
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
@@ -570,7 +344,7 @@ public class AdminEmployeeAttendanceActivity extends AppCompatActivity {
         return false;
     }
 
-    // Calendar Adapter (same as AttendanceReportActivity)
+    // Calendar Adapter
     public static class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.ViewHolder> {
         private Calendar monthCalendar;
         private List<String> attendanceDates;

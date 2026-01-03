@@ -186,18 +186,34 @@ public class AttendanceDayDetailsActivity extends AppCompatActivity {
 
     private void updateStatistics() {
 
-        int present = 0, late = 0, absent = 0;
+        int present = 0;
+        int late = 0;
+        int absent = 0;
 
         if (employeeList.isEmpty()) {
             absent = 1;
         } else {
             EmployeePunchModel m = employeeList.get(0);
-            if (!m.hasCheckedIn()) {
+
+            String status = m.status != null ? m.status.toLowerCase() : "";
+            String lateStatus = m.lateStatus != null ? m.lateStatus.toLowerCase() : "";
+
+            boolean hasCheckIn = m.hasCheckedIn();
+            boolean isHalfDay = status.contains("half");
+            boolean isLate = lateStatus.equals("late") || status.contains("late");
+
+            // ✅ ABSENT
+            if (!hasCheckIn) {
                 absent = 1;
-            } else if (m.isLate) {
-                late = 1;
-            } else {
+            }
+            // ✅ PRESENT (BASE)
+            else {
                 present = 1;
+            }
+
+            // ✅ LATE (INDEPENDENT)
+            if (isLate) {
+                late = 1;
             }
         }
 
