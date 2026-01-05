@@ -1,5 +1,6 @@
 package com.sandhyyasofttech.attendsmart.Activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
 
@@ -8,7 +9,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.firebase.database.*;
+import com.sandhyyasofttech.attendsmart.Adapters.EmployeeAttendanceListAdapter;
+import com.sandhyyasofttech.attendsmart.Models.EmployeeModel;
 import com.sandhyyasofttech.attendsmart.R;
 import com.sandhyyasofttech.attendsmart.Utils.PrefManager;
 
@@ -16,69 +20,75 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
-
 public class AllAttendanceActivity extends AppCompatActivity {
 
     private RecyclerView rvAttendance;
-    private TextView tvDate;
-    private DatabaseReference attendanceRef;
+    private DatabaseReference employeesRef;
     private String companyKey;
 
-    // Later you can connect adapter
-    // private AttendanceAdapter adapter;
+    private ArrayList<EmployeeModel> employeeList = new ArrayList<>();
+    private EmployeeAttendanceListAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_all_attendance);
 
+        setupToolbar();
         initViews();
         setupFirebase();
-        loadTodayAttendance();
+        loadEmployees();
+    }
+
+    private void setupToolbar() {
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setTitle("All Attendance");  // Added toolbar heading
+        toolbar.setNavigationOnClickListener(v -> finish());
     }
 
     private void initViews() {
         rvAttendance = findViewById(R.id.rvAttendance);
-        tvDate = findViewById(R.id.tvDate);
-
         rvAttendance.setLayoutManager(new LinearLayoutManager(this));
-        rvAttendance.setHasFixedSize(true);
 
-        tvDate.setText(getTodayDate());
+        adapter = new EmployeeAttendanceListAdapter(employeeList, this::openEmployeeAttendance);
+        rvAttendance.setAdapter(adapter);
     }
 
     private void setupFirebase() {
-        PrefManager pref = new PrefManager(this);
-        companyKey = pref.getCompanyKey();
-
-        attendanceRef = FirebaseDatabase.getInstance()
+        companyKey = new PrefManager(this).getCompanyKey();
+        employeesRef = FirebaseDatabase.getInstance()
                 .getReference("Companies")
                 .child(companyKey)
-                .child("attendance");
+                .child("employees");
     }
 
-    private void loadTodayAttendance() {
-        String today = getTodayDate();
+    private void loadEmployees() {
+        employeesRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                employeeList.clear();
 
-        attendanceRef.child(today)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot empSnap : snapshot.getChildren()) {
+                    DataSnapshot info = empSnap.child("info");
+                    if (!info.exists()) continue;
 
-                        // 🔥 FOR NOW JUST LOG / COUNT
-                        int total = (int) snapshot.getChildrenCount();
-                        tvDate.setText("Attendance : " + today + " (" + total + ")");
+                    EmployeeModel e = new EmployeeModel();
+                    e.setEmployeeMobile(empSnap.getKey());
+                    e.setEmployeeName(info.child("employeeName").getValue(String.class));
+                    e.setEmployeeDepartment(info.child("employeeDepartment").getValue(String.class));
+                    employeeList.add(e);
+                }
+                adapter.notifyDataSetChanged();
+            }
 
-                        // Later → attach adapter here
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {}
-                });
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
     }
 
-    private String getTodayDate() {
-        return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-                .format(new Date());
+    private void openEmployeeAttendance(EmployeeModel employee) {
+        Intent intent = new Intent(this, EmployeeMonthAttendanceActivity.class);
+        intent.putExtra("employeeMobile", employee.getEmployeeMobile());
+        intent.putExtra("employeeName", employee.getEmployeeName());
+        startActivity(intent);
     }
 }

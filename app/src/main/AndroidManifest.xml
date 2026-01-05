@@ -51,6 +51,12 @@
                 android:resource="@xml/file_paths" />
         </provider>
         <activity
+            android:name=".Activities.AttendanceDayDetailActivity"
+            android:theme="@style/Theme.AttendSmart" />
+        <activity
+            android:name=".Activities.EmployeeMonthAttendanceActivity"
+            android:exported="false" />
+        <activity
             android:name=".Activities.AllAttendanceActivity"
             android:exported="false" />
         <activity
