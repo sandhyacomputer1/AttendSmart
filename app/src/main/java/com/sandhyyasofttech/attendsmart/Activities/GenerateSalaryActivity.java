@@ -164,7 +164,8 @@ public class GenerateSalaryActivity extends AppCompatActivity {
                         buildMonthlyAttendanceSummary(
                                 month,
                                 employeeMobile,
-                                new AttendanceCallback() {
+                                config,
+                                new AttendanceCallback()  {
                                     @Override
                                     public void onReady(MonthlyAttendanceSummary summary) {
                                         generateAndSaveSalary(
@@ -199,19 +200,21 @@ public class GenerateSalaryActivity extends AppCompatActivity {
     private void buildMonthlyAttendanceSummary(
             String month,
             String employeeMobile,
+            SalaryConfig config,
             AttendanceCallback callback
     ) {
 
         MonthlyAttendanceSummary summary = new MonthlyAttendanceSummary();
 
+        // ================= 1️⃣ ATTENDANCE =================
         companyRef.child("attendance")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    public void onDataChange(@NonNull DataSnapshot attendanceSnap) {
 
-                        for (DataSnapshot dateSnap : snapshot.getChildren()) {
+                        for (DataSnapshot dateSnap : attendanceSnap.getChildren()) {
 
-                            String dateKey = dateSnap.getKey(); // 2025-12-31
+                            String dateKey = dateSnap.getKey(); // yyyy-MM-dd
                             if (dateKey == null || dateKey.length() < 7) continue;
 
                             String recordMonth =
@@ -225,32 +228,99 @@ public class GenerateSalaryActivity extends AppCompatActivity {
 
                             if (!empSnap.exists()) continue;
 
-                            String status =
-                                    empSnap.child("status")
-                                            .getValue(String.class);
+                            String finalStatus =
+                                    empSnap.child("finalStatus").getValue(String.class);
 
-                            if (status == null) continue;
+                            if (finalStatus == null) continue;
 
-                            switch (status) {
-                                case "Present":
-                                    summary.presentDays++;
-                                    break;
+                            finalStatus = finalStatus.toLowerCase();
 
-                                case "Half Day":
-                                    summary.halfDays++;
-                                    break;
-
-                                case "Late":
-                                    summary.presentDays++;
-                                    summary.lateCount++;
-                                    break;
-
-                                default:
-                                    summary.absentDays++;
-                                    break;
+                            if (finalStatus.contains("present")) {
+                                summary.presentDays++;
+                            } else if (finalStatus.contains("half")) {
+                                summary.halfDays++;
+                            } else {
+//                                summary.absentDays++;
                             }
                         }
 
+                        // ================= 2️⃣ LEAVES =================
+                        countLeaves(month, employeeMobile, config, summary, callback);
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        callback.onError(error.getMessage());
+                    }
+                });
+    }
+    private int countDaysInMonth(
+            String fromDate,
+            String toDate,
+            String month
+    ) {
+        if (fromDate == null || toDate == null) return 0;
+
+        String fromMonth =
+                fromDate.substring(5, 7) + "-" + fromDate.substring(0, 4);
+
+        if (!fromMonth.equals(month)) return 0;
+
+        return 1; // OK for single-day leave
+    }
+
+
+    private void countLeaves(
+            String month,
+            String employeeMobile,
+            SalaryConfig config,
+            MonthlyAttendanceSummary summary,
+            AttendanceCallback callback
+    ) {
+
+        companyRef.child("leaves")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                        int paidLimit = config.paidLeaves;
+                        int paidUsed = 0;
+
+                        for (DataSnapshot l : snapshot.getChildren()) {
+
+                            if (!employeeMobile.equals(
+                                    l.child("employeeMobile").getValue(String.class)))
+                                continue;
+
+                            if (!"APPROVED".equals(
+                                    l.child("status").getValue(String.class)))
+                                continue;
+
+                            boolean isPaid =
+                                    Boolean.TRUE.equals(l.child("isPaid").getValue(Boolean.class));
+
+                            int days = countDaysInMonth(
+                                    l.child("fromDate").getValue(String.class),
+                                    l.child("toDate").getValue(String.class),
+                                    month
+                            );
+
+                            if (isPaid && paidUsed < paidLimit) {
+
+                                int allowed = Math.min(days, paidLimit - paidUsed);
+                                summary.paidLeavesUsed += allowed;
+                                paidUsed += allowed;
+
+                                summary.unpaidLeaves += (days - allowed);
+
+                            } else {
+                                summary.unpaidLeaves += days;
+                            }
+                            if (summary.absentDays < 0) summary.absentDays = 0;
+
+                        }
+
+                        // ✅ FINAL CALLBACK (ONLY ONCE)
                         callback.onReady(summary);
                     }
 
@@ -260,6 +330,7 @@ public class GenerateSalaryActivity extends AppCompatActivity {
                     }
                 });
     }
+
 
     // ================= GENERATE & SAVE =================
     private void generateAndSaveSalary(
