@@ -250,45 +250,40 @@ public class AttendanceReportActivity extends AppCompatActivity {
                                    final int[] halfDay, final int[] absent, final int[] checks) {
 
         if (snapshot.exists()) {
+
             String status = snapshot.child("status").getValue(String.class);
             String lateStatus = snapshot.child("lateStatus").getValue(String.class);
-            Long totalMinutesRaw = snapshot.child("totalMinutes").getValue(Long.class);
             String checkInTime = snapshot.child("checkInTime").getValue(String.class);
 
-            long totalMinutes = (totalMinutesRaw != null) ? totalMinutesRaw : 0;
             boolean hasCheckIn = checkInTime != null && !checkInTime.isEmpty();
+            String statusSafe = status != null ? status.toLowerCase() : "";
 
-            Log.d(TAG, dateStr + " | Status: " + status + " | Late: " + lateStatus + " | Mins: " + totalMinutes);
+            boolean countedPresent = false;
 
-            // ✅ HALF DAY (3hr+): Present:1 | Half Day:1
-            if (status != null && status.equalsIgnoreCase("Half Day") && totalMinutes >= 180) {
+            // ✅ PRESENT (base condition)
+            if (hasCheckIn || statusSafe.contains("present") || statusSafe.contains("full") || statusSafe.contains("half")) {
                 present[0]++;
+                countedPresent = true;
+            }
+
+            // ✅ HALF DAY (independent)
+            if (statusSafe.contains("half")) {
                 halfDay[0]++;
             }
-            // ✅ LATE + FULL DAY (8hr+): Present:1 | Late:1
-            else if (lateStatus != null && lateStatus.equalsIgnoreCase("Late") && totalMinutes >= 480) {
-                present[0]++;
+
+            // ✅ LATE (independent)
+            if ("late".equalsIgnoreCase(lateStatus) || statusSafe.contains("late")) {
                 late[0]++;
             }
-            // ✅ LATE + Any check-in: Present:1 | Late:1
-            else if (lateStatus != null && lateStatus.equalsIgnoreCase("Late") && hasCheckIn) {
-                present[0]++;
-                late[0]++;
-            }
-            // ✅ Normal Present/Full Day: Present:1
-            else if (status != null && (status.equalsIgnoreCase("Present") || status.equalsIgnoreCase("Full Day"))
-                    || (hasCheckIn && totalMinutes >= 480)) {
-                present[0]++;
-            }
-            // ✅ Any other check-in = Present
-            else if (hasCheckIn) {
-                present[0]++;
+
+            // ❌ If no check-in & no status → ABSENT
+            if (!countedPresent) {
+                absent[0]++;
             }
 
         } else {
-            // ✅ NO CHECK-IN: Absent:1
+            // ❌ No record at all
             absent[0]++;
-            Log.d(TAG, dateStr + " → Absent (no record)");
         }
 
         checks[0]--;
@@ -296,6 +291,9 @@ public class AttendanceReportActivity extends AppCompatActivity {
             finishCalculation(present[0], late[0], halfDay[0], absent[0]);
         }
     }
+
+
+
 
     private void finishCalculation(int present, int late, int halfDay, int absent) {
         monthlyPresentDays = present;
@@ -477,7 +475,7 @@ public class AttendanceReportActivity extends AppCompatActivity {
                     holder.tvDay.setTextColor(Color.WHITE);
                     holder.itemView.setTag("🔴 Absent");
                 } else if (isTodayDay) {
-                    holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_blue);
+                    holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_bluee);
                     holder.tvDay.setTextColor(Color.WHITE);
                     holder.itemView.setTag("🔵 Today");
                 } else {
@@ -511,55 +509,63 @@ public class AttendanceReportActivity extends AppCompatActivity {
         // ✅ INTEGRATED checkRealStatus METHOD
         private void checkRealStatus(ViewHolder holder, String dateStr) {
             DatabaseReference ref = FirebaseDatabase.getInstance()
-                    .getReference("Companies").child(companyKey).child("attendance")
-                    .child(dateStr).child(employeeMobile);
+                    .getReference("Companies")
+                    .child(companyKey)
+                    .child("attendance")
+                    .child(dateStr)
+                    .child(employeeMobile);
 
             ref.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (snapshot.exists()) {
-                        String status = snapshot.child("status").getValue(String.class);
-                        String lateStatus = snapshot.child("lateStatus").getValue(String.class);
-                        Long totalMinutesRaw = snapshot.child("totalMinutes").getValue(Long.class);
-                        long totalMinutes = (totalMinutesRaw != null) ? totalMinutesRaw : 0;
 
-                        holder.tvDay.setTextColor(Color.WHITE);
+                    holder.tvDay.setTextColor(Color.WHITE);
 
-                        // ✅ MATCHES STATS HEADER COLORS + LOGIC
-                        if (status != null && status.equalsIgnoreCase("Half Day") && totalMinutes >= 180) {
-                            // HALF DAY = BLUE (like stats header)
-                            holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_blue);
-                            holder.itemView.setTag("🔵 Half Day");
-                        }
-                        else if (lateStatus != null && lateStatus.equalsIgnoreCase("Late")) {
-                            // LATE = YELLOW (like stats header)
-                            holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_yellow);
-                            holder.itemView.setTag("🟡 Late");
-                        }
-                        else if (status != null && (status.equalsIgnoreCase("Present") ||
-                                status.equalsIgnoreCase("Full Day"))) {
-                            // PRESENT = GREEN (like stats header)
+                    if (!snapshot.exists()) {
+                        holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_red);
+                        holder.itemView.setTag("🔴 Absent");
+                        return;
+                    }
+
+                    String status = snapshot.child("status").getValue(String.class);
+                    String lateStatus = snapshot.child("lateStatus").getValue(String.class);
+                    Long totalMinutesRaw = snapshot.child("totalMinutes").getValue(Long.class);
+                    long totalMinutes = totalMinutesRaw != null ? totalMinutesRaw : 0;
+
+                    String statusSafe = status != null ? status.toLowerCase() : "";
+
+                    // ✅ 1. HALF DAY (TOP PRIORITY)
+                    if (statusSafe.contains("half")) {
+                        holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_blue);
+                        holder.itemView.setTag("🔵 Half Day");
+                    }
+                    // ✅ 2. LATE
+                    else if ("late".equalsIgnoreCase(lateStatus) || statusSafe.contains("late")) {
+                        holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_yellow);
+                        holder.itemView.setTag("🟡 Late");
+                    }
+                    // ✅ 3. PRESENT / FULL DAY
+                    else if (statusSafe.contains("present") || statusSafe.contains("full")) {
+                        holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_green);
+                        holder.itemView.setTag("🟢 Present");
+                    }
+                    // ✅ 4. CHECK-IN EXISTS → PRESENT
+                    else {
+                        String checkInTime = snapshot.child("checkInTime").getValue(String.class);
+                        if (checkInTime != null && !checkInTime.isEmpty()) {
                             holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_green);
                             holder.itemView.setTag("🟢 Present");
-                        }
-                        else {
-                            String checkInTime = snapshot.child("checkInTime").getValue(String.class);
-                            if (checkInTime != null && !checkInTime.isEmpty()) {
-                                // ANY CHECK-IN = GREEN
-                                holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_green);
-                                holder.itemView.setTag("🟢 Present");
-                            } else {
-                                holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_yellow);
-                                holder.itemView.setTag("🟡 Unknown");
-                            }
+                        } else {
+                            holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_red);
+                            holder.itemView.setTag("🔴 Absent");
                         }
                     }
                 }
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
-                    holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_green);
-                    holder.itemView.setTag("🟢 Error");
+                    holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_red);
+                    holder.itemView.setTag("🔴 Error");
                     holder.tvDay.setTextColor(Color.WHITE);
                 }
             });

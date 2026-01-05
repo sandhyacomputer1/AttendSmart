@@ -20,12 +20,14 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.sandhyyasofttech.attendsmart.Models.EmployeePunchModel;
 import com.sandhyyasofttech.attendsmart.R;
 
+
 import java.util.List;
 
 public class PunchDetailsAdapter extends RecyclerView.Adapter<PunchDetailsAdapter.ViewHolder> {
 
     private static final String TAG = "PunchDetailsAdapter";
     private List<EmployeePunchModel> list;
+
 
     public PunchDetailsAdapter(List<EmployeePunchModel> list) {
         this.list = list;
@@ -43,26 +45,51 @@ public class PunchDetailsAdapter extends RecyclerView.Adapter<PunchDetailsAdapte
     public void onBindViewHolder(@NonNull ViewHolder h, int position) {
         EmployeePunchModel m = list.get(position);
 
-        // Set employee info
+        // ================= BASIC INFO =================
         h.tvEmployeeName.setText(m.employeeName != null ? m.employeeName : "Employee");
         h.tvEmployeeMobile.setText(m.mobile != null ? m.mobile : "N/A");
 
-        // Set late badge and card background
-        if (m.isLate) {
+        // ================= STATUS + COLOR LOGIC =================
+        String status = m.status != null ? m.status.toLowerCase() : "";
+        String lateStatus = m.lateStatus != null ? m.lateStatus.toLowerCase() : "";
+
+        h.tvLateTag.setVisibility(View.GONE);
+        h.cardView.setCardBackgroundColor(Color.WHITE);
+
+        // 🔵 HALF DAY (TOP PRIORITY)
+        if (status.contains("half")) {
             h.tvLateTag.setVisibility(View.VISIBLE);
-            h.tvLateTag.setText("LATE");
-            h.cardView.setCardBackgroundColor(Color.parseColor("#FFF8E1")); // Light yellow
-        } else if (m.status != null && m.status.equalsIgnoreCase("On Time")) {
-            h.tvLateTag.setVisibility(View.VISIBLE);
-            h.tvLateTag.setText("ON TIME");
-            h.tvLateTag.setBackgroundResource(R.drawable.bg_ontime_badge);
-            h.cardView.setCardBackgroundColor(Color.WHITE);
-        } else {
-            h.tvLateTag.setVisibility(View.GONE);
-            h.cardView.setCardBackgroundColor(Color.WHITE);
+            h.tvLateTag.setText("HALF DAY");
+            h.tvLateTag.setBackgroundResource(R.drawable.bg_circle_primary);
+            h.cardView.setCardBackgroundColor(Color.parseColor("#E3F2FD")); // Light Blue
         }
 
-        // Check-in time
+        // 🟡 LATE (CAN COMBINE WITH HALF DAY)
+        if (lateStatus.equals("late") || status.contains("late")) {
+            h.tvLateTag.setVisibility(View.VISIBLE);
+
+            if (status.contains("half")) {
+                h.tvLateTag.setText("HALF DAY • LATE");
+            } else {
+                h.tvLateTag.setText("LATE");
+            }
+
+            h.tvLateTag.setBackgroundResource(R.drawable.bg_late_badge);
+            h.cardView.setCardBackgroundColor(Color.parseColor("#FFF8E1")); // Light Yellow
+        }
+
+        // 🟢 PRESENT / FULL DAY (ONLY IF NOT HALF/LATE)
+        if (!status.contains("half")
+                && !lateStatus.equals("late")
+                && (status.contains("present") || status.contains("full"))) {
+
+            h.tvLateTag.setVisibility(View.VISIBLE);
+            h.tvLateTag.setText("PRESENT");
+            h.tvLateTag.setBackgroundResource(R.drawable.bg_circle_primary);
+            h.cardView.setCardBackgroundColor(Color.parseColor("#E8F5E9")); // Light Green
+        }
+
+        // ================= CHECK-IN =================
         if (m.checkInTime != null && !m.checkInTime.isEmpty()) {
             h.tvInTime.setText(m.checkInTime);
             h.tvInTime.setTextColor(Color.parseColor("#212121"));
@@ -71,7 +98,6 @@ public class PunchDetailsAdapter extends RecyclerView.Adapter<PunchDetailsAdapte
             h.tvInTime.setTextColor(Color.parseColor("#F44336"));
         }
 
-        // Check-in location
         if (m.checkInAddress != null && !m.checkInAddress.isEmpty()) {
             h.tvInLoc.setText(m.checkInAddress);
             h.tvInLoc.setVisibility(View.VISIBLE);
@@ -80,7 +106,7 @@ public class PunchDetailsAdapter extends RecyclerView.Adapter<PunchDetailsAdapte
             h.tvInLoc.setVisibility(View.VISIBLE);
         }
 
-        // Check-out time
+        // ================= CHECK-OUT =================
         if (m.checkOutTime != null && !m.checkOutTime.isEmpty()) {
             h.tvOutTime.setText(m.checkOutTime);
             h.tvOutTime.setTextColor(Color.parseColor("#212121"));
@@ -89,7 +115,6 @@ public class PunchDetailsAdapter extends RecyclerView.Adapter<PunchDetailsAdapte
             h.tvOutTime.setTextColor(Color.parseColor("#F44336"));
         }
 
-        // Check-out location
         if (m.checkOutAddress != null && !m.checkOutAddress.isEmpty()) {
             h.tvOutLoc.setText(m.checkOutAddress);
             h.tvOutLoc.setVisibility(View.VISIBLE);
@@ -98,7 +123,7 @@ public class PunchDetailsAdapter extends RecyclerView.Adapter<PunchDetailsAdapte
             h.tvOutLoc.setVisibility(View.VISIBLE);
         }
 
-        // Working hours
+        // ================= WORKING HOURS =================
         if (m.workingHours != null && !m.workingHours.isEmpty()) {
             h.layoutWorkingHours.setVisibility(View.VISIBLE);
             h.tvWorkingHours.setText(m.workingHours);
@@ -106,11 +131,9 @@ public class PunchDetailsAdapter extends RecyclerView.Adapter<PunchDetailsAdapte
             h.layoutWorkingHours.setVisibility(View.GONE);
         }
 
-        // Load check-in image
+        // ================= CHECK-IN IMAGE =================
         if (m.checkInPhoto != null && !m.checkInPhoto.isEmpty()) {
             h.ivIn.setVisibility(View.VISIBLE);
-
-            Log.d(TAG, "Loading check-in image: " + m.checkInPhoto);
 
             Glide.with(h.itemView.getContext())
                     .load(m.checkInPhoto)
@@ -122,14 +145,11 @@ public class PunchDetailsAdapter extends RecyclerView.Adapter<PunchDetailsAdapte
             h.ivIn.setOnClickListener(v -> openImage(m.checkInPhoto, h.itemView));
         } else {
             h.ivIn.setVisibility(View.GONE);
-            Log.d(TAG, "No check-in photo for: " + m.mobile);
         }
 
-        // Load check-out image
+        // ================= CHECK-OUT IMAGE =================
         if (m.checkOutPhoto != null && !m.checkOutPhoto.isEmpty()) {
             h.ivOut.setVisibility(View.VISIBLE);
-
-            Log.d(TAG, "Loading check-out image: " + m.checkOutPhoto);
 
             Glide.with(h.itemView.getContext())
                     .load(m.checkOutPhoto)
@@ -141,26 +161,17 @@ public class PunchDetailsAdapter extends RecyclerView.Adapter<PunchDetailsAdapte
             h.ivOut.setOnClickListener(v -> openImage(m.checkOutPhoto, h.itemView));
         } else {
             h.ivOut.setVisibility(View.GONE);
-            Log.d(TAG, "No check-out photo for: " + m.mobile);
         }
     }
 
     private void openImage(String url, View view) {
-        if (url != null && !url.isEmpty()) {
-            try {
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setDataAndType(Uri.parse(url), "image/*");
-                view.getContext().startActivity(intent);
-            } catch (Exception e) {
-                Log.e(TAG, "Error opening image: " + e.getMessage());
-                // Fallback to browser
-                try {
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                    view.getContext().startActivity(browserIntent);
-                } catch (Exception ex) {
-                    Log.e(TAG, "Error opening in browser: " + ex.getMessage());
-                }
-            }
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(Uri.parse(url), "image/*");
+            view.getContext().startActivity(intent);
+        } catch (Exception e) {
+            Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            view.getContext().startActivity(browserIntent);
         }
     }
 
