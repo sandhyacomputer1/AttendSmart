@@ -53,6 +53,9 @@
         <activity
             android:name=".Activities.AdminDayAttendanceDetailActivity"
             android:exported="false" />
+        <activity
+            android:name=".Activities.NoInternetActivity"
+            android:exported="false" />
 
         <activity
             android:name=".Activities.SalaryListActivity"

@@ -58,11 +58,23 @@ public class AdminLeaveListActivity extends AppCompatActivity {
                         list.add(m);
                     }
                 }
-                Collections.sort(list,
-                        (a,b)->b.status.compareTo(a.status));
-                adapter.notifyDataSetChanged();
+                Collections.sort(list, (a, b) -> {
+
+                    if (a.status == null && b.status == null) return 0;
+                    if (a.status == null) return 1;
+                    if (b.status == null) return -1;
+
+                    if (a.status.equals(b.status)) return 0;
+                    if ("PENDING".equals(a.status)) return -1;
+                    if ("PENDING".equals(b.status)) return 1;
+                    if ("APPROVED".equals(a.status)) return -1;
+                    return 1;
+                });
+
+
+                adapter.notifyDataSetChanged(); // 🔥 THIS WAS MISSING
             }
-            @Override public void onCancelled(@NonNull DatabaseError e) {}
+                @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
     }
 }

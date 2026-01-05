@@ -161,10 +161,15 @@ public class ApplyLeaveActivity extends AppCompatActivity {
                         for (DataSnapshot s : snapshot.getChildren()) {
                             String f = s.child("fromDate").getValue(String.class);
                             String t = s.child("toDate").getValue(String.class);
-                            if (fromDate.equals(f) || toDate.equals(t)) {
-                                toast("Leave already applied for this date");
+//                            if (fromDate.equals(f) || toDate.equals(t)) {
+//                                toast("Leave already applied for this date");
+//                                return;
+//                            }
+                            if (!(toDate.compareTo(f) < 0 || fromDate.compareTo(t) > 0)) {
+                                toast("Leave already applied for selected dates");
                                 return;
                             }
+
                         }
                         saveLeave(reason);
                     }
@@ -207,6 +212,10 @@ public class ApplyLeaveActivity extends AppCompatActivity {
                 map.put("toDate", toDate);
                 map.put("reason", reason);
                 map.put("status", "PENDING");
+                map.put("isPaid", null);
+                map.put("approvedBy", null);
+                map.put("approvedAt", null);
+
                 map.put("appliedAt", System.currentTimeMillis());
 
                 leavesRef.child(leaveId).setValue(map)
