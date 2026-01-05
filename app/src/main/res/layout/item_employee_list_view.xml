@@ -3,20 +3,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="16dp"
+    android:layout_margin="5dp"
+    app:cardCornerRadius="10dp"
     app:cardElevation="4dp"
     app:strokeColor="#E0E0E0"
     app:strokeWidth="0.5dp"
-    android:foreground="?attr/selectableItemBackground"
+    android:background="@color/white"
     android:clickable="true"
     android:focusable="true">
 
     <LinearLayout
         android:layout_width="match_parent"
+        android:background="@color/white"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
+        android:padding="10dp"
         android:minHeight="64dp"
         android:gravity="center_vertical">
 
@@ -44,8 +45,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="John Doe"
-                android:textSize="18sp"
-                android:textStyle="bold"
+                android:textSize="16sp"
                 android:textColor="@color/black"
                 android:maxLines="1"
                 android:ellipsize="end" />

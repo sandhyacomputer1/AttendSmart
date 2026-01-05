@@ -7,4 +7,20 @@
     <string name="open_drawer">Open navigation menu</string>
     <string name="close_drawer">Close navigation menu</string>
 
+    <!-- Navigation Menu -->
+    <string name="dashboard">Dashboard</string>
+    <string name="employees">Employees</string>
+    <string name="departments">Departments</string>
+    <string name="shifts">Shifts</string>
+    <string name="attendance">Attendance</string>
+    <string name="leave_requests">Leave Requests</string>
+    <string name="reports">Reports</string>
+    <string name="payroll">Payroll</string>
+    <string name="view_salary">View Salary</string>
+    <string name="generate_salary">Generate Salary</string>
+    <string name="account">Account</string>
+    <string name="profile">Profile</string>
+    <string name="settings">Settings</string>
+    <string name="logout">Logout</string>
+
 </resources>

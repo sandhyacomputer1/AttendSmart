@@ -51,6 +51,15 @@
                 android:resource="@xml/file_paths" />
         </provider>
         <activity
+            android:name=".Activities.AllAttendanceActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activities.ProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activities.ReportsActivity"
+            android:exported="false" />
+        <activity
             android:name=".Activities.AdminDayAttendanceDetailActivity"
             android:exported="false" />
         <activity

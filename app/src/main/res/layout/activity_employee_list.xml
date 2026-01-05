@@ -41,7 +41,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="24dp"
+                android:padding="10dp"
                 android:background="@android:color/white">
 
                 <LinearLayout
@@ -56,7 +56,7 @@
                         android:layout_height="wrap_content"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
                         app:startIconDrawable="@drawable/ic_search"
-                        app:startIconTint="#FF5722"
+                        app:startIconTint="#2E2D2D"
                         app:boxStrokeColor="#FF5722">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -73,12 +73,11 @@
                         android:id="@+id/tvEmployeeCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:text="👥 Total: 0 employees"
+                        android:layout_marginTop="10dp"
+                        android:text=" Total: 0 employees"
                         android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:textColor="#FF5722"
-                        android:padding="16dp"
+                        android:textColor="#121212"
+                        android:padding="10dp"
                         android:minWidth="140dp"
                         android:gravity="center" />
                 </LinearLayout>
@@ -142,9 +141,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:clipToPadding="false"
-                    android:paddingBottom="120dp"
                     android:overScrollMode="never"
                     android:nestedScrollingEnabled="true"
+                    android:background="@color/white"
                     tools:listitem="@layout/item_employee_list_view"
                     tools:context=".Activities.EmployeeListActivity" />
 

@@ -227,7 +227,7 @@ public class EmployeeListActivity extends AppCompatActivity {
     private void updateEmployeeCount() {
         int count = adapter != null ? adapter.getItemCount() : 0;
         if (tvEmployeeCount != null) {
-            tvEmployeeCount.setText("👥 Total: " + count + " employees");
+            tvEmployeeCount.setText(" Total: " + count + " employees");
         }
     }
 

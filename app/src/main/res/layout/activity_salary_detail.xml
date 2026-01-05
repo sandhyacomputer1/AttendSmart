@@ -93,7 +93,7 @@
                             android:layout_width="20dp"
                             android:layout_height="20dp"
                             android:src="@android:drawable/ic_dialog_info"
-                            android:tint="#1976D2"
+                            app:tint="#1976D2"
                             android:layout_marginEnd="12dp"/>
 
                         <TextView
@@ -116,7 +116,7 @@
                             android:layout_width="20dp"
                             android:layout_height="20dp"
                             android:src="@android:drawable/ic_menu_today"
-                            android:tint="#1976D2"
+                            app:tint="#1976D2"
                             android:layout_marginEnd="12dp"/>
 
                         <TextView
@@ -323,7 +323,7 @@
                             android:layout_width="20dp"
                             android:layout_height="20dp"
                             android:src="@android:drawable/ic_menu_info_details"
-                            android:tint="#1976D2"
+                            app:tint="#1976D2"
                             android:layout_marginEnd="12dp"/>
 
                         <TextView
@@ -347,7 +347,7 @@
                             android:layout_width="20dp"
                             android:layout_height="20dp"
                             android:src="@android:drawable/ic_menu_gallery"
-                            android:tint="#4CAF50"
+                            app:tint="#4CAF50"
                             android:layout_marginEnd="12dp"/>
 
                         <TextView
@@ -371,7 +371,7 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:src="@android:drawable/btn_star_big_on"
-                            android:tint="#FF9800"
+                            app:tint="#FF9800"
                             android:layout_marginEnd="12dp"
                             android:layout_gravity="center_vertical"/>
 

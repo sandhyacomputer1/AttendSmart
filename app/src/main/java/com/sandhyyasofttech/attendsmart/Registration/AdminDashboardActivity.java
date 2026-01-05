@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.database.DataSnapshot;
@@ -27,7 +28,16 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.sandhyyasofttech.attendsmart.Activities.AdminLeaveListActivity;
+import com.sandhyyasofttech.attendsmart.Activities.AllAttendanceActivity;
+import com.sandhyyasofttech.attendsmart.Activities.DepartmentActivity;
 import com.sandhyyasofttech.attendsmart.Activities.EmployeeListActivity;
+import com.sandhyyasofttech.attendsmart.Activities.GenerateSalaryActivity;
+import com.sandhyyasofttech.attendsmart.Activities.ProfileActivity;
+import com.sandhyyasofttech.attendsmart.Activities.ReportsActivity;
+import com.sandhyyasofttech.attendsmart.Activities.SalaryDetailActivity;
+import com.sandhyyasofttech.attendsmart.Settings.SettingsActivity;
+import com.sandhyyasofttech.attendsmart.Activities.ShiftActivity;
 import com.sandhyyasofttech.attendsmart.Adapters.EmployeeAdapter;
 import com.sandhyyasofttech.attendsmart.Admin.AddEmployeeActivity;
 import com.sandhyyasofttech.attendsmart.Models.EmployeeModel;
@@ -38,6 +48,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
+
+import com.bumptech.glide.Glide;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.DatabaseReference;
+
 
 public class AdminDashboardActivity extends AppCompatActivity {
 
@@ -138,21 +153,67 @@ public class AdminDashboardActivity extends AppCompatActivity {
     }
 
     private void setupDrawer() {
+
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawerLayout, topAppBar, R.string.nav_open, R.string.nav_close);
+                this,
+                drawerLayout,
+                topAppBar,
+                R.string.nav_open,
+                R.string.nav_close
+        );
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
         navigationView.setNavigationItemSelectedListener(item -> {
+
             int id = item.getItemId();
-            if (id == R.id.nav_employees) {
-                startActivity(new Intent(this, EmployeeListActivity.class));
-            } else if (id == R.id.nav_logout) {
-                showLogoutConfirmation();
+            Intent intent = null;
+
+            if (id == R.id.nav_dashboard) {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                return true;
             }
+            else if (id == R.id.nav_employees) {
+                intent = new Intent(this, EmployeeListActivity.class);
+            }
+            else if (id == R.id.nav_departments) {
+                intent = new Intent(this, DepartmentActivity.class);
+            }
+            else if (id == R.id.nav_shifts) {
+                intent = new Intent(this, ShiftActivity.class);
+            }
+            else if (id == R.id.nav_attendance) {
+                intent = new Intent(this, AllAttendanceActivity.class);
+            }
+            else if (id == R.id.nav_leaves) {
+                intent = new Intent(this, AdminLeaveListActivity.class);
+            }
+            else if (id == R.id.nav_reports) {
+                intent = new Intent(this, ReportsActivity.class);
+            }
+            else if (id == R.id.nav_view_salary) {
+                intent = new Intent(this, SalaryDetailActivity.class);
+            }
+            else if (id == R.id.nav_generate_salary) {
+                intent = new Intent(this, GenerateSalaryActivity.class);
+            }
+            else if (id == R.id.nav_profile) {
+                intent = new Intent(this, ProfileActivity.class);
+            }
+            else if (id == R.id.nav_settings) {
+                intent = new Intent(this, SettingsActivity.class);
+            }
+            else if (id == R.id.nav_logout) {
+                showLogoutConfirmation();
+                drawerLayout.closeDrawer(GravityCompat.START);
+                return true;
+            }
+
+            if (intent != null) startActivity(intent);
+
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         });
@@ -161,18 +222,80 @@ public class AdminDashboardActivity extends AppCompatActivity {
         updateNavHeader();
     }
 
+//    private void updateNavHeader() {
+//        try {
+//            View headerView = navigationView.getHeaderView(0);
+//            TextView tvCompanyName = headerView.findViewById(R.id.tvCompanyName);
+//            TextView tvUserEmail = headerView.findViewById(R.id.tvUserEmail);
+//            PrefManager prefManager = new PrefManager(this);
+//            tvUserEmail.setText(prefManager.getUserEmail());
+//            tvCompanyName.setText("Sandhya Soft Tech");
+//        } catch (Exception e) {
+//            // Header not found
+//        }
+//    }
+
     private void updateNavHeader() {
+
         try {
             View headerView = navigationView.getHeaderView(0);
+
             TextView tvCompanyName = headerView.findViewById(R.id.tvCompanyName);
             TextView tvUserEmail = headerView.findViewById(R.id.tvUserEmail);
+            ShapeableImageView ivProfile = headerView.findViewById(R.id.ivProfile);
+
             PrefManager prefManager = new PrefManager(this);
             tvUserEmail.setText(prefManager.getUserEmail());
-            tvCompanyName.setText("Sandhya Soft Tech");
+
+            String email = prefManager.getUserEmail();
+            if (email == null) return;
+
+            String companyKey = email.replace(".", ",");
+
+            DatabaseReference companyInfoRef = FirebaseDatabase.getInstance()
+                    .getReference("Companies")
+                    .child(companyKey)
+                    .child("companyInfo");
+
+            companyInfoRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                    if (!snapshot.exists()) return;
+
+                    String companyName = snapshot.child("companyName").getValue(String.class);
+                    if (companyName != null && !companyName.isEmpty()) {
+                        tvCompanyName.setText(companyName);
+                    }
+
+                    String logoUrl = snapshot.child("companyLogo").getValue(String.class);
+                    if (logoUrl != null && !logoUrl.isEmpty()) {
+                        Glide.with(AdminDashboardActivity.this)
+                                .load(logoUrl)
+                                .placeholder(R.drawable.ic_person)
+                                .into(ivProfile);
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {}
+            });
+
+            // ✅ CLICK ANYWHERE ON HEADER → OPEN PROFILE
+            headerView.setOnClickListener(v -> {
+                drawerLayout.closeDrawer(GravityCompat.START);
+                startActivity(new Intent(
+                        AdminDashboardActivity.this,
+                        ProfileActivity.class
+                ));
+            });
+
         } catch (Exception e) {
-            // Header not found
+            e.printStackTrace();
         }
     }
+
+
 
     private void setupToolbar() {
         setSupportActionBar(topAppBar);

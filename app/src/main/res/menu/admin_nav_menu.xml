@@ -1,56 +1,88 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <group android:checkableBehavior="single">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <!-- Main Navigation -->
+    <group
+        android:id="@+id/group_main"
+        android:checkableBehavior="single">
+
         <item
             android:id="@+id/nav_dashboard"
             android:icon="@drawable/ic_dashboard"
-            android:title="Dashboard"/>
+            android:title="@string/dashboard"/>
+
         <item
             android:id="@+id/nav_employees"
-            android:icon="@drawable/ic_profile"
-            android:title="Employees"/>
+            android:icon="@drawable/ic_employees"
+            android:title="@string/employees"/>
+
         <item
             android:id="@+id/nav_departments"
             android:icon="@drawable/ic_department"
-            android:title="Departments"/>
+            android:title="@string/departments"/>
+
         <item
             android:id="@+id/nav_shifts"
-            android:icon="@drawable/ic_profile"
-            android:title="Shifts"/>
+            android:icon="@drawable/ic_shifts"
+            android:title="@string/shifts"/>
+
         <item
             android:id="@+id/nav_attendance"
             android:icon="@drawable/ic_attendance"
-            android:title="Attendance"/>
-        <item
-            android:id="@+id/nav_reports"
-            android:icon="@drawable/ic_profile"
-            android:title="Reports"/>
+            android:title="@string/attendance"/>
+
         <item
             android:id="@+id/nav_leaves"
-            android:icon="@drawable/ic_attendance"
-            android:title="Leave Requests"/>
+            android:icon="@drawable/ic_leaves"
+            android:title="@string/leave_requests"/>
+
         <item
-            android:id="@+id/nav_view_salary"
-            android:title="💰 Viewww Salary"/>
-        <item
-            android:id="@+id/nav_generate_salary"
-            android:title="💰 Generate Salary"/>
+            android:id="@+id/nav_reports"
+            android:icon="@drawable/ic_reports"
+            android:title="@string/reports"/>
 
     </group>
-    <item android:title="Settings">
+
+    <!-- Payroll Section -->
+    <item android:title="@string/payroll">
         <menu>
-            <item
-                android:id="@+id/nav_profile"
-                android:icon="@drawable/ic_profile"
-                android:title="Profile"/>
-            <item
-                android:id="@+id/nav_settings"
-                android:icon="@drawable/ic_profile"
-                android:title="Settings"/>
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/nav_view_salary"
+                    android:icon="@drawable/ic_view_salary"
+                    android:title="@string/view_salary"/>
+
+                <item
+                    android:id="@+id/nav_generate_salary"
+                    android:icon="@drawable/ic_generate_salary"
+                    android:title="@string/generate_salary"/>
+            </group>
         </menu>
     </item>
+
+    <!-- Settings Section -->
+    <item android:title="@string/account">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/nav_profile"
+                    android:icon="@drawable/ic_profilee"
+                    android:title="@string/profile"/>
+
+                <item
+                    android:id="@+id/nav_settings"
+                    android:icon="@drawable/ic_settingss"
+                    android:title="@string/settings"/>
+            </group>
+        </menu>
+    </item>
+
+    <!-- Logout (Outside groups, not checkable) -->
     <item
         android:id="@+id/nav_logout"
-        android:icon="@drawable/ic_logout"
-        android:title="Logout"/>
+        android:icon="@drawable/ic_logoutt"
+        android:title="@string/logout"/>
+
 </menu>
