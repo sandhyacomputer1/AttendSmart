@@ -22,6 +22,8 @@ public class EmployeeModel implements Serializable {
     private String checkInTime;
     private String totalHours;
     private String checkInPhoto;
+    private String checkOutTime;
+    private String checkOutPhoto;
 
 
     // Default constructor REQUIRED for Firebase
@@ -90,5 +92,22 @@ public class EmployeeModel implements Serializable {
 
     public String getEmergencyContact() { return emergencyContact; }
     public void setEmergencyContact(String emergencyContact) { this.emergencyContact = emergencyContact; }
+
+
+    public String getCheckOutTime() {
+        return checkOutTime;
+    }
+
+    public void setCheckOutTime(String checkOutTime) {
+        this.checkOutTime = checkOutTime;
+    }
+
+    public String getCheckOutPhoto() {
+        return checkOutPhoto;
+    }
+
+    public void setCheckOutPhoto(String checkOutPhoto) {
+        this.checkOutPhoto = checkOutPhoto;
+    }
 
 }

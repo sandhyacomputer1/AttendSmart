@@ -43,10 +43,12 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.Employ
     public void onBindViewHolder(@NonNull EmployeeViewHolder holder, int position) {
         EmployeeModel model = employeeList.get(position);
 
+        // Basic Info
         safeSetText(holder.tvName, model.getEmployeeName() != null ? model.getEmployeeName() : "N/A");
         safeSetText(holder.tvMobile, model.getEmployeeMobile() != null ? model.getEmployeeMobile() : "N/A");
         safeSetText(holder.tvDepartment, model.getEmployeeDepartment() != null ? model.getEmployeeDepartment() : "N/A");
 
+        // Status
         String status = model.getTodayStatus();
         safeSetText(holder.tvStatus, status != null ? status : "Absent");
 
@@ -54,12 +56,32 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.Employ
             holder.tvStatus.setTextColor(getStatusColor(status));
         }
 
-        safeSetText(holder.tvCheckInTime, model.getCheckInTime() != null ? model.getCheckInTime() : "");
+        // Check-in and Check-out Time Display
+        String checkInTime = model.getCheckInTime();
+        String checkOutTime = model.getCheckOutTime();
+
+        if (holder.tvCheckInTime != null) {
+            if ("Absent".equals(status)) {
+                holder.tvCheckInTime.setText("No attendance today");
+                holder.tvCheckInTime.setTextColor(ContextCompat.getColor(context, R.color.error));
+            } else if (checkInTime != null && !checkInTime.isEmpty()) {
+                if (checkOutTime != null && !checkOutTime.isEmpty()) {
+                    // Both check-in and check-out available
+                    holder.tvCheckInTime.setText("In: " + checkInTime + " • Out: " + checkOutTime);
+                } else {
+                    // Only check-in available
+                    holder.tvCheckInTime.setText("Check-in: " + checkInTime);
+                }
+                holder.tvCheckInTime.setTextColor(ContextCompat.getColor(context, android.R.color.darker_gray));
+            } else {
+                holder.tvCheckInTime.setText("");
+            }
+        }
 
         // Photo logic
         if (holder.ivPhoto != null) {
             String photoUrl = model.getCheckInPhoto();
-            android.util.Log.d("EmployeeAdapter", "Loading photo for " + model.getEmployeeName() + ": " + photoUrl);
+            Log.d(TAG, "Loading photo for " + model.getEmployeeName() + ": " + photoUrl);
 
             if (photoUrl != null && !photoUrl.isEmpty()) {
                 Glide.with(context)
@@ -70,22 +92,37 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.Employ
                         .into(holder.ivPhoto);
             } else {
                 holder.ivPhoto.setImageResource(R.drawable.ic_profile);
-                android.util.Log.d("EmployeeAdapter", model.getEmployeeName() + " has NO PHOTO");
             }
         }
 
-        // Status icon
-        if (holder.ivStatus != null) {
-            if ("Present".equals(status) || "Half Day".equals(status)) {
-                holder.ivStatus.setImageResource(R.drawable.ic_check_circle);
-                holder.ivStatus.setColorFilter(ContextCompat.getColor(context, R.color.success));
-            } else {
-                holder.ivStatus.setImageResource(R.drawable.ic_close_circle);
-                holder.ivStatus.setColorFilter(ContextCompat.getColor(context, R.color.error));
+        // Status icon and badge background
+        if (holder.ivStatus != null && holder.statusBadge != null) {
+            switch (status != null ? status : "Absent") {
+                case "Present":
+                    holder.ivStatus.setImageResource(R.drawable.ic_check_circle);
+                    holder.ivStatus.setColorFilter(ContextCompat.getColor(context, R.color.success));
+                    holder.statusBadge.setBackgroundResource(R.drawable.status_badge_present);
+                    break;
+                case "Late":
+                    holder.ivStatus.setImageResource(R.drawable.ic_schedule);
+                    holder.ivStatus.setColorFilter(ContextCompat.getColor(context, R.color.warning));
+                    holder.statusBadge.setBackgroundResource(R.drawable.status_badge_late);
+                    break;
+                case "Half Day":
+                    holder.ivStatus.setImageResource(R.drawable.ic_half_day);
+                    holder.ivStatus.setColorFilter(ContextCompat.getColor(context, R.color.warning));
+                    holder.statusBadge.setBackgroundResource(R.drawable.status_badge_halfday);
+                    break;
+                case "Absent":
+                default:
+                    holder.ivStatus.setImageResource(R.drawable.ic_close_circle);
+                    holder.ivStatus.setColorFilter(ContextCompat.getColor(context, R.color.error));
+                    holder.statusBadge.setBackgroundResource(R.drawable.status_badge_absent);
+                    break;
             }
         }
 
-        // ✅ ADD CLICK LISTENER TO OPEN ATTENDANCE REPORT
+        // Click listener to open attendance report
         holder.itemView.setOnClickListener(v -> {
             Intent intent = new Intent(context, AdminEmployeeAttendanceActivity.class);
             intent.putExtra("employeeMobile", model.getEmployeeMobile());
@@ -106,6 +143,7 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.Employ
     static class EmployeeViewHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvMobile, tvDepartment, tvStatus, tvCheckInTime;
         ImageView ivStatus, ivPhoto;
+        View statusBadge;
 
         public EmployeeViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -116,6 +154,7 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.Employ
             tvCheckInTime = itemView.findViewById(R.id.tvCheckInTime);
             ivStatus = itemView.findViewById(R.id.ivStatus);
             ivPhoto = itemView.findViewById(R.id.ivPhoto);
+            statusBadge = itemView.findViewById(R.id.statusBadge);
 
             if (tvName == null) Log.e("EmployeeVH", "tvEmpName NOT FOUND in item_employee.xml");
             if (tvMobile == null) Log.e("EmployeeVH", "tvEmpMobile NOT FOUND in item_employee.xml");
@@ -124,9 +163,11 @@ public class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.Employ
     }
 
     private int getStatusColor(String status) {
-        if ("Present".equals(status) || "Half Day".equals(status)) {
+        if ("Present".equals(status)) {
             return ContextCompat.getColor(context, R.color.success);
         } else if ("Late".equals(status)) {
+            return ContextCompat.getColor(context, R.color.warning);
+        } else if ("Half Day".equals(status)) {
             return ContextCompat.getColor(context, R.color.warning);
         } else {
             return ContextCompat.getColor(context, R.color.error);

@@ -454,13 +454,23 @@ public class AttendanceReportActivity extends AppCompatActivity {
                 holder.tvDay.setTextSize(16);
                 holder.itemView.setAlpha(1f);
 
-                // ✅ INTEGRATED checkRealStatus WITH LOADING STATE
-                if (hasAttendance && companyKey != null && employeeMobile != null) {
-                    // Show loading state first
+                // ✅ TODAY GETS PRIORITY - Purple Color
+                if (isTodayDay && hasAttendance && companyKey != null && employeeMobile != null) {
+                    // Today with attendance - show purple first, then fetch real status
+                    holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_purple);
+                    holder.tvDay.setTextColor(Color.WHITE);
+                    holder.itemView.setTag("🟣 Today");
+                    checkRealStatus(holder, dateStr); // Async Firebase call
+                } else if (isTodayDay && !hasAttendance) {
+                    // Today without attendance
+                    holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_purple);
+                    holder.tvDay.setTextColor(Color.WHITE);
+                    holder.itemView.setTag("🟣 Today");
+                } else if (hasAttendance && companyKey != null && employeeMobile != null) {
+                    // Past/Future date with attendance
                     holder.containerDay.setBackgroundResource(android.R.color.darker_gray);
                     holder.tvDay.setTextColor(Color.WHITE);
                     holder.itemView.setTag("⏳ Loading...");
-
                     checkRealStatus(holder, dateStr); // Async Firebase call
                 } else if (hasAttendance) {
                     holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_green);
@@ -474,11 +484,8 @@ public class AttendanceReportActivity extends AppCompatActivity {
                     holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_red);
                     holder.tvDay.setTextColor(Color.WHITE);
                     holder.itemView.setTag("🔴 Absent");
-                } else if (isTodayDay) {
-                    holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_bluee);
-                    holder.tvDay.setTextColor(Color.WHITE);
-                    holder.itemView.setTag("🔵 Today");
                 } else {
+                    // Future date
                     holder.containerDay.setBackground(null);
                     holder.tvDay.setTextColor(Color.parseColor("#212121"));
                     holder.itemView.setTag("⚪ Future");
@@ -500,7 +507,6 @@ public class AttendanceReportActivity extends AppCompatActivity {
                 holder.itemView.setTag(null);
             }
         }
-
         @Override
         public int getItemCount() {
             return 49;

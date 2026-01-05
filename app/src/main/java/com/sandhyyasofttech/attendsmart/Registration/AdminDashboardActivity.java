@@ -3,6 +3,8 @@ package com.sandhyyasofttech.attendsmart.Registration;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,18 +18,16 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
-import com.sandhyyasofttech.attendsmart.Activities.DepartmentActivity;
 import com.sandhyyasofttech.attendsmart.Activities.EmployeeListActivity;
-import com.sandhyyasofttech.attendsmart.Activities.ShiftActivity;
 import com.sandhyyasofttech.attendsmart.Adapters.EmployeeAdapter;
 import com.sandhyyasofttech.attendsmart.Admin.AddEmployeeActivity;
 import com.sandhyyasofttech.attendsmart.Models.EmployeeModel;
@@ -41,29 +41,19 @@ import java.util.Locale;
 
 public class AdminDashboardActivity extends AppCompatActivity {
 
-    // Toolbar
+    // UI Views
     private MaterialToolbar topAppBar;
-
-    // Dashboard Statistics TextViews
     private TextView tvTotalEmployees, tvPresent, tvAbsent, tvLate;
-
-    // Management Section
-    private TextView tvDepartmentTitle, tvDepartmentCount;
-    private TextView tvShiftTitle, tvShiftCount;
-    private MaterialButton btnManageDepartments, btnManageShifts, btnLogout;
-
-    // Employees Section
     private RecyclerView rvEmployees;
+    private TextInputEditText etSearch;
     private EmployeeAdapter adapter;
     private ArrayList<EmployeeModel> employeeList;
-
-    // FAB
+    private ArrayList<EmployeeModel> fullEmployeeList;
     private ExtendedFloatingActionButton fabAddEmployee;
 
-    // Firebase References
-    private DatabaseReference employeesRef, departmentsRef, shiftsRef, attendanceRef;
+    // Firebase
+    private DatabaseReference employeesRef, attendanceRef;
     private String companyKey;
-    private MaterialButton btnViewReports;
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private static final int NOTIF_PERMISSION = 201;
@@ -73,189 +63,123 @@ public class AdminDashboardActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_dashboard);
 
-        // Initialize all views
         initializeViews();
-        setupDrawer();  // ADD THIS
-
-        // Setup toolbar
+        setupDrawer();
         setupToolbar();
 
-        // Get logged-in company
-        if (!setupCompanySession()) {
-            return;
-        }
+        if (!setupCompanySession()) return;
 
-        // Initialize Firebase references
         initializeFirebaseReferences();
         saveAdminFcmToken();
-        ensureNotificationSetting(); // 👈 ADD THIS
-
-        // Setup click listeners
+        ensureNotificationSetting();
         setupClickListeners();
+        setupSearchView();
         requestNotificationPermission();
 
-        // Fetch all data
         fetchAllData();
     }
 
-    private void saveAdminFcmToken() {
-        FirebaseMessaging.getInstance().getToken()
-                .addOnSuccessListener(token -> {
-                    if (token == null || token.isEmpty()) return;
-
-                    FirebaseDatabase.getInstance()
-                            .getReference("Companies")
-                            .child(companyKey)
-                            .child("companyInfo")
-                            .child("adminFcmToken")
-                            .setValue(token);
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "FCM token failed", Toast.LENGTH_SHORT).show()
-                );
-    }
-    private void ensureNotificationSetting() {
-        DatabaseReference notifyRef = FirebaseDatabase.getInstance()
-                .getReference("Companies")
-                .child(companyKey)
-                .child("companyInfo")
-                .child("notifyAttendance");
-
-        notifyRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (!snapshot.exists()) {
-                    // 🔔 Default ON
-                    notifyRef.setValue(true);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-            }
-        });
-    }
-
-    private void requestNotificationPermission() {
-        if (android.os.Build.VERSION.SDK_INT >= 33) {
-            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
-                    != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(
-                        new String[]{android.Manifest.permission.POST_NOTIFICATIONS},
-                        NOTIF_PERMISSION
-                );
-            }
-        }
-    }
-    private void setupDrawer() {
-        drawerLayout = findViewById(R.id.drawer_layout);
-        navigationView = findViewById(R.id.nav_view);
-
-        // Set drawer toggle
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawerLayout, topAppBar, R.string.nav_open, R.string.nav_close);
-        drawerLayout.addDrawerListener(toggle);
-        toggle.syncState();
-
-        // Handle navigation item clicks
-        navigationView.setNavigationItemSelectedListener(item -> {
-            int id = item.getItemId();
-
-            if (id == R.id.nav_dashboard) {
-                // Already on dashboard
-            } else if (id == R.id.nav_employees) {
-                startActivity(new Intent(this, EmployeeListActivity.class));
-            } else if (id == R.id.nav_departments) {
-                startActivity(new Intent(this, DepartmentActivity.class));
-            } else if (id == R.id.nav_shifts) {
-                startActivity(new Intent(this, ShiftActivity.class));
-            }else if (id == R.id.nav_leaves) {
-                startActivity(new Intent(this,
-                        com.sandhyyasofttech.attendsmart.Activities.AdminLeaveListActivity.class));
-            } else if (id == R.id.nav_view_salary) {
-                startActivity(new Intent(this,
-                        com.sandhyyasofttech.attendsmart.Activities.SalaryListActivity.class));
-            }
-            else if (id == R.id.nav_generate_salary) {
-                startActivity(new Intent(this,
-                        com.sandhyyasofttech.attendsmart.Activities.GenerateSalaryActivity.class));
-            }
-            else if (id == R.id.nav_settings) {
-                startActivity(new Intent(this,
-                        com.sandhyyasofttech.attendsmart.Settings.SettingsActivity.class));
-            }
-
-            else if (id == R.id.nav_logout) {
-                showLogoutConfirmation();
-            }
-
-            drawerLayout.closeDrawer(GravityCompat.START);
-            return true;
-        });
-
-        // Set active item
-        navigationView.setCheckedItem(R.id.nav_dashboard);
-
-        // Update header with company info
-        updateNavHeader();
-    }
-    private void updateNavHeader() {
-        View headerView = navigationView.getHeaderView(0);
-        TextView tvCompanyName = headerView.findViewById(R.id.tvCompanyName);
-        TextView tvUserEmail = headerView.findViewById(R.id.tvUserEmail);
-
-        PrefManager prefManager = new PrefManager(this);
-        tvUserEmail.setText(prefManager.getUserEmail());
-        tvCompanyName.setText("Sandhya Soft Tech"); // Or fetch from prefs
-    }
-    /**
-     * Initialize all views
-     */
     private void initializeViews() {
-        // Toolbar
         topAppBar = findViewById(R.id.topAppBar);
-
-        // Dashboard statistics cards
         tvTotalEmployees = findViewById(R.id.tvTotalEmployees);
         tvPresent = findViewById(R.id.tvPresent);
         tvAbsent = findViewById(R.id.tvAbsent);
         tvLate = findViewById(R.id.tvLate);
 
-        // Management section
-        tvDepartmentTitle = findViewById(R.id.tvDepartmentTitle);
-        tvDepartmentCount = findViewById(R.id.tvDepartmentCount);
-        tvShiftTitle = findViewById(R.id.tvShiftTitle);
-        tvShiftCount = findViewById(R.id.tvShiftCount);
+        // 👈 UPDATED - TextInputEditText instead of SearchView
+        etSearch = findViewById(R.id.etSearch);
 
-        btnManageDepartments = findViewById(R.id.btnManageDepartments);
-        btnManageShifts = findViewById(R.id.btnManageShifts);
-        btnLogout = findViewById(R.id.btnLogout);
-
-        // Employees RecyclerView
         rvEmployees = findViewById(R.id.rvEmployees);
         rvEmployees.setLayoutManager(new LinearLayoutManager(this));
         rvEmployees.setHasFixedSize(true);
 
         employeeList = new ArrayList<>();
-// In AdminDashboardActivity.java - CHANGE THIS LINE ONLY
-        adapter = new EmployeeAdapter(employeeList, this); // Add 'this' parameter
+        fullEmployeeList = new ArrayList<>();
+        adapter = new EmployeeAdapter(employeeList, this);
         rvEmployees.setAdapter(adapter);
 
-        // FAB
         fabAddEmployee = findViewById(R.id.fabAddEmployee);
     }
 
-    /**
-     * Setup toolbar with back button if needed
-     */
+    private void setupSearchView() {
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // Not needed
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterEmployees(s.toString().toLowerCase().trim());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // Not needed
+            }
+        });
+    }
+
+    private void filterEmployees(String query) {
+        employeeList.clear();
+        if (query.isEmpty()) {
+            employeeList.addAll(fullEmployeeList);
+        } else {
+            for (EmployeeModel employee : fullEmployeeList) {
+                if (employee.getEmployeeName().toLowerCase().contains(query) ||
+                        employee.getEmployeeMobile().contains(query) ||
+                        (employee.getEmployeeDepartment() != null &&
+                                employee.getEmployeeDepartment().toLowerCase().contains(query))) {
+                    employeeList.add(employee);
+                }
+            }
+        }
+        adapter.notifyDataSetChanged();
+    }
+
+    private void setupDrawer() {
+        drawerLayout = findViewById(R.id.drawer_layout);
+        navigationView = findViewById(R.id.nav_view);
+
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawerLayout, topAppBar, R.string.nav_open, R.string.nav_close);
+        drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
+
+        navigationView.setNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_employees) {
+                startActivity(new Intent(this, EmployeeListActivity.class));
+            } else if (id == R.id.nav_logout) {
+                showLogoutConfirmation();
+            }
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        });
+
+        navigationView.setCheckedItem(R.id.nav_dashboard);
+        updateNavHeader();
+    }
+
+    private void updateNavHeader() {
+        try {
+            View headerView = navigationView.getHeaderView(0);
+            TextView tvCompanyName = headerView.findViewById(R.id.tvCompanyName);
+            TextView tvUserEmail = headerView.findViewById(R.id.tvUserEmail);
+            PrefManager prefManager = new PrefManager(this);
+            tvUserEmail.setText(prefManager.getUserEmail());
+            tvCompanyName.setText("Sandhya Soft Tech");
+        } catch (Exception e) {
+            // Header not found
+        }
+    }
+
     private void setupToolbar() {
         setSupportActionBar(topAppBar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Admin Dashboard");
         }
 
-        // Handle hamburger menu click
         topAppBar.setNavigationOnClickListener(v -> {
             if (drawerLayout.isDrawerVisible(GravityCompat.START)) {
                 drawerLayout.closeDrawer(GravityCompat.START);
@@ -265,155 +189,162 @@ public class AdminDashboardActivity extends AppCompatActivity {
         });
     }
 
-
-    /**
-     * Setup company session and validate user
-     */
     private boolean setupCompanySession() {
         PrefManager prefManager = new PrefManager(this);
         String email = prefManager.getUserEmail();
-
         if (email == null || email.isEmpty()) {
             Toast.makeText(this, "Session expired. Please login again.", Toast.LENGTH_SHORT).show();
             navigateToLogin();
             return false;
         }
-
         companyKey = email.replace(".", ",");
         return true;
     }
 
-    /**
-     * Initialize all Firebase database references
-     */
     private void initializeFirebaseReferences() {
         DatabaseReference companyRef = FirebaseDatabase.getInstance()
-                .getReference("Companies")
-                .child(companyKey);
-
+                .getReference("Companies").child(companyKey);
         employeesRef = companyRef.child("employees");
-        departmentsRef = companyRef.child("departments");
-        shiftsRef = companyRef.child("shifts");
         attendanceRef = companyRef.child("attendance");
     }
 
-    /**
-     * Setup all click listeners
-     */
     private void setupClickListeners() {
-
-
-        // FAB - Add Employee
-        fabAddEmployee.setOnClickListener(v -> {
-            Intent intent = new Intent(AdminDashboardActivity.this, AddEmployeeActivity.class);
-            startActivity(intent);
-        });
-
-        // Manage Departments
-        btnManageDepartments.setOnClickListener(v -> {
-            Intent intent = new Intent(AdminDashboardActivity.this, DepartmentActivity.class);
-            startActivity(intent);
-        });
-
-        // Manage Shifts
-        btnManageShifts.setOnClickListener(v -> {
-            Intent intent = new Intent(AdminDashboardActivity.this, ShiftActivity.class);
-            startActivity(intent);
-        });
-
-        // Logout Button
-        btnLogout.setOnClickListener(v -> showLogoutConfirmation());
+        fabAddEmployee.setOnClickListener(v ->
+                startActivity(new Intent(this, AddEmployeeActivity.class)));
     }
 
-    /**
-     * Fetch all data from Firebase
-     */
+    private void saveAdminFcmToken() {
+        FirebaseMessaging.getInstance().getToken()
+                .addOnSuccessListener(token -> {
+                    if (token != null && !token.isEmpty()) {
+                        FirebaseDatabase.getInstance()
+                                .getReference("Companies")
+                                .child(companyKey)
+                                .child("companyInfo")
+                                .child("adminFcmToken")
+                                .setValue(token);
+                    }
+                });
+    }
+
+    private void ensureNotificationSetting() {
+        FirebaseDatabase.getInstance()
+                .getReference("Companies")
+                .child(companyKey)
+                .child("companyInfo")
+                .child("notifyAttendance")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (!snapshot.exists()) {
+                            snapshot.getRef().setValue(true);
+                        }
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {}
+                });
+    }
+
+    private void requestNotificationPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, NOTIF_PERMISSION);
+            }
+        }
+    }
+
     private void fetchAllData() {
         fetchEmployeeList();
         fetchDashboardData();
-        fetchDepartmentCount();
-        fetchShiftCount();
     }
 
-    // ================= EMPLOYEE LIST =================
-
-    /**
-     * Fetch and display employee list
-     */
     private void fetchEmployeeList() {
         String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        FirebaseDatabase.getInstance().getReference("Companies").child(companyKey)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        fullEmployeeList.clear();
+                        ArrayList<EmployeeModel> presentList = new ArrayList<>();
+                        ArrayList<EmployeeModel> absentList = new ArrayList<>();
 
-        DatabaseReference companyRef = FirebaseDatabase.getInstance()
-                .getReference("Companies").child(companyKey);
+                        DataSnapshot employeesSnap = snapshot.child("employees");
+                        DataSnapshot todayAttSnap = snapshot.child("attendance").child(today);
 
-        companyRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                employeeList.clear();
-                ArrayList<EmployeeModel> presentList = new ArrayList<>();
-                ArrayList<EmployeeModel> absentList = new ArrayList<>();
+                        if (employeesSnap.exists()) {
+                            for (DataSnapshot empSnap : employeesSnap.getChildren()) {
+                                DataSnapshot infoSnap = empSnap.child("info");
+                                if (infoSnap.exists()) {
+                                    EmployeeModel model = parseEmployeeSafely(infoSnap);
+                                    if (model != null) {
+                                        String phone = model.getEmployeeMobile();
+                                        DataSnapshot attRecord = todayAttSnap.child(phone);
 
-                DataSnapshot employeesSnap = snapshot.child("employees");
-                DataSnapshot todayAttSnap = snapshot.child("attendance").child(today);
+                                        if (attRecord.exists() && attRecord.hasChild("checkInTime")) {
+                                            // Fetch status and lateStatus
+                                            String status = safeToString(attRecord.child("status"));
+                                            String lateStatus = safeToString(attRecord.child("lateStatus"));
 
-                if (!employeesSnap.exists()) {
-                    adapter.notifyDataSetChanged();
-                    return;
-                }
+                                            // Priority order for status determination:
+                                            // 1. Half Day (highest priority)
+                                            if ("Half Day".equalsIgnoreCase(status)) {
+                                                model.setTodayStatus("Half Day");
+                                            }
+                                            // 2. Late (check lateStatus field)
+                                            else if ("Late".equalsIgnoreCase(lateStatus)) {
+                                                model.setTodayStatus("Late");
+                                            }
+                                            // 3. Present or Full Day
+                                            else if ("Present".equalsIgnoreCase(status) ||
+                                                    "Full Day".equalsIgnoreCase(status)) {
+                                                model.setTodayStatus("Present");
+                                            }
+                                            // 4. Default to Present if has check-in
+                                            else {
+                                                model.setTodayStatus("Present");
+                                            }
 
-                // ✅ LOOP THROUGH EMPLOYEES
-                for (DataSnapshot empSnap : employeesSnap.getChildren()) {
-                    DataSnapshot infoSnap = empSnap.child("info");
-                    if (infoSnap.exists()) {
-                        EmployeeModel model = parseEmployeeSafely(infoSnap);
-                        if (model != null) {
-                            String phone = model.getEmployeeMobile();
+                                            // Fetch check-in and check-out times
+                                            model.setCheckInTime(safeToString(attRecord.child("checkInTime")));
+                                            model.setCheckOutTime(safeToString(attRecord.child("checkOutTime")));
 
-                            // ✅ GET ATTENDANCE RECORD FOR THIS EMPLOYEE
-                            DataSnapshot attRecord = todayAttSnap.child(phone);
+                                            // Fetch other attendance data
+                                            model.setTotalHours(safeToString(attRecord.child("totalHours")));
+                                            model.setCheckInPhoto(safeToString(attRecord.child("checkInPhoto")));
+                                            model.setCheckOutPhoto(safeToString(attRecord.child("checkOutPhoto")));
 
-                            if (attRecord.exists() && attRecord.hasChild("checkInTime")) {
-                                // ✅ PRESENT EMPLOYEE - SET ALL ATTENDANCE DATA
-                                String status = safeToString(attRecord.child("status"));
-                                model.setTodayStatus("Present".equals(status) || "Half Day".equals(status) ?
-                                        "Present" : (status != null ? status : "Absent"));
-
-                                // ✅ PUNCH-IN TIME
-                                model.setCheckInTime(safeToString(attRecord.child("checkInTime")));
-                                model.setTotalHours(safeToString(attRecord.child("totalHours")));
-
-                                // ✅ 🔥 CHECK-IN PHOTO (CRITICAL FIX)
-                                model.setCheckInPhoto(safeToString(attRecord.child("checkInPhoto")));
-                                android.util.Log.d("Dashboard", "Photo for " + model.getEmployeeName() + ": " + model.getCheckInPhoto());
-
-                                presentList.add(model);
-                            } else {
-                                // ABSENT EMPLOYEE
-                                model.setTodayStatus("Absent");
-                                model.setCheckInPhoto(null); // No photo for absent
-                                absentList.add(model);
+                                            presentList.add(model);
+                                        } else {
+                                            // No attendance record
+                                            model.setTodayStatus("Absent");
+                                            model.setCheckInTime(null);
+                                            model.setCheckOutTime(null);
+                                            model.setCheckInPhoto(null);
+                                            model.setCheckOutPhoto(null);
+                                            absentList.add(model);
+                                        }
+                                        fullEmployeeList.add(model);
+                                    }
+                                }
                             }
                         }
+
+                        // Present employees first, then absent
+                        employeeList.clear();
+                        employeeList.addAll(presentList);
+                        employeeList.addAll(absentList);
+                        adapter.notifyDataSetChanged();
                     }
-                }
 
-                // PRESENT FIRST + ABSENT
-                employeeList.addAll(presentList);
-                employeeList.addAll(absentList);
-
-                android.util.Log.d("Dashboard", "Loaded " + employeeList.size() + " employees, " +
-                        presentList.size() + " present with photos");
-
-                adapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(AdminDashboardActivity.this, "Failed to load employees", Toast.LENGTH_SHORT).show();
-            }
-        });
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(AdminDashboardActivity.this,
+                                "Failed to load employees", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
-    // ✅ ADD THESE METHODS (Copy exactly)
+
     private EmployeeModel parseEmployeeSafely(DataSnapshot infoSnap) {
         try {
             EmployeeModel model = new EmployeeModel();
@@ -428,17 +359,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
             model.setCreatedAt(safeToString(infoSnap.child("createdAt")));
             model.setWeeklyHoliday(safeToString(infoSnap.child("weeklyHoliday")));
             model.setJoinDate(safeToString(infoSnap.child("joinDate")));
-
-            // ✅ CRITICAL: FETCH CHECK-IN PHOTO FROM ATTENDANCE
-            // This gets photo from today's attendance record (not employee info)
-            // Will be set later in fetchEmployeeList()
-
-            if (model.getEmployeeName() == null || model.getEmployeeName().trim().isEmpty()) {
-                return null;
-            }
-            return model;
+            return (model.getEmployeeName() != null && !model.getEmployeeName().trim().isEmpty()) ? model : null;
         } catch (Exception e) {
-            android.util.Log.e("Dashboard", "Parse error: " + e.getMessage());
             return null;
         }
     }
@@ -447,74 +369,60 @@ public class AdminDashboardActivity extends AppCompatActivity {
         if (!dataSnap.exists()) return null;
         Object value = dataSnap.getValue();
         if (value == null) return null;
-        if (value instanceof Long) return ((Long) value).toString();
-        if (value instanceof Number) return String.valueOf(value);
         return value.toString();
     }
 
-    // ================= DASHBOARD STATISTICS =================
-
-    /**
-     * Fetch dashboard statistics (Total, Present, Absent, Late)
-     */
     private void fetchDashboardData() {
         String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
-        // Load both employees and attendance together
         employeesRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot empSnapshot) {
+
                 int totalEmployees = (int) empSnapshot.getChildrenCount();
 
-                // Now fetch today's attendance
                 attendanceRef.child(today).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot attSnapshot) {
+
                         int presentCount = 0;
                         int lateCount = 0;
 
-                        // Count attendance records
                         for (DataSnapshot att : attSnapshot.getChildren()) {
-                            if (att.hasChild("checkInTime")) {
-                                String status = att.child("status").getValue(String.class);
 
-                                if ("Present".equals(status) || "Half Day".equals(status) || status == null) {
-                                    presentCount++;
-                                } else if ("Late".equals(status)) {
+                            // ✅ Any check-in = Present
+                            if (att.hasChild("checkInTime")) {
+                                presentCount++;
+
+                                // ✅ Late is SUBSET of Present
+                                String lateStatus = att.child("lateStatus").getValue(String.class);
+                                if ("Late".equalsIgnoreCase(lateStatus)) {
                                     lateCount++;
                                 }
                             }
                         }
 
-                        // Calculate absent count
-                        int absentCount = totalEmployees - (presentCount + lateCount);
-                        if (absentCount < 0) absentCount = 0; // Safety check
+                        int absentCount = Math.max(0, totalEmployees - presentCount);
 
-                        // Update UI on main thread
-                        updateDashboardUI(totalEmployees, presentCount, absentCount, lateCount);
+                        updateDashboardUI(
+                                totalEmployees,
+                                presentCount,   // includes Late + Half Day
+                                absentCount,
+                                lateCount       // shown separately
+                        );
                     }
 
                     @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        Toast.makeText(AdminDashboardActivity.this,
-                                "Failed to load attendance data",
-                                Toast.LENGTH_SHORT).show();
-                    }
+                    public void onCancelled(@NonNull DatabaseError error) {}
                 });
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(AdminDashboardActivity.this,
-                        "Failed to load employee data",
-                        Toast.LENGTH_SHORT).show();
-            }
+            public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 
-    /**
-     * Update dashboard UI with statistics
-     */
+
     private void updateDashboardUI(int total, int present, int absent, int late) {
         tvTotalEmployees.setText(String.valueOf(total));
         tvPresent.setText(String.valueOf(present));
@@ -522,83 +430,23 @@ public class AdminDashboardActivity extends AppCompatActivity {
         tvLate.setText(String.valueOf(late));
     }
 
-    // ================= DEPARTMENTS COUNT =================
-
-    /**
-     * Fetch and display department count
-     */
-    private void fetchDepartmentCount() {
-        departmentsRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                long count = snapshot.getChildrenCount();
-                String countText = count + (count == 1 ? " department" : " departments");
-                tvDepartmentCount.setText(countText);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                tvDepartmentCount.setText("0 departments");
-            }
-        });
-    }
-
-    // ================= SHIFTS COUNT =================
-
-    /**
-     * Fetch and display shift count
-     */
-    private void fetchShiftCount() {
-        shiftsRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                long count = snapshot.getChildrenCount();
-                String countText = count + (count == 1 ? " shift" : " shifts");
-                tvShiftCount.setText(countText);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                tvShiftCount.setText("0 shifts");
-            }
-        });
-    }
-
-    // ================= LOGOUT FUNCTIONALITY =================
-
-    /**
-     * Show logout confirmation dialog
-     */
     private void showLogoutConfirmation() {
         new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("Logout")
                 .setMessage("Are you sure you want to logout?")
-                .setPositiveButton("Yes, Logout", (dialog, which) -> performLogout())
+                .setPositiveButton("Yes", (dialog, which) -> performLogout())
                 .setNegativeButton("Cancel", null)
-                .setCancelable(true)
                 .show();
     }
 
-    /**
-     * Perform logout operation
-     */
     private void performLogout() {
-        // Clear user session
-        PrefManager prefManager = new PrefManager(this);
-        prefManager.logout();
-
-        // Show logout message
+        new PrefManager(this).logout();
         Toast.makeText(this, "Logged out successfully", Toast.LENGTH_SHORT).show();
-
-        // Navigate to login
         navigateToLogin();
     }
 
-    /**
-     * Navigate to login activity and clear back stack
-     */
     private void navigateToLogin() {
-        Intent intent = new Intent(AdminDashboardActivity.this, LoginActivity.class);
+        Intent intent = new Intent(this, LoginActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
@@ -607,21 +455,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Refresh data when returning to this activity
         fetchAllData();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        // Clean up any listeners if needed
-        if (employeesRef != null) {
-            employeesRef.removeEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {}
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {}
-            });
-        }
     }
 }

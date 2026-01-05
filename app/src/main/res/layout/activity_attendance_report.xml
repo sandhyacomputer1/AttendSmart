@@ -144,14 +144,15 @@
                         android:text="0"
                         android:textSize="24sp"
                         android:textStyle="bold"
-                        android:textColor="#2196F3"/>
+                        android:textColor="#236497"
+                        />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Half Day"
                         android:textSize="11sp"
-                        android:textColor="#1565C0"
+                        android:textColor="#236497"
                         android:layout_marginTop="4dp"/>
                 </LinearLayout>
 

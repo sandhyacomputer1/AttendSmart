@@ -186,7 +186,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="0"
-                                android:textColor="@color/primary"
+                                android:textColor="#236497"
                                 android:textSize="24sp"
                                 android:textStyle="bold" />
 
@@ -194,7 +194,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Half Day"
-                                android:textColor="@color/primary"
+                                android:textColor="#236497"
                                 android:textSize="12sp" />
                         </LinearLayout>
 
