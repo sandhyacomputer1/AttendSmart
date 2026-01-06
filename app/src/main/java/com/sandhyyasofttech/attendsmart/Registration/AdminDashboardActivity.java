@@ -69,6 +69,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
     // Firebase
     private DatabaseReference employeesRef, attendanceRef;
     private String companyKey;
+    private TextView tvToolbarTitle;  // 👈 Add field declaration with other TextViews
+
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private static final int NOTIF_PERMISSION = 201;
@@ -81,6 +83,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         initializeViews();
         setupDrawer();
         setupToolbar();
+        fetchCompanyNameForTitle();
 
         if (!setupCompanySession()) return;
 
@@ -93,13 +96,39 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         fetchAllData();
     }
+    private void fetchCompanyNameForTitle() {
+        PrefManager prefManager = new PrefManager(this);
+        String email = prefManager.getUserEmail();
+        if (email == null) return;
 
+        String companyKey = email.replace(".", ",");
+
+        FirebaseDatabase.getInstance()
+                .getReference("Companies")
+                .child(companyKey)
+                .child("companyInfo")
+                .child("companyName")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        String companyName = snapshot.getValue(String.class);
+                        if (companyName != null && !companyName.trim().isEmpty()) {
+                            tvToolbarTitle.setText(companyName);  // ✅ ONLY "Sandhyaaaa"
+                        } else {
+                            tvToolbarTitle.setText("Admin");  // Fallback
+                        }
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {}
+                });
+    }
     private void initializeViews() {
         topAppBar = findViewById(R.id.topAppBar);
         tvTotalEmployees = findViewById(R.id.tvTotalEmployees);
         tvPresent = findViewById(R.id.tvPresent);
         tvAbsent = findViewById(R.id.tvAbsent);
         tvLate = findViewById(R.id.tvLate);
+        tvToolbarTitle = findViewById(R.id.tvToolbarTitle);  // 👈 Add this line
 
         // 👈 UPDATED - TextInputEditText instead of SearchView
         etSearch = findViewById(R.id.etSearch);
@@ -285,10 +314,10 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
 
     private void setupToolbar() {
-        setSupportActionBar(topAppBar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
+//        setSupportActionBar(topAppBar);
+//        if (getSupportActionBar() != null) {
+//            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+//        }
 
         topAppBar.setNavigationOnClickListener(v -> {
             if (drawerLayout.isDrawerVisible(GravityCompat.START)) {

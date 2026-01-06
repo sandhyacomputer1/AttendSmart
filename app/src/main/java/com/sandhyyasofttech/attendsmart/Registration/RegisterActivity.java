@@ -20,7 +20,7 @@ import java.util.HashMap;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    private EditText etName, etPhone, etEmail, etPassword, etConfirmPassword;
+    private EditText etCompanyName, etName, etPhone, etEmail, etPassword, etConfirmPassword;
     private Button btnRegister;
     private ProgressBar progressBar;
     private TextView tvBackToLogin;
@@ -36,6 +36,7 @@ public class RegisterActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         companiesRef = FirebaseDatabase.getInstance().getReference("Companies");
 
+        etCompanyName = findViewById(R.id.etCompanyName);  // ✅ NEW
         etName = findViewById(R.id.etName);
         etPhone = findViewById(R.id.etPhone);
         etEmail = findViewById(R.id.etEmail);
@@ -52,14 +53,21 @@ public class RegisterActivity extends AppCompatActivity {
 
     private void registerUser() {
 
-        String companyName = etName.getText().toString().trim();
+        String companyName = etCompanyName.getText().toString().trim();  // ✅ NEW - was etName
+        String name = etName.getText().toString().trim();  // ✅ Renamed from companyName
         String companyPhone = etPhone.getText().toString().trim();
         String companyEmail = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
         String confirmPassword = etConfirmPassword.getText().toString().trim();
 
+        // ✅ NEW validation for company name
         if (TextUtils.isEmpty(companyName)) {
-            etName.setError("Enter company name");
+            etCompanyName.setError("Enter company name");
+            return;
+        }
+
+        if (TextUtils.isEmpty(name)) {
+            etName.setError("Enter full name");
             return;
         }
 
@@ -94,14 +102,14 @@ public class RegisterActivity extends AppCompatActivity {
 
                     if (task.isSuccessful()) {
 
-                        // Firebase key cannot contain "."
                         String companyKey = companyEmail.replace(".", ",");
 
                         HashMap<String, Object> companyInfo = new HashMap<>();
-                        companyInfo.put("companyName", companyName);
+                        companyInfo.put("companyName", companyName);  // ✅ NEW field
+                        companyInfo.put("name", name);  // ✅ Owner/admin name
                         companyInfo.put("companyEmail", companyEmail);
                         companyInfo.put("companyPhone", companyPhone);
-                        companyInfo.put("password", password); // unchanged (as requested)
+                        companyInfo.put("password", password);
                         companyInfo.put("status", "ACTIVE");
 
                         companiesRef

@@ -15,6 +15,7 @@
         android:fitsSystemWindows="true">
 
         <!-- App Bar -->
+        <!-- App Bar -->
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/appBarLayout"
             android:layout_width="match_parent"
@@ -27,14 +28,26 @@
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:background="#FF5722"
-                app:title="Admin Dashboard"
+                app:title=""
                 app:titleTextColor="@android:color/white"
                 app:titleCentered="false"
-                app:titleTextAppearance="@style/TextAppearance.MaterialComponents.Headline6"
                 app:navigationIcon="@drawable/ic_menu"
-                app:navigationIconTint="@android:color/white"/>
+                app:navigationIconTint="@android:color/white">
 
+                <!-- ✅ MOVED INSIDE Toolbar - Now findViewById works! -->
+                <TextView
+                    android:id="@+id/tvToolbarTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="Admin Dashboard"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/white" />
+
+            </com.google.android.material.appbar.MaterialToolbar>
         </com.google.android.material.appbar.AppBarLayout>
+
 
         <!-- Content -->
         <androidx.core.widget.NestedScrollView
