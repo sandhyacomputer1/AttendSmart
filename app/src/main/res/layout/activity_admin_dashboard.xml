@@ -267,7 +267,7 @@
                         android:inputType="text"
                         android:textSize="14sp"
                         android:maxLines="1"
-                        android:padding="12dp"/>
+                        android:padding="10dp"/>
 
                 </com.google.android.material.textfield.TextInputLayout>
 

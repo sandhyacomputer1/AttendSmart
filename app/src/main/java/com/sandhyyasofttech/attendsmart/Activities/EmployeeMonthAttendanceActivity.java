@@ -45,6 +45,8 @@ public class EmployeeMonthAttendanceActivity extends AppCompatActivity {
     private CalendarDayAdapter adapter;
 
     private int presentCount = 0, absentCount = 0, halfDayCount = 0, lateCount = 0;
+    private int weeklyHolidayDay = -1; // Calendar.SUNDAY, etc.
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,11 +67,64 @@ public class EmployeeMonthAttendanceActivity extends AppCompatActivity {
         setupCalendar();
         setupListeners();
         loadMonthAttendance();
+        fetchEmployeeWeeklyHoliday();
+
     }
 
     private void setupToolbar() {
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
+    }
+    private void fetchEmployeeWeeklyHoliday() {
+        DatabaseReference ref = FirebaseDatabase.getInstance()
+                .getReference("Companies")
+                .child(companyKey)
+                .child("employees")
+                .child(employeeMobile)
+                .child("info")
+                .child("weeklyHoliday");
+
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                String holiday = snapshot.getValue(String.class);
+
+                if (holiday != null) {
+                    weeklyHolidayDay = getDayOfWeekFromString(holiday);
+                }
+
+                // ✅ load attendance only AFTER holiday is fetched
+                loadMonthAttendance();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // fallback: no holiday
+                loadMonthAttendance();
+            }
+        });
+    }
+    private int getDayOfWeekFromString(String day) {
+        if (day == null) return -1;
+
+        switch (day.toLowerCase()) {
+            case "sunday":
+                return Calendar.SUNDAY;
+            case "monday":
+                return Calendar.MONDAY;
+            case "tuesday":
+                return Calendar.TUESDAY;
+            case "wednesday":
+                return Calendar.WEDNESDAY;
+            case "thursday":
+                return Calendar.THURSDAY;
+            case "friday":
+                return Calendar.FRIDAY;
+            case "saturday":
+                return Calendar.SATURDAY;
+            default:
+                return -1;
+        }
     }
 
     private void initViews() {
@@ -82,16 +137,23 @@ public class EmployeeMonthAttendanceActivity extends AppCompatActivity {
 
         rvCalendar.setLayoutManager(new GridLayoutManager(this, 7));
 
-        adapter = new CalendarDayAdapter(calendarDays, v -> {
-            AttendanceDayModel d = (AttendanceDayModel) v.getTag();
-            if (d.isEmpty) return;
+        adapter = new CalendarDayAdapter(
+                calendarDays,
+                v -> {
+                    AttendanceDayModel d = (AttendanceDayModel) v.getTag();
+                    if (d == null || d.isEmpty) return;
 
-            Intent intent = new Intent(this, AttendanceDayDetailActivity.class);
-            intent.putExtra("date", d.date);
-            intent.putExtra("employeeMobile", employeeMobile);
-            intent.putExtra("companyKey", companyKey);
-            startActivity(intent);
-        });
+                    Intent intent = new Intent(
+                            EmployeeMonthAttendanceActivity.this,
+                            AttendanceDayDetailActivity.class
+                    );
+                    intent.putExtra("date", d.date);
+                    intent.putExtra("employeeMobile", employeeMobile);
+                    intent.putExtra("companyKey", companyKey);
+                    startActivity(intent);
+                },
+                null // ✅ third argument (stats listener not needed here)
+        );
 
         rvCalendar.setAdapter(adapter);
     }
@@ -203,9 +265,27 @@ public class EmployeeMonthAttendanceActivity extends AppCompatActivity {
                 for (AttendanceDayModel d : calendarDays) {
                     if (d.isEmpty) continue;
 
+                    Calendar dayCal = Calendar.getInstance();
+                    try {
+                        dayCal.setTime(
+                                new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                                        .parse(d.date)
+                        );
+                    } catch (Exception e) {
+                        continue;
+                    }
+
+                    // 🔮 Future date
                     if (d.date.compareTo(todayStr) > 0) {
                         d.status = "Future";
                         continue;
+                    }
+
+                    // 🟠 EMPLOYEE WEEKLY HOLIDAY
+                    if (weeklyHolidayDay != -1 &&
+                            dayCal.get(Calendar.DAY_OF_WEEK) == weeklyHolidayDay) {
+                        d.status = "Holiday";
+                        continue; // ❌ do NOT count
                     }
 
                     DataSnapshot s = snapshot.child(d.date).child(employeeMobile);
@@ -215,19 +295,34 @@ public class EmployeeMonthAttendanceActivity extends AppCompatActivity {
                         String late = s.child("lateStatus").getValue(String.class);
                         String checkIn = s.child("checkInTime").getValue(String.class);
 
+                        boolean hasCheckIn = checkIn != null && !checkIn.isEmpty();
+
+                        // 1️⃣ Half Day → Present + Half Day
                         if ("Half Day".equalsIgnoreCase(status)) {
                             d.status = "Half Day";
+                            presentCount++;
                             halfDayCount++;
-                        } else if ("Late".equalsIgnoreCase(late)) {
+                        }
+                        // 2️⃣ Late → Present + Late
+                        else if ("Late".equalsIgnoreCase(late) && hasCheckIn) {
                             d.status = "Late";
+                            presentCount++;
                             lateCount++;
-                        } else if (checkIn != null && !checkIn.isEmpty()) {
+                        }
+                        // 3️⃣ Present
+                        else if (hasCheckIn ||
+                                "Present".equalsIgnoreCase(status) ||
+                                "Full Day".equalsIgnoreCase(status)) {
                             d.status = "Present";
                             presentCount++;
-                        } else {
+                        }
+                        // 4️⃣ Absent
+                        else {
+                            d.status = "Absent";
                             absentCount++;
                         }
                     } else {
+                        d.status = "Absent";
                         absentCount++;
                     }
                 }
