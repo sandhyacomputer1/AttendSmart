@@ -242,9 +242,11 @@ public class AdminDashboardActivity extends AppCompatActivity {
             else if (id == R.id.nav_leaves) {
                 intent = new Intent(this, AdminLeaveListActivity.class);
             }
+
             else if (id == R.id.nav_reports) {
                 intent = new Intent(this, ReportsActivity.class);
             }
+
             else if (id == R.id.nav_view_salary) {
                 intent = new Intent(this, SalaryListActivity.class);
             }
