@@ -14,15 +14,22 @@ import com.sandhyyasofttech.attendsmart.Models.AttendanceDayModel;
 import com.sandhyyasofttech.attendsmart.R;
 
 import java.util.List;
-
-public class CalendarDayAdapter extends RecyclerView.Adapter<CalendarDayAdapter.ViewHolder> {
+public class CalendarDayAdapter
+        extends RecyclerView.Adapter<CalendarDayAdapter.ViewHolder> {
 
     private final List<AttendanceDayModel> days;
     private final View.OnClickListener clickListener;
+    private final OnMonthStatsListener statsListener;
 
-    public CalendarDayAdapter(List<AttendanceDayModel> days, View.OnClickListener clickListener) {
+    private int present = 0, late = 0, halfDay = 0, absent = 0;
+
+    public CalendarDayAdapter(List<AttendanceDayModel> days,
+                              View.OnClickListener clickListener,
+                              OnMonthStatsListener statsListener) {
         this.days = days;
         this.clickListener = clickListener;
+        this.statsListener = statsListener;
+        calculateStats();
     }
 
     @NonNull
@@ -32,15 +39,13 @@ public class CalendarDayAdapter extends RecyclerView.Adapter<CalendarDayAdapter.
                 .inflate(R.layout.item_calendar_days, parent, false);
         return new ViewHolder(view);
     }
+    public interface OnMonthStatsListener {
+        void onStatsCalculated(int present, int late, int halfDay, int absent);
+    }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         AttendanceDayModel day = days.get(position);
-
-        // Safety check
-        if (holder.tvDay == null || holder.viewStatusIndicator == null || holder.llDayContainer == null) {
-            return;
-        }
 
         if (day.isEmpty) {
             holder.tvDay.setText("");
@@ -51,52 +56,99 @@ public class CalendarDayAdapter extends RecyclerView.Adapter<CalendarDayAdapter.
         }
 
         String[] parts = day.date.split("-");
-        String dayNumber = parts.length == 3 ? parts[2] : day.date;
-        holder.tvDay.setText(dayNumber);
-
+        holder.tvDay.setText(parts.length == 3 ? parts[2] : day.date);
         holder.viewStatusIndicator.setVisibility(View.VISIBLE);
 
-        int statusColor;
+        int indicatorColor;
         int bgColor = Color.WHITE;
+        int textColor = Color.parseColor("#212121");
 
         switch (day.status) {
             case "Present":
-                statusColor = Color.parseColor("#4CAF50");
+                indicatorColor = Color.parseColor("#4CAF50");
+                bgColor = Color.parseColor("#E8F5E9");
                 break;
+
             case "Absent":
-                statusColor = Color.parseColor("#F44336");
+                indicatorColor = Color.parseColor("#F44336");
+                bgColor = Color.parseColor("#FDECEA");
+                textColor = Color.WHITE;
                 break;
+
             case "Half Day":
-                statusColor = Color.parseColor("#FF9800");
+                indicatorColor = Color.parseColor("#2196F3");
+                bgColor = Color.parseColor("#E3F2FD");
                 break;
+
             case "Late":
-                statusColor = Color.parseColor("#FFC107");
+                indicatorColor = Color.parseColor("#FFC107");
+                bgColor = Color.parseColor("#FFF8E1");
                 break;
+
             case "Future":
-                statusColor = Color.parseColor("#E0E0E0");
-                holder.tvDay.setTextColor(Color.parseColor("#BDBDBD"));
+                indicatorColor = Color.parseColor("#E0E0E0");
                 bgColor = Color.parseColor("#FAFAFA");
+                textColor = Color.parseColor("#BDBDBD");
                 break;
+
             default:
-                statusColor = Color.parseColor("#CCCCCC");
-                break;
+                indicatorColor = Color.parseColor("#BDBDBD");
         }
 
-        holder.viewStatusIndicator.setBackgroundColor(statusColor);
+        holder.viewStatusIndicator.setBackgroundColor(indicatorColor);
         holder.llDayContainer.setBackgroundColor(bgColor);
-
-        if (!day.status.equals("Future")) {
-            holder.tvDay.setTextColor(Color.parseColor("#212121"));
-        }
+        holder.tvDay.setTextColor(textColor);
 
         holder.itemView.setTag(day);
-        holder.llDayContainer.setOnClickListener(clickListener);
+        holder.llDayContainer.setOnClickListener(
+                day.status.equals("Future") ? null : clickListener
+        );
     }
 
     @Override
     public int getItemCount() {
         return days.size();
     }
+
+    /* ================== MONTHLY STATS ================== */
+
+    private void calculateStats() {
+        present = late = halfDay = absent = 0;
+
+        for (AttendanceDayModel d : days) {
+            if (d.isEmpty || d.status == null) continue;
+
+            switch (d.status) {
+                case "Present":
+                    present++;
+                    break;
+                case "Late":
+                    present++;
+                    late++;
+                    break;
+                case "Half Day":
+                    present++;
+                    halfDay++;
+                    break;
+                case "Absent":
+                    absent++;
+                    break;
+            }
+        }
+
+        if (statsListener != null) {
+            statsListener.onStatsCalculated(present, late, halfDay, absent);
+        }
+    }
+
+    public void updateData(List<AttendanceDayModel> newDays) {
+        days.clear();
+        days.addAll(newDays);
+        calculateStats();
+        notifyDataSetChanged();
+    }
+
+    /* ================== VIEW HOLDER ================== */
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvDay;
