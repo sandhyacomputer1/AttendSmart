@@ -8,13 +8,16 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@drawable/gradient_header"
-        android:title="Leave Requests"
-        android:titleTextColor="@android:color/white"/>
+        android:navigationIcon="@drawable/ic_arrow_back"
+        android:title="All Leaves"
+        android:titleTextColor="@color/white" />
+
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvLeaves"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="12dp"/>
+        android:background="@color/white"
+        android:padding="5dp"/>
 
 </LinearLayout>

@@ -54,7 +54,7 @@ public class AdminLeaveAdapter extends RecyclerView.Adapter<AdminLeaveAdapter.VH
 
         h.tvName.setText(m.employeeName);
         h.tvDates.setText(m.fromDate + " → " + m.toDate);
-        h.tvReason.setText("Reason: " + m.reason);
+        h.tvReason.setText(" " + m.reason);
         h.tvStatus.setText(m.status);
 
         boolean pending = "PENDING".equals(m.status);
