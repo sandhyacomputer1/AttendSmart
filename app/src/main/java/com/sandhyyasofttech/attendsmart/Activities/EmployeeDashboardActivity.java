@@ -76,7 +76,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
     private double currentLat = 0, currentLng = 0;
     private Bitmap currentPhotoBitmap;
     private boolean isCheckedIn = false;
-    private boolean isAdminMarked = false; // NEW: Track if admin marked attendance
 
     // Location
     private FusedLocationProviderClient fusedLocationClient;

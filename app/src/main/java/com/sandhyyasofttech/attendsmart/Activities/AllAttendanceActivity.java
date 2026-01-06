@@ -42,7 +42,10 @@ public class AllAttendanceActivity extends AppCompatActivity {
 
     private void setupToolbar() {
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        setTitle("All Attendance");  // Added toolbar heading
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle("All Attendance");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        toolbar.setTitleTextColor(getResources().getColor(android.R.color.white, getTheme()));
         toolbar.setNavigationOnClickListener(v -> finish());
     }
 

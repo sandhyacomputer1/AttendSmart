@@ -222,19 +222,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
         updateNavHeader();
     }
 
-//    private void updateNavHeader() {
-//        try {
-//            View headerView = navigationView.getHeaderView(0);
-//            TextView tvCompanyName = headerView.findViewById(R.id.tvCompanyName);
-//            TextView tvUserEmail = headerView.findViewById(R.id.tvUserEmail);
-//            PrefManager prefManager = new PrefManager(this);
-//            tvUserEmail.setText(prefManager.getUserEmail());
-//            tvCompanyName.setText("Sandhya Soft Tech");
-//        } catch (Exception e) {
-//            // Header not found
-//        }
-//    }
-
     private void updateNavHeader() {
 
         try {

@@ -46,7 +46,7 @@
                     <ImageView
                         android:id="@+id/ivPrev"
                         android:src="@drawable/ic_arrow_left"
-                        app:tint="@color/colorPrimary"
+                        app:tint="@color/black"
                         android:padding="8dp"
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:layout_width="40dp"
@@ -68,7 +68,7 @@
                     <ImageView
                         android:id="@+id/ivNext"
                         android:src="@drawable/ic_arrow_right"
-                        app:tint="@color/colorPrimary"
+                        app:tint="@color/black"
                         android:padding="8dp"
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:layout_width="40dp"

@@ -27,7 +27,7 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Date Header -->
+            <!-- Date & Shift Header -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -61,6 +61,15 @@
                         android:textColor="#757575"
                         android:layout_marginTop="4dp"/>
 
+                    <TextView
+                        android:id="@+id/tvShiftTime"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Shift: 9:00 AM - 6:00 PM"
+                        android:textSize="14sp"
+                        android:textColor="#2196F3"
+                        android:layout_marginTop="8dp"/>
+
                     <View
                         android:id="@+id/viewStatusBar"
                         android:layout_width="80dp"
@@ -80,7 +89,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Check-In Details -->
+            <!-- Check-In Details with Photo -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardCheckIn"
                 android:layout_width="match_parent"
@@ -113,6 +122,7 @@
                         android:background="#E0E0E0"
                         android:layout_marginVertical="12dp"/>
 
+                    <!-- Time Row -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -137,10 +147,12 @@
                             android:textColor="#212121"/>
                     </LinearLayout>
 
+                    <!-- Location Row -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:orientation="vertical"
+                        android:layout_marginBottom="12dp">
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -159,10 +171,19 @@
                             android:textColor="#212121"
                             android:layout_marginTop="4dp"/>
                     </LinearLayout>
+
+                    <!-- Check-in Photo -->
+                    <ImageView
+                        android:id="@+id/ivCheckInPhoto"
+                        android:layout_width="match_parent"
+                        android:layout_height="150dp"
+                        android:scaleType="centerCrop"
+                        android:contentDescription="Check-in photo"
+                        android:visibility="gone"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Check-Out Details -->
+            <!-- Check-Out Details with Photo -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardCheckOut"
                 android:layout_width="match_parent"
@@ -195,6 +216,7 @@
                         android:background="#E0E0E0"
                         android:layout_marginVertical="12dp"/>
 
+                    <!-- Time Row -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -219,10 +241,12 @@
                             android:textColor="#212121"/>
                     </LinearLayout>
 
+                    <!-- Location Row -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical">
+                        android:orientation="vertical"
+                        android:layout_marginBottom="12dp">
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -241,6 +265,15 @@
                             android:textColor="#212121"
                             android:layout_marginTop="4dp"/>
                     </LinearLayout>
+
+                    <!-- Check-out Photo -->
+                    <ImageView
+                        android:id="@+id/ivCheckOutPhoto"
+                        android:layout_width="match_parent"
+                        android:layout_height="150dp"
+                        android:scaleType="centerCrop"
+                        android:contentDescription="Check-out photo"
+                        android:visibility="gone"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -288,7 +321,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Additional Info -->
+            <!-- Additional Info (Late, etc.) -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardAdditionalInfo"
                 android:layout_width="match_parent"
