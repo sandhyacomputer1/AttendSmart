@@ -5,6 +5,8 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,6 +24,7 @@ import com.google.android.material.floatingactionbutton.ExtendedFloatingActionBu
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -65,7 +68,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
     private ArrayList<EmployeeModel> employeeList;
     private ArrayList<EmployeeModel> fullEmployeeList;
     private ExtendedFloatingActionButton fabAddEmployee;
-
+    private Menu navMenu;
+    private MenuItem navLeavesItem;
     // Firebase
     private DatabaseReference employeesRef, attendanceRef;
     private String companyKey;
@@ -93,8 +97,24 @@ public class AdminDashboardActivity extends AppCompatActivity {
         setupClickListeners();
         setupSearchView();
         requestNotificationPermission();
-
+        setupRealTimeLeaveListener();
         fetchAllData();
+    }
+    private void setupRealTimeLeaveListener() {
+        FirebaseDatabase.getInstance()
+                .getReference("Companies")
+                .child(companyKey)
+                .child("leaves")
+                .addChildEventListener(new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(@NonNull DataSnapshot snapshot, String previousChildName) {
+                        checkLeaveRequests();
+                    }
+                    @Override public void onChildChanged(@NonNull DataSnapshot snapshot, String previousChildName) { checkLeaveRequests(); }
+                    @Override public void onChildRemoved(@NonNull DataSnapshot snapshot) { checkLeaveRequests(); }
+                    @Override public void onChildMoved(@NonNull DataSnapshot snapshot, String previousChildName) {}
+                    @Override public void onCancelled(@NonNull DatabaseError error) {}
+                });
     }
     private void fetchCompanyNameForTitle() {
         PrefManager prefManager = new PrefManager(this);
@@ -185,7 +205,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
-
+        // ✅ Get menu reference for badge
+        navMenu = navigationView.getMenu();
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this,
                 drawerLayout,
@@ -246,9 +267,48 @@ public class AdminDashboardActivity extends AppCompatActivity {
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         });
-
+        drawerLayout.addDrawerListener(new DrawerLayout.DrawerListener() {
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                checkLeaveRequests();  // Update badge
+            }
+            // ... other methods empty
+            @Override public void onDrawerClosed(View drawerView) {}
+            @Override public void onDrawerSlide(View drawerView, float slideOffset) {}
+            @Override public void onDrawerStateChanged(int newState) {}
+        });
         navigationView.setCheckedItem(R.id.nav_dashboard);
         updateNavHeader();
+    }
+    private void checkLeaveRequests() {
+        FirebaseDatabase.getInstance()
+                .getReference("Companies")
+                .child(companyKey)
+                .child("leaves")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        int pendingCount = 0;
+
+                        for (DataSnapshot leave : snapshot.getChildren()) {
+                            String status = leave.child("status").getValue(String.class);
+                            if ("PENDING".equalsIgnoreCase(status)) {  // New requests
+                                pendingCount++;
+                            }
+                        }
+
+                        // ✅ Update badge
+                        navLeavesItem = navMenu.findItem(R.id.nav_leaves);
+                        if (pendingCount > 0) {
+                            navLeavesItem.setTitle("Leave Requests (" + pendingCount + ")");
+                        } else {
+                            navLeavesItem.setTitle(getString(R.string.leave_requests));
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {}
+                });
     }
 
     private void updateNavHeader() {
