@@ -18,7 +18,9 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:title="Attendance Details"
-            app:titleTextColor="#FFFFFF" />
+            app:titleTextColor="#FFFFFF"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationIconTint="#FFFFFF"/>
     </com.google.android.material.appbar.AppBarLayout>
 
     <!-- Main Content -->
@@ -32,7 +34,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/white"
-
             android:orientation="vertical"
             android:paddingBottom="16dp">
 
@@ -76,22 +77,35 @@
                             android:textStyle="bold"
                             android:textColor="#212121"
                             android:layout_marginStart="8dp"/>
-
-                        <TextView
-                            android:id="@+id/tvShiftTime"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="9:00 AM - 6:00 PM"
-                            android:textSize="12sp"
-                            android:textColor="#757575"
-                            android:background="#E3F2FD"
-                            android:paddingHorizontal="8dp"
-                            android:paddingVertical="4dp"
-                            android:textStyle="bold"
-                            android:layout_marginStart="8dp"/>
                     </LinearLayout>
 
-                    <!-- Total Hours -->
+                    <!-- Shift Timing Badge -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="8dp">
+
+                        <ImageView
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:src="@drawable/ic_time"
+                            app:tint="#FF9800"
+                            android:contentDescription="Shift"/>
+
+                        <TextView
+                            android:id="@+id/tvShiftTiming"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Loading shift..."
+                            android:textSize="13sp"
+                            android:textColor="#FF9800"
+                            android:textStyle="bold"
+                            android:layout_marginStart="6dp"/>
+                    </LinearLayout>
+
+                    <!-- Total Hours Display -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -99,10 +113,10 @@
                         android:gravity="center"
                         android:layout_marginTop="16dp"
                         android:background="#F5F7FA"
-                        android:padding="5dp">
+                        android:padding="12dp">
 
                         <TextView
-                            android:text="Total Hours"
+                            android:text="Total Working Hours"
                             android:textSize="12sp"
                             android:textColor="#757575"
                             android:layout_width="wrap_content"
@@ -111,7 +125,7 @@
                         <TextView
                             android:id="@+id/tvTotalHours"
                             android:text="0h 0m"
-                            android:textSize="20sp"
+                            android:textSize="24sp"
                             android:textStyle="bold"
                             android:textColor="#1976D2"
                             android:layout_marginTop="4dp"
@@ -135,7 +149,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="@color/white"
-
                     android:orientation="vertical"
                     android:padding="16dp">
 
@@ -181,7 +194,7 @@
                             android:id="@+id/etCheckIn"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="Time"
+                            android:hint="Check-in Time"
                             android:textSize="15sp"
                             android:focusable="false"
                             android:inputType="none"/>
@@ -244,7 +257,7 @@
 
                             <TextView
                                 android:id="@+id/tvCheckInAddress"
-                                android:text="Address loading..."
+                                android:text="No location recorded"
                                 android:textSize="12sp"
                                 android:textColor="#212121"
                                 android:maxLines="3"
@@ -272,7 +285,6 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:background="@color/white"
-
                     android:padding="16dp">
 
                     <!-- Check-Out Header -->
@@ -317,7 +329,7 @@
                             android:id="@+id/etCheckOut"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:hint="Time"
+                            android:hint="Check-out Time"
                             android:textSize="15sp"
                             android:focusable="false"
                             android:inputType="none"/>
@@ -380,7 +392,7 @@
 
                             <TextView
                                 android:id="@+id/tvCheckOutAddress"
-                                android:text="Address loading..."
+                                android:text="No location recorded"
                                 android:textSize="12sp"
                                 android:textColor="#212121"
                                 android:maxLines="3"
@@ -408,18 +420,30 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:background="@color/white"
-
                     android:padding="16dp">
 
-                    <TextView
-                        android:text="STATUS INFORMATION"
-                        android:textSize="13sp"
-                        android:textColor="#1976D2"
-                        android:textStyle="bold"
-                        android:letterSpacing="0.05"
-                        android:layout_marginBottom="12dp"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            app:tint="#1976D2"
+                            android:contentDescription="Status"/>
+
+                        <TextView
+                            android:text="STATUS INFORMATION"
+                            android:textSize="13sp"
+                            android:textColor="#1976D2"
+                            android:textStyle="bold"
+                            android:letterSpacing="0.05"
+                            android:layout_marginStart="6dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"/>
+                    </LinearLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
@@ -429,6 +453,7 @@
                         app:boxCornerRadiusTopEnd="8dp"
                         app:boxCornerRadiusBottomStart="8dp"
                         app:boxCornerRadiusBottomEnd="8dp"
+                        android:layout_marginTop="12dp"
                         android:layout_marginBottom="12dp">
 
                         <AutoCompleteTextView
@@ -468,13 +493,14 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:paddingHorizontal="16dp"
+                android:paddingTop="8dp"
                 android:weightSum="2">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSave"
                     android:layout_width="0dp"
                     android:layout_weight="1"
-                    android:layout_height="50dp"
+                    android:layout_height="52dp"
                     android:text="Save Changes"
                     android:textSize="14sp"
                     android:textAllCaps="false"
@@ -487,7 +513,7 @@
                     android:id="@+id/btnDelete"
                     android:layout_width="0dp"
                     android:layout_weight="1"
-                    android:layout_height="50dp"
+                    android:layout_height="52dp"
                     android:text="Delete"
                     android:textSize="14sp"
                     android:textAllCaps="false"
