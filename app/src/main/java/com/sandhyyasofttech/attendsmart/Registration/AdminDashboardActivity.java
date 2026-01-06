@@ -39,6 +39,7 @@ import com.sandhyyasofttech.attendsmart.Activities.GenerateSalaryActivity;
 import com.sandhyyasofttech.attendsmart.Activities.ProfileActivity;
 import com.sandhyyasofttech.attendsmart.Activities.ReportsActivity;
 import com.sandhyyasofttech.attendsmart.Activities.SalaryDetailActivity;
+import com.sandhyyasofttech.attendsmart.Activities.SalaryListActivity;
 import com.sandhyyasofttech.attendsmart.Settings.SettingsActivity;
 import com.sandhyyasofttech.attendsmart.Activities.ShiftActivity;
 import com.sandhyyasofttech.attendsmart.Adapters.EmployeeAdapter;
@@ -245,7 +246,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 intent = new Intent(this, ReportsActivity.class);
             }
             else if (id == R.id.nav_view_salary) {
-                intent = new Intent(this, SalaryDetailActivity.class);
+                intent = new Intent(this, SalaryListActivity.class);
             }
             else if (id == R.id.nav_generate_salary) {
                 intent = new Intent(this, GenerateSalaryActivity.class);
