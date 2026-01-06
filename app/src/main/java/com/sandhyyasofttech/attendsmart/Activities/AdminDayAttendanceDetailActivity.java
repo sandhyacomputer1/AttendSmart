@@ -472,43 +472,66 @@ public class AdminDayAttendanceDetailActivity extends AppCompatActivity {
             }
         } catch (Exception ignored) {}
     }
+
     private void saveAttendance() {
         String in = etCheckIn.getText() != null ? etCheckIn.getText().toString().trim() : "";
         String out = etCheckOut.getText() != null ? etCheckOut.getText().toString().trim() : "";
         String status = spinnerStatus.getText().toString();
         String lateStatus = spinnerLateStatus.getText().toString();
 
-        if (in.isEmpty()) {
-            Toast.makeText(this, "Check-in time is required", Toast.LENGTH_SHORT).show();
-            etCheckIn.requestFocus();
-            return;
-        }
-
+        // Validate status is selected
         if (status.isEmpty()) {
             Toast.makeText(this, "Please select a status", Toast.LENGTH_SHORT).show();
             spinnerStatus.requestFocus();
             return;
         }
 
-        try {
-            SimpleDateFormat sdf = new SimpleDateFormat("h:mm a", Locale.ENGLISH);
-            Date inTime = sdf.parse(in);
-            Date outTime = out.isEmpty() ? null : sdf.parse(out);
+        // No validation for check-in/check-out times
+        // Admin can set any status without entering times
 
+        try {
             long totalMinutes = 0;
-            if (inTime != null && outTime != null) {
-                long diff = outTime.getTime() - inTime.getTime();
-                if (diff < 0) diff += 24 * 60 * 60 * 1000; // Handle overnight shifts
-                totalMinutes = diff / 60000;
+
+            // Calculate total minutes only if both times are provided
+            if (!in.isEmpty() && !out.isEmpty()) {
+                SimpleDateFormat sdf = new SimpleDateFormat("h:mm a", Locale.ENGLISH);
+                Date inTime = sdf.parse(in);
+                Date outTime = sdf.parse(out);
+
+                if (inTime != null && outTime != null) {
+                    long diff = outTime.getTime() - inTime.getTime();
+                    if (diff < 0) diff += 24 * 60 * 60 * 1000; // Handle overnight shifts
+                    totalMinutes = diff / 60000;
+                }
             }
 
             Map<String, Object> map = new HashMap<>();
-            map.put("checkInTime", in);
-            map.put("checkOutTime", out);
+
+            // Add times only if they exist
+            if (!in.isEmpty()) {
+                map.put("checkInTime", in);
+            } else {
+                map.put("checkInTime", ""); // Set empty string for absent/full day
+            }
+
+            if (!out.isEmpty()) {
+                map.put("checkOutTime", out);
+            } else {
+                map.put("checkOutTime", ""); // Set empty string
+            }
+
             map.put("status", status);
+            map.put("finalStatus", status);
             map.put("lateStatus", lateStatus);
             map.put("totalMinutes", totalMinutes);
-            map.put("totalHours", (totalMinutes / 60) + "h " + (totalMinutes % 60) + "m");
+
+            // Set total hours display
+            if (totalMinutes > 0) {
+                map.put("totalHours", (totalMinutes / 60) + "h " + (totalMinutes % 60) + "m");
+            } else {
+                map.put("totalHours", "0h 0m");
+            }
+
             map.put("markedBy", "Admin");
             map.put("lastModified", System.currentTimeMillis());
 
