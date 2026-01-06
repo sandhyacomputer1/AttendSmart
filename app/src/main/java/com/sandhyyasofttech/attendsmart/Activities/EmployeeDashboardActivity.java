@@ -98,12 +98,33 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
 
         initViews();
         setupFirebase();
+        fetchCompanyName();
         setupLocation();
         requestLocationPermission();
         loadEmployeeData();
         loadTodayAttendance();
         startClock();
         updateGreeting();
+    }
+    private void fetchCompanyName() {
+        FirebaseDatabase.getInstance()
+                .getReference("Companies")
+                .child(companyKey)
+                .child("companyInfo")
+                .child("companyName")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        String companyName = snapshot.getValue(String.class);
+                        if (companyName != null && !companyName.trim().isEmpty()) {
+                            tvCompany.setText(companyName);  // "Sandhyaaaa"
+                        } else {
+                            tvCompany.setText(companyKey.replace(",", "."));
+                        }
+                    }
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {}
+                });
     }
 
     private void saveEmployeeFcmToken() {
