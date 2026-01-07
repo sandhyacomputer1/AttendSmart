@@ -22,7 +22,6 @@ import com.sandhyyasofttech.attendsmart.Utils.PrefManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 public class AdminLeaveListActivity extends AppCompatActivity {
 
     private RecyclerView rv;
@@ -34,6 +33,24 @@ public class AdminLeaveListActivity extends AppCompatActivity {
         super.onCreate(b);
         setContentView(R.layout.activity_admin_leave_list);
 
+        // 🔹 Toolbar setup
+        androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("All Leaves");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            toolbar.setTitleTextColor(getResources().getColor(android.R.color.white, getTheme()));
+        }
+
+// 🔹 Make back arrow WHITE
+        toolbar.setNavigationIcon(R.drawable.ic_arrow_back);
+        toolbar.getNavigationIcon().setTint(
+                getResources().getColor(android.R.color.white)
+        );
+
+        toolbar.setNavigationOnClickListener(v -> finish());
+        // 🔹 RecyclerView
         rv = findViewById(R.id.rvLeaves);
         rv.setLayoutManager(new LinearLayoutManager(this));
 
@@ -58,23 +75,25 @@ public class AdminLeaveListActivity extends AppCompatActivity {
                         list.add(m);
                     }
                 }
-                Collections.sort(list, (a, b) -> {
 
-                    if (a.status == null && b.status == null) return 0;
+                // 🔹 Pending → Approved → Rejected order
+                Collections.sort(list, (a, b1) -> {
+                    if (a.status == null && b1.status == null) return 0;
                     if (a.status == null) return 1;
-                    if (b.status == null) return -1;
+                    if (b1.status == null) return -1;
 
-                    if (a.status.equals(b.status)) return 0;
+                    if (a.status.equals(b1.status)) return 0;
                     if ("PENDING".equals(a.status)) return -1;
-                    if ("PENDING".equals(b.status)) return 1;
+                    if ("PENDING".equals(b1.status)) return 1;
                     if ("APPROVED".equals(a.status)) return -1;
                     return 1;
                 });
 
-
-                adapter.notifyDataSetChanged(); // 🔥 THIS WAS MISSING
+                adapter.notifyDataSetChanged();
             }
-                @Override public void onCancelled(@NonNull DatabaseError e) {}
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError e) {}
         });
     }
 }
