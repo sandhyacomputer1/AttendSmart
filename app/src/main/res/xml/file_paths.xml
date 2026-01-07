@@ -3,16 +3,22 @@
 
     <!-- App-specific external files -->
     <external-files-path
-        name="images"
-        path="Pictures/" />
+        name="app_files"
+        path="." />
 
-    <external-files-path
-        name="my_docs"
-        path="Documents/" />
-
-    <!-- Full external storage access (use carefully) -->
+    <!-- External storage root -->
     <external-path
-        name="external_files"
+        name="external"
+        path="." />
+
+    <!-- Cache directory -->
+    <cache-path
+        name="cache"
+        path="." />
+
+    <!-- Files directory -->
+    <files-path
+        name="files"
         path="." />
 
 </paths>
