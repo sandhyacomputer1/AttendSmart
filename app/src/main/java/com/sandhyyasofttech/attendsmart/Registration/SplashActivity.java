@@ -144,10 +144,71 @@ public class SplashActivity extends AppCompatActivity {
         new Handler().postDelayed(this::checkLoginStatus, 2000);
     }
 
-    private void checkLoginStatus() {
+//    private void checkLoginStatus() {
+//
+//        if (!isConnected()) {
+//            // Navigate to No Internet Activity instead of showing toast
+//            startActivity(new Intent(this, NoInternetActivity.class));
+//            finish();
+//            return;
+//        }
+//
+//        String userType = prefManager.getUserType();
+//        String email = prefManager.getUserEmail();
+//        String companyKey = prefManager.getCompanyKey();
+//
+//        // Not logged in
+//        if (userType == null || email == null || companyKey == null) {
+//            startActivity(new Intent(this, LoginActivity.class));
+//            finish();
+//            return;
+//        }
+//
+//        if (userType.equals("ADMIN")) {
+//            // ✅ Admin: check company status
+//            String safeEmail = email.replace(".", ",");
+//
+//            rootRef.child(safeEmail)
+//                    .child("companyInfo")
+//                    .child("status")
+//                    .get()
+//                    .addOnSuccessListener(snapshot -> {
+//                        String status = snapshot.getValue(String.class);
+//
+//                        if ("ACTIVE".equals(status)) {
+//                            startActivity(new Intent(this, AdminDashboardActivity.class));
+//                            finish();
+//                        } else {
+//                            prefManager.logout();
+//                            Toast.makeText(this, "Account disabled! Please Login.", Toast.LENGTH_SHORT).show();
+//                            startActivity(new Intent(this, LoginActivity.class));
+//                            finish();
+//                        }
+//
+//                    })
+//                    .addOnFailureListener(e -> {
+//                        Toast.makeText(this, "Login expired, Please Login again", Toast.LENGTH_SHORT).show();
+//                        prefManager.logout();
+//                        startActivity(new Intent(this, LoginActivity.class));
+//                        finish();
+//                    });
+//
+//        } else if (userType.equals("EMPLOYEE")) {
+//            // ✅ Employee: go directly to dashboard, companyKey already saved
+//            Intent intent = new Intent(this, EmployeeDashboardActivity.class);
+//            intent.putExtra("companyKey", companyKey);
+//            startActivity(intent);
+//            finish();
+//        } else {
+//            // Unknown type → force login
+//            prefManager.logout();
+//            startActivity(new Intent(this, LoginActivity.class));
+//            finish();
+//        }
+//    }
 
+    private void checkLoginStatus() {
         if (!isConnected()) {
-            // Navigate to No Internet Activity instead of showing toast
             startActivity(new Intent(this, NoInternetActivity.class));
             finish();
             return;
@@ -157,7 +218,6 @@ public class SplashActivity extends AppCompatActivity {
         String email = prefManager.getUserEmail();
         String companyKey = prefManager.getCompanyKey();
 
-        // Not logged in
         if (userType == null || email == null || companyKey == null) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
@@ -165,42 +225,51 @@ public class SplashActivity extends AppCompatActivity {
         }
 
         if (userType.equals("ADMIN")) {
-            // ✅ Admin: check company status
             String safeEmail = email.replace(".", ",");
-
-            rootRef.child(safeEmail)
-                    .child("companyInfo")
-                    .child("status")
+            rootRef.child(safeEmail).child("companyInfo").child("status")
                     .get()
                     .addOnSuccessListener(snapshot -> {
                         String status = snapshot.getValue(String.class);
-
                         if ("ACTIVE".equals(status)) {
                             startActivity(new Intent(this, AdminDashboardActivity.class));
-                            finish();
                         } else {
                             prefManager.logout();
-                            Toast.makeText(this, "Account disabled! Please Login.", Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(this, LoginActivity.class));
-                            finish();
+                            Toast.makeText(this, "Please contact to your Admin ", Toast.LENGTH_LONG).show();
                         }
-
+                        finish();
                     })
                     .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Login expired, Please Login again", Toast.LENGTH_SHORT).show();
                         prefManager.logout();
+                        Toast.makeText(this, "इंटरनेट चेक करा किंवा पुन्हा लॉगिन करा ❌", Toast.LENGTH_LONG).show();
                         startActivity(new Intent(this, LoginActivity.class));
                         finish();
                     });
 
         } else if (userType.equals("EMPLOYEE")) {
-            // ✅ Employee: go directly to dashboard, companyKey already saved
-            Intent intent = new Intent(this, EmployeeDashboardActivity.class);
-            intent.putExtra("companyKey", companyKey);
-            startActivity(intent);
-            finish();
+            // ✅ EMPLOYEE STATUS CHECK ADD केला
+            rootRef.child(companyKey).child("employees").child(prefManager.getEmployeeMobile())
+                    .child("info").child("employeeStatus")
+                    .get()
+                    .addOnSuccessListener(snapshot -> {
+                        String status = snapshot.getValue(String.class);
+                        if ("ACTIVE".equals(status)) {
+                            Intent intent = new Intent(this, EmployeeDashboardActivity.class);
+                            intent.putExtra("companyKey", companyKey);
+                            startActivity(intent);
+                        } else {
+                            prefManager.logout();
+                            Toast.makeText(this, "तुमचा अकाउंट डिसेबल झाला आहे! संपर्क करा ❌", Toast.LENGTH_LONG).show();
+                            startActivity(new Intent(this, LoginActivity.class));
+                        }
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        prefManager.logout();
+                        Toast.makeText(this, "डेटा लोड होत नाही! पुन्हा लॉगिन करा ❌", Toast.LENGTH_LONG).show();
+                        startActivity(new Intent(this, LoginActivity.class));
+                        finish();
+                    });
         } else {
-            // Unknown type → force login
             prefManager.logout();
             startActivity(new Intent(this, LoginActivity.class));
             finish();
