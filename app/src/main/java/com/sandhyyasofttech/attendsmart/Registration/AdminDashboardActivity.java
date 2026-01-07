@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.navigation.NavigationView;
@@ -413,6 +414,15 @@ public class AdminDashboardActivity extends AppCompatActivity {
     private void setupClickListeners() {
         fabAddEmployee.setOnClickListener(v ->
                 startActivity(new Intent(this, AddEmployeeActivity.class)));
+        // ✅ Total Employees text click → open EmployeeListActivity
+
+        MaterialCardView totalEmployeesCard = findViewById(R.id.cardTotalEmployees);
+        if (totalEmployeesCard != null) {
+            totalEmployeesCard.setOnClickListener(v -> {
+                Intent intent = new Intent(AdminDashboardActivity.this, EmployeeListActivity.class);
+                startActivity(intent);
+            });
+        }
     }
 
     private void saveAdminFcmToken() {

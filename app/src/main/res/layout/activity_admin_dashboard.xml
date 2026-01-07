@@ -83,7 +83,9 @@
 
                     <!-- Total Employees - Light Gray -->
                     <com.google.android.material.card.MaterialCardView
-                        android:layout_width="0dp"
+                        android:id="@+id/cardTotalEmployees"
+
+                    android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="4dp"
@@ -118,6 +120,7 @@
 
                     <!-- Present Today - Light Green -->
                     <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardPresent"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -162,6 +165,7 @@
 
                     <!-- Absent - Light Red -->
                     <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardAbsent"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -172,31 +176,32 @@
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
                             android:background="#FFEBEE"
+                            android:orientation="vertical"
                             android:padding="12dp">
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Absent"
-                                android:textSize="11sp"
-                                android:textColor="#C62828"/>
+                                android:textColor="#C62828"
+                                android:textSize="11sp" />
 
                             <TextView
                                 android:id="@+id/tvAbsent"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
                                 android:text="0"
-                                android:textSize="20sp"
-                                android:textStyle="bold"
                                 android:textColor="#F20606"
-                                android:layout_marginTop="2dp"/>
+                                android:textSize="20sp"
+                                android:textStyle="bold" />
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 
                     <!-- Late Today - Light Orange -->
                     <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardLate"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"

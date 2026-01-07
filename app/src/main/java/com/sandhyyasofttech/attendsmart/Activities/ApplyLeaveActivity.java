@@ -12,7 +12,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -50,6 +52,9 @@ public class ApplyLeaveActivity extends AppCompatActivity {
 
             // You can ignore or validate later
         }
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        toolbar.setNavigationOnClickListener(v -> finish());
 
         initViews();
         setupFirebase();
@@ -63,6 +68,7 @@ public class ApplyLeaveActivity extends AppCompatActivity {
         rgLeaveType = findViewById(R.id.rgLeaveType);
         rgHalfDay = findViewById(R.id.rgHalfDay);
         btnSubmit = findViewById(R.id.btnSubmit);
+
     }
 
     private void setupFirebase() {

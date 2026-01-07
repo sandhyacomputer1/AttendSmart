@@ -1,51 +1,86 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="12dp"
+    android:layout_margin="12dp"
+    app:cardCornerRadius="16dp"
     app:cardElevation="4dp">
 
     <LinearLayout
-        android:padding="16dp"
-        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
 
+        <!-- Dates (Bold Large) -->
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:id="@+id/tvDates"
-            android:text="2026-01-04 → 2026-01-04"
-            android:textStyle="bold"
-            android:textSize="16sp"/>
-
-        <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="2026-01-07 → 2026-01-07"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#212121" />
+
+        <!-- Leave Type -->
+        <TextView
             android:id="@+id/tvType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:text="FULL DAY"
-            android:layout_marginTop="4dp"/>
+            android:textSize="15sp"
+            android:textColor="#616161"
+            android:layout_marginTop="6dp" />
 
+        <!-- Admin Reject Reason (Red, Hidden by default) -->
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-
-            android:id="@+id/tvStatus"
-            android:text="PENDING"
-            android:textStyle="bold"
-            android:layout_marginTop="8dp"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:id="@+id/tvReason"
-            android:text="Reason"
-            android:visibility="gone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Rejected: Family emergency not approved"
+            android:textSize="14sp"
             android:textColor="#D32F2F"
-            android:layout_marginTop="4dp"/>
+            android:background="#FFEBEE"
+            android:padding="12dp"
+            android:layout_marginTop="8dp"
+            android:visibility="gone"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Status Badge -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="PENDING"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:padding="8dp" />
+
+            <!-- ❌ MaterialChip हटवा, ❌ हे TextView add करा -->
+            <TextView
+                android:id="@+id/chipPaid"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/badge_paid"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="6dp"
+                android:text="PAID"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="#4CAF50"
+                android:visibility="gone" />
+
+
+        </LinearLayout>
 
     </LinearLayout>
 
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>
