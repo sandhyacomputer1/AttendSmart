@@ -377,10 +377,9 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
 
     private void setupToolbar() {
-//        setSupportActionBar(topAppBar);
-//        if (getSupportActionBar() != null) {
-//            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-//        }
+
+        // Force WHITE menu icon
+        topAppBar.setNavigationIcon(R.drawable.ic_menu);
 
         topAppBar.setNavigationOnClickListener(v -> {
             if (drawerLayout.isDrawerVisible(GravityCompat.START)) {

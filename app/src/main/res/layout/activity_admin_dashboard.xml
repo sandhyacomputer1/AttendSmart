@@ -32,9 +32,10 @@
                 app:titleTextColor="@android:color/white"
                 app:titleCentered="false"
                 app:navigationIcon="@drawable/ic_menu"
-                app:navigationIconTint="@android:color/white">
+                app:navigationIconTint="@android:color/white" >
 
-                <!-- ✅ MOVED INSIDE Toolbar - Now findViewById works! -->
+
+            <!-- ✅ MOVED INSIDE Toolbar - Now findViewById works! -->
                 <TextView
                     android:id="@+id/tvToolbarTitle"
                     android:layout_width="wrap_content"
