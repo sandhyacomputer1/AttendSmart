@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:background="@drawable/splash_gradient_bg"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     >
 
     <!-- Top Gradient Background -->
