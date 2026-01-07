@@ -7,19 +7,18 @@
     android:fitsSystemWindows="true"
     android:background="#F5F6FA">
 
-    <!-- 🟦 Header with Back Button -->
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:cardCornerRadius="0dp"
         app:cardElevation="0dp"
-        android:layout_marginBottom="8dp"
         app:strokeWidth="0dp"
-        android:backgroundTint="#1976D2">
+       >
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@drawable/gradient_header"
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:padding="16dp">
@@ -28,7 +27,7 @@
                 android:id="@+id/btnBack"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@android:drawable/ic_menu_revert"
+                android:src="@drawable/ic_arrow_back"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Back"
                 android:padding="8dp"/>
@@ -37,6 +36,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:layout_marginStart="5dp"
                 android:text="Salary Slip"
                 android:textStyle="bold"
                 android:textSize="18sp"
@@ -55,6 +55,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@color/white"
             android:orientation="vertical"
             android:padding="16dp">
 
@@ -71,6 +72,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@color/white"
                     android:orientation="vertical"
                     android:padding="20dp">
 
@@ -89,13 +91,6 @@
                         android:orientation="horizontal"
                         android:layout_marginBottom="8dp">
 
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@android:drawable/ic_dialog_info"
-                            app:tint="#1976D2"
-                            android:layout_marginEnd="12dp"/>
-
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -111,13 +106,6 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@android:drawable/ic_menu_today"
-                            app:tint="#1976D2"
-                            android:layout_marginEnd="12dp"/>
 
                         <TextView
                             android:layout_width="0dp"
@@ -147,6 +135,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
+                    android:background="@color/white"
                     android:padding="20dp">
 
                     <TextView
@@ -296,12 +285,13 @@
                 app:cardCornerRadius="12dp"
                 app:cardElevation="6dp"
                 app:strokeColor="#1976D2"
-                app:strokeWidth="2dp">
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
+                    android:background="@color/white"
                     android:padding="24dp">
 
                     <TextView
@@ -319,12 +309,7 @@
                         android:orientation="horizontal"
                         android:layout_marginBottom="12dp">
 
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@android:drawable/ic_menu_info_details"
-                            app:tint="#1976D2"
-                            android:layout_marginEnd="12dp"/>
+
 
                         <TextView
                             android:layout_width="0dp"
@@ -343,12 +328,6 @@
                         android:orientation="horizontal"
                         android:layout_marginBottom="12dp">
 
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@android:drawable/ic_menu_gallery"
-                            app:tint="#4CAF50"
-                            android:layout_marginEnd="12dp"/>
 
                         <TextView
                             android:layout_width="0dp"
@@ -367,13 +346,6 @@
                         android:orientation="horizontal"
                        >
 
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@android:drawable/btn_star_big_on"
-                            app:tint="#FF9800"
-                            android:layout_marginEnd="12dp"
-                            android:layout_gravity="center_vertical"/>
 
                         <TextView
                             android:layout_width="0dp"
@@ -404,17 +376,16 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnGeneratePdf"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:text="Open / Download Salary Slip (PDF)"
+            android:layout_height="50dp"
+            android:text="Download Salary Slip (PDF)"
             android:textSize="16sp"
             android:textStyle="bold"
-            app:cornerRadius="12dp"
-            app:icon="@android:drawable/ic_menu_send"
+            app:cornerRadius="10dp"
             app:iconGravity="start"
             app:iconPadding="12dp"
             app:iconSize="20dp"
             app:strokeColor="#1976D2"
-            app:strokeWidth="2dp"/>
+           />
 
     </com.google.android.material.card.MaterialCardView>
 
