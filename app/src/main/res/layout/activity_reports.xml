@@ -4,36 +4,43 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F5F5">
+    android:background="#FAFAFA">
 
-    <!-- Header with Back Button -->
-    <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar"
+    <!-- Modern Toolbar -->
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@color/colorPrimary"
-        android:elevation="4dp"
-        app:title="Attendance Reports"
-        app:titleTextColor="@android:color/white"
-        app:navigationIcon="?attr/homeAsUpIndicator" />
+        android:layout_height="wrap_content"
+        android:elevation="4dp">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/colorPrimary"
+            app:title="Attendance Reports"
+            app:titleTextColor="@android:color/white"
+            app:navigationIcon="?attr/homeAsUpIndicator" />
+    </com.google.android.material.appbar.AppBarLayout>
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="12dp">
 
-            <!-- Report Type Selection -->
-            <androidx.cardview.widget.CardView
+            <!-- Report Type Card -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="2dp">
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="@android:color/white">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -42,13 +49,15 @@
                     android:padding="16dp">
 
                     <TextView
-                        android:text="Select Report Type"
-                        android:textSize="16sp"
+                        android:text="Report Type"
+                        android:textSize="15sp"
                         android:textStyle="bold"
-                        android:textColor="#333333"
+                        android:textColor="#1A1A1A"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="12dp"/>
+                        android:layout_marginBottom="8dp"
+                        android:drawablePadding="8dp"
+                        android:drawableTint="#FF5722"/>
 
                     <RadioGroup
                         android:id="@+id/rgReportType"
@@ -60,30 +69,33 @@
                             android:id="@+id/rbDetailedReport"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Detailed Attendance Report"
-                            android:textSize="14sp"
+                            android:text="Detailed Report"
+                            android:textSize="13sp"
+                            android:textColor="#424242"
                             android:checked="true"
-                            android:layout_marginBottom="8dp"/>
+                            android:paddingVertical="4dp"/>
 
                         <RadioButton
                             android:id="@+id/rbMonthlySummary"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Monthly Summary Report"
-                            android:textSize="14sp"
-                            android:layout_marginBottom="8dp"/>
+                            android:text="Monthly Summary"
+                            android:textSize="13sp"
+                            android:textColor="#424242"
+                            android:paddingVertical="4dp"/>
                     </RadioGroup>
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
-            <!-- Date Range Selection Card -->
-            <androidx.cardview.widget.CardView
+            <!-- Date Range Card -->
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardDateRange"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="2dp">
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="@android:color/white">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -92,42 +104,51 @@
                     android:padding="16dp">
 
                     <TextView
-                        android:text="Select Date Range"
-                        android:textSize="16sp"
+                        android:text="Date Range"
+                        android:textSize="15sp"
                         android:textStyle="bold"
-                        android:textColor="#333333"
+                        android:textColor="#1A1A1A"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="12dp"/>
+                        android:layout_marginBottom="12dp"
+                        android:drawablePadding="8dp"
+                        android:drawableTint="#FF5722"/>
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:weightSum="2">
+                        android:weightSum="2"
+                        android:layout_marginBottom="12dp">
 
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical"
-                            android:layout_marginEnd="8dp">
+                            android:layout_marginEnd="6dp">
 
                             <TextView
                                 android:text="From Date"
-                                android:textSize="12sp"
-                                android:textColor="#666666"
+                                android:textSize="11sp"
+                                android:textColor="#757575"
+                                android:textStyle="bold"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"/>
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="4dp"/>
 
-                            <Button
+                            <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnFromDate"
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
+                                android:layout_height="48dp"
                                 android:text="Select Date"
-                                android:textSize="14sp"
-                                android:backgroundTint="#FF5722"
-                                android:layout_marginTop="4dp"/>
+                                android:textSize="13sp"
+                                android:textAllCaps="false"
+                                app:backgroundTint="#FF5722"
+                                app:cornerRadius="8dp"
+                                app:iconGravity="start"
+                                app:iconPadding="4dp"
+                                app:iconSize="18dp"/>
                         </LinearLayout>
 
                         <LinearLayout
@@ -135,45 +156,56 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical"
-                            android:layout_marginStart="8dp">
+                            android:layout_marginStart="6dp">
 
                             <TextView
                                 android:text="To Date"
-                                android:textSize="12sp"
-                                android:textColor="#666666"
+                                android:textSize="11sp"
+                                android:textColor="#757575"
+                                android:textStyle="bold"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"/>
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="4dp"/>
 
-                            <Button
+                            <com.google.android.material.button.MaterialButton
                                 android:id="@+id/btnToDate"
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
+                                android:layout_height="48dp"
                                 android:text="Select Date"
-                                android:textSize="14sp"
-                                android:backgroundTint="#FF5722"
-                                android:layout_marginTop="4dp"/>
+                                android:textSize="13sp"
+                                android:textAllCaps="false"
+                                app:backgroundTint="#FF5722"
+                                app:cornerRadius="8dp"
+                                app:iconGravity="start"
+                                app:iconPadding="4dp"
+                                app:iconSize="18dp"/>
                         </LinearLayout>
                     </LinearLayout>
 
-                    <Button
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnGenerateReport"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="50dp"
                         android:text="Generate Report"
                         android:textStyle="bold"
-                        android:backgroundTint="#FF5722"
-                        android:layout_marginTop="12dp"/>
+                        android:textSize="14sp"
+                        android:textAllCaps="false"
+                        app:backgroundTint="#FF5722"
+                        app:cornerRadius="8dp"
+                        app:icon="@android:drawable/ic_menu_search"
+                        app:iconGravity="textStart"/>
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
-            <!-- Summary Card -->
-            <androidx.cardview.widget.CardView
+            <!-- Summary Statistics Card -->
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardSummary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="2dp">
+                android:layout_marginBottom="12dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp"
+                app:cardBackgroundColor="@android:color/white">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -181,16 +213,39 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <TextView
-                        android:id="@+id/tvSummaryTitle"
-                        android:text="Summary"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:textColor="#333333"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="12dp"/>
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="12dp">
 
+                        <TextView
+                            android:id="@+id/tvSummaryTitle"
+                            android:text="Attendance Summary"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            android:textColor="#1A1A1A"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="wrap_content"
+                            android:drawablePadding="8dp"
+                            android:drawableTint="#FF5722"/>
+
+                        <TextView
+                            android:id="@+id/tvTotalEmployees"
+                            android:text="Total: 0"
+                            android:textSize="12sp"
+                            android:textColor="#757575"
+                            android:textStyle="bold"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="#F5F5F5"
+                            android:paddingHorizontal="10dp"
+                            android:paddingVertical="4dp"
+                            android:layout_gravity="center_vertical"/>
+                    </LinearLayout>
+
+                    <!-- Detailed Report Statistics Grid -->
                     <LinearLayout
                         android:id="@+id/layoutDetailedSummary"
                         android:layout_width="match_parent"
@@ -205,23 +260,27 @@
                             android:layout_weight="1"
                             android:orientation="vertical"
                             android:gravity="center"
-                            android:padding="8dp">
+                            android:background="#E8F5E9"
+                            android:padding="12dp"
+                            android:layout_marginEnd="4dp">
 
                             <TextView
                                 android:id="@+id/tvPresentCount"
                                 android:text="0"
-                                android:textSize="24sp"
+                                android:textSize="22sp"
                                 android:textStyle="bold"
-                                android:textColor="#4CAF50"
+                                android:textColor="#2E7D32"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"/>
 
                             <TextView
                                 android:text="Present"
-                                android:textSize="12sp"
-                                android:textColor="#666666"
+                                android:textSize="11sp"
+                                android:textColor="#2E7D32"
+                                android:textStyle="bold"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"/>
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"/>
                         </LinearLayout>
 
                         <LinearLayout
@@ -230,23 +289,27 @@
                             android:layout_weight="1"
                             android:orientation="vertical"
                             android:gravity="center"
-                            android:padding="8dp">
+                            android:background="#FFEBEE"
+                            android:padding="12dp"
+                            android:layout_marginHorizontal="4dp">
 
                             <TextView
                                 android:id="@+id/tvAbsentCount"
                                 android:text="0"
-                                android:textSize="24sp"
+                                android:textSize="22sp"
                                 android:textStyle="bold"
-                                android:textColor="#F44336"
+                                android:textColor="#C62828"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"/>
 
                             <TextView
                                 android:text="Absent"
-                                android:textSize="12sp"
-                                android:textColor="#666666"
+                                android:textSize="11sp"
+                                android:textColor="#C62828"
+                                android:textStyle="bold"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"/>
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"/>
                         </LinearLayout>
 
                         <LinearLayout
@@ -255,23 +318,27 @@
                             android:layout_weight="1"
                             android:orientation="vertical"
                             android:gravity="center"
-                            android:padding="8dp">
+                            android:background="#FFF3E0"
+                            android:padding="12dp"
+                            android:layout_marginHorizontal="4dp">
 
                             <TextView
                                 android:id="@+id/tvLateCount"
                                 android:text="0"
-                                android:textSize="24sp"
+                                android:textSize="22sp"
                                 android:textStyle="bold"
-                                android:textColor="#FF9800"
+                                android:textColor="#EF6C00"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"/>
 
                             <TextView
                                 android:text="Late"
-                                android:textSize="12sp"
-                                android:textColor="#666666"
+                                android:textSize="11sp"
+                                android:textColor="#EF6C00"
+                                android:textStyle="bold"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"/>
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"/>
                         </LinearLayout>
 
                         <LinearLayout
@@ -280,82 +347,215 @@
                             android:layout_weight="1"
                             android:orientation="vertical"
                             android:gravity="center"
-                            android:padding="8dp">
+                            android:background="#E3F2FD"
+                            android:padding="12dp"
+                            android:layout_marginStart="4dp">
 
                             <TextView
                                 android:id="@+id/tvHalfDayCount"
                                 android:text="0"
-                                android:textSize="24sp"
+                                android:textSize="22sp"
                                 android:textStyle="bold"
-                                android:textColor="#2196F3"
+                                android:textColor="#1565C0"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"/>
 
                             <TextView
                                 android:text="Half Day"
-                                android:textSize="12sp"
-                                android:textColor="#666666"
+                                android:textSize="11sp"
+                                android:textColor="#1565C0"
+                                android:textStyle="bold"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"/>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Monthly Report Statistics Grid -->
+                    <LinearLayout
+                        android:id="@+id/layoutMonthlySummary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:weightSum="4"
+                        android:visibility="gone">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:background="#F3E5F5"
+                            android:padding="12dp"
+                            android:layout_marginEnd="4dp">
+
+                            <TextView
+                                android:id="@+id/tvTotalEmployeesSummary"
+                                android:text="0"
+                                android:textSize="22sp"
+                                android:textStyle="bold"
+                                android:textColor="#7B1FA2"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"/>
+
+                            <TextView
+                                android:text="Employees"
+                                android:textSize="11sp"
+                                android:textColor="#7B1FA2"
+                                android:textStyle="bold"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"/>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:background="#E8EAF6"
+                            android:padding="12dp"
+                            android:layout_marginHorizontal="4dp">
+
+                            <TextView
+                                android:id="@+id/tvWorkingDays"
+                                android:text="0"
+                                android:textSize="22sp"
+                                android:textStyle="bold"
+                                android:textColor="#303F9F"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
+
+                            <TextView
+                                android:text="Work Days"
+                                android:textSize="11sp"
+                                android:textColor="#303F9F"
+                                android:textStyle="bold"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"/>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:background="#E8F5E9"
+                            android:padding="12dp"
+                            android:layout_marginHorizontal="4dp">
+
+                            <TextView
+                                android:id="@+id/tvTotalPresentDays"
+                                android:text="0"
+                                android:textSize="22sp"
+                                android:textStyle="bold"
+                                android:textColor="#2E7D32"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
+
+                            <TextView
+                                android:text="Present "
+                                android:textSize="11sp"
+                                android:textColor="#2E7D32"
+                                android:textStyle="bold"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"/>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:background="#FFEBEE"
+                            android:padding="12dp"
+                            android:layout_marginStart="4dp">
+
+                            <TextView
+                                android:id="@+id/tvTotalAbsentDays"
+                                android:text="0"
+                                android:textSize="22sp"
+                                android:textStyle="bold"
+                                android:textColor="#C62828"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"/>
+
+                            <TextView
+                                android:text="Absent "
+                                android:textSize="11sp"
+                                android:textColor="#C62828"
+                                android:textStyle="bold"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"/>
                         </LinearLayout>
                     </LinearLayout>
 
                     <!-- Monthly Summary Info -->
                     <TextView
                         android:id="@+id/tvMonthlyInfo"
-                        android:text="Monthly summary will show employee-wise attendance counts"
-                        android:textSize="14sp"
-                        android:textColor="#666666"
+                        android:text="Monthly summary shows employee-wise attendance breakdown"
+                        android:textSize="13sp"
+                        android:textColor="#757575"
                         android:gravity="center"
                         android:padding="16dp"
                         android:visibility="gone"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"/>
+                        android:layout_height="wrap_content"
+                        android:drawableTop="@android:drawable/ic_menu_info_details"
+                        android:drawablePadding="8dp"
+                        android:drawableTint="#757575"/>
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- Action Buttons -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:layout_marginTop="20dp"
                 android:weightSum="2">
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnViewPdf"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="50dp"
                     android:layout_weight="1"
                     android:text="View PDF"
                     android:textStyle="bold"
-                    android:backgroundTint="#2196F3"
-                    android:layout_marginEnd="8dp"
-                    android:drawableStart="@android:drawable/ic_menu_view"
-                    android:drawablePadding="8dp"/>
+                    android:textSize="13sp"
+                    android:textAllCaps="false"
+                    app:strokeColor="#2196F3"
+                    app:strokeWidth="2dp"
+                    android:textColor="#2196F3"
+                    app:cornerRadius="8dp"
+                    android:layout_marginEnd="6dp"
+                    app:icon="@android:drawable/ic_menu_view"
+                    app:iconTint="#2196F3"
+                    app:iconGravity="textStart"/>
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSharePdf"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="50dp"
                     android:layout_weight="1"
                     android:text="Share PDF"
                     android:textStyle="bold"
-                    android:backgroundTint="#4CAF50"
-                    android:layout_marginStart="8dp"
-                    android:drawableStart="@android:drawable/ic_menu_share"
-                    android:drawablePadding="8dp"/>
+                    android:textSize="13sp"
+                    android:textAllCaps="false"
+                    app:backgroundTint="#4CAF50"
+                    app:cornerRadius="8dp"
+                    android:layout_marginStart="6dp"
+                    app:icon="@android:drawable/ic_menu_share"
+                    app:iconGravity="textStart"/>
             </LinearLayout>
-
-            <!-- Total Employees Info -->
-            <TextView
-                android:id="@+id/tvTotalEmployees"
-                android:text="Total Employees: 0"
-                android:textSize="14sp"
-                android:textColor="#666666"
-                android:layout_marginTop="16dp"
-                android:gravity="center"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
         </LinearLayout>
     </ScrollView>
 </LinearLayout>
