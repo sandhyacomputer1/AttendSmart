@@ -99,5 +99,8 @@
     <color name="nav_item_color">#1976D2</color>
 
     <color name="yellow">#FF9800</color>
+    <color name="chip_filter_bg_checked">#FF5722</color>
+    <color name="chip_filter_bg_unchecked">#F5F5F5</color>
+    <color name="chip_filter_bg" />
 
 </resources>

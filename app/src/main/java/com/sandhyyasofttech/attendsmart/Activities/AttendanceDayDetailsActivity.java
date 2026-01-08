@@ -122,7 +122,7 @@ public class AttendanceDayDetailsActivity extends AppCompatActivity {
                 EmployeePunchModel model = new EmployeePunchModel();
                 model.mobile = employeeMobile;
 
-                // ✅ FETCH ONLY THIS EMPLOYEE DATA
+                // ✅ FETCH EMPLOYEE DATA
                 model.checkInTime = empSnap.child("checkInTime").getValue(String.class);
                 model.checkOutTime = empSnap.child("checkOutTime").getValue(String.class);
                 model.checkInPhoto = empSnap.child("checkInPhoto").getValue(String.class);
@@ -137,6 +137,10 @@ public class AttendanceDayDetailsActivity extends AppCompatActivity {
                 model.checkOutGPS = empSnap.child("checkOutGPS").getValue(Boolean.class);
                 model.status = empSnap.child("status").getValue(String.class);
 
+                // ✅ GET LATE STATUS FROM DATABASE
+                model.lateStatus = empSnap.child("lateStatus").getValue(String.class);
+
+                // Calculate late status only if not already set
                 if (model.status == null || model.status.isEmpty()) {
                     model.calculateLateStatus(OFFICE_START_TIME);
                 }
@@ -146,7 +150,7 @@ public class AttendanceDayDetailsActivity extends AppCompatActivity {
 
                 employeeList.add(model);
 
-                fetchEmployeeName(model);   // only one employee
+                fetchEmployeeName(model);
             }
 
             @Override
@@ -165,7 +169,7 @@ public class AttendanceDayDetailsActivity extends AppCompatActivity {
 
                         if (snapshot.exists()) {
                             model.employeeName =
-                                    snapshot.child("name").getValue(String.class);
+                                    snapshot.child("info").child("employeeName").getValue(String.class);
                         }
 
                         if (model.employeeName == null) {
@@ -184,13 +188,15 @@ public class AttendanceDayDetailsActivity extends AppCompatActivity {
                 });
     }
 
+    // ✅ UPDATED STATISTICS METHOD
     private void updateStatistics() {
 
-        int present = 0;
+        int onTime = 0;
         int late = 0;
         int absent = 0;
 
         if (employeeList.isEmpty()) {
+            // No data at all
             absent = 1;
         } else {
             EmployeePunchModel m = employeeList.get(0);
@@ -198,29 +204,48 @@ public class AttendanceDayDetailsActivity extends AppCompatActivity {
             String status = m.status != null ? m.status.toLowerCase() : "";
             String lateStatus = m.lateStatus != null ? m.lateStatus.toLowerCase() : "";
 
-            boolean hasCheckIn = m.hasCheckedIn();
-            boolean isHalfDay = status.contains("half");
+            boolean hasCheckIn = m.checkInTime != null && !m.checkInTime.isEmpty();
+            boolean hasCheckOut = m.checkOutTime != null && !m.checkOutTime.isEmpty();
+
+            // Determine if late
             boolean isLate = lateStatus.equals("late") || status.contains("late");
 
-            // ✅ ABSENT
-            if (!hasCheckIn) {
-                absent = 1;
-            }
-            // ✅ PRESENT (BASE)
-            else {
-                present = 1;
-            }
-
-            // ✅ LATE (INDEPENDENT)
-            if (isLate) {
-                late = 1;
+            if (!hasCheckIn && !hasCheckOut) {
+                // Case 1: No check-in, no check-out
+                if (status.isEmpty() || status.equals("absent")) {
+                    // Truly absent
+                    absent = 1;
+                } else {
+                    // Admin marked status only (Present/Half Day/Full Day without times)
+                    if (isLate) {
+                        late = 1;
+                    } else {
+                        onTime = 1;
+                    }
+                }
+            } else if (hasCheckIn && !hasCheckOut) {
+                // Case 2: Has check-in, no check-out (still working or admin marked check-in only)
+                if (isLate) {
+                    late = 1;
+                } else {
+                    onTime = 1;
+                }
+            } else if (hasCheckIn && hasCheckOut) {
+                // Case 3: Both check-in and check-out exist (complete attendance)
+                if (isLate) {
+                    late = 1;
+                } else {
+                    onTime = 1;
+                }
             }
         }
 
         tvTotalCount.setText("1");
-        tvOnTimeCount.setText(String.valueOf(present));
+        tvOnTimeCount.setText(String.valueOf(onTime));
         tvLateCount.setText(String.valueOf(late));
         tvAbsentCount.setText(String.valueOf(absent));
+
+        Log.d(TAG, "Statistics - OnTime: " + onTime + ", Late: " + late + ", Absent: " + absent);
     }
 
     @Override

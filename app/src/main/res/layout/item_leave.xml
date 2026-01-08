@@ -3,83 +3,130 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="12dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="4dp">
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="6dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="#E0E0E0">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:background="@color/white"
+        android:padding="16dp">
 
-        <!-- Dates (Bold Large) -->
-        <TextView
-            android:id="@+id/tvDates"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="2026-01-07 → 2026-01-07"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="#212121" />
-
-        <!-- Leave Type -->
-        <TextView
-            android:id="@+id/tvType"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="FULL DAY"
-            android:textSize="15sp"
-            android:textColor="#616161"
-            android:layout_marginTop="6dp" />
-
-        <!-- Admin Reject Reason (Red, Hidden by default) -->
-        <TextView
-            android:id="@+id/tvReason"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Rejected: Family emergency not approved"
-            android:textSize="14sp"
-            android:textColor="#D32F2F"
-            android:background="#FFEBEE"
-            android:padding="12dp"
-            android:layout_marginTop="8dp"
-            android:visibility="gone"
-            android:layout_marginBottom="12dp" />
-
-        <!-- Status Badge -->
+        <!-- Header Row: Date Range + Status Badge -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical">
 
-            <TextView
-                android:id="@+id/tvStatus"
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="PENDING"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:padding="8dp" />
+                android:orientation="vertical">
 
-            <!-- ❌ MaterialChip हटवा, ❌ हे TextView add करा -->
+                <TextView
+                    android:id="@+id/tvDateRange"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="07 Jan - 09 Jan 2026"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#212121" />
+
+                <TextView
+                    android:id="@+id/tvDuration"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="3 days"
+                    android:textSize="11sp"
+                    android:textColor="#9E9E9E"
+                    android:layout_marginTop="2dp" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="PENDING"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:background="@drawable/bg_status_badge"
+                android:textColor="#FF9800"
+                android:layout_marginStart="8dp" />
+
+        </LinearLayout>
+
+        <!-- Leave Type + Paid Badge Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="10dp">
+
+            <TextView
+                android:id="@+id/tvType"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="CASUAL LEAVE"
+                android:textSize="13sp"
+                android:textColor="#616161"
+                android:ellipsize="end"
+                android:maxLines="1" />
+
             <TextView
                 android:id="@+id/chipPaid"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/badge_paid"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="6dp"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
                 android:text="PAID"
-                android:textSize="12sp"
+                android:textSize="10sp"
                 android:textStyle="bold"
                 android:textColor="#4CAF50"
                 android:visibility="gone" />
 
-
         </LinearLayout>
+
+        <!-- Applied Date -->
+        <TextView
+            android:id="@+id/tvAppliedDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Applied on 05 Jan 2026"
+            android:textSize="11sp"
+            android:textColor="#9E9E9E"
+            android:layout_marginTop="6dp"
+            android:drawablePadding="4dp"
+            app:drawableStartCompat="@drawable/ic_calendar"
+            app:drawableTint="#9E9E9E" />
+
+        <!-- Rejection Reason (Conditional) -->
+        <TextView
+            android:id="@+id/tvReason"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Rejected: Family emergency not approved"
+            android:textSize="12sp"
+            android:textColor="#D32F2F"
+            android:background="#FFEBEE"
+            android:padding="10dp"
+            android:layout_marginTop="10dp"
+            android:visibility="gone"
+            android:drawablePadding="6dp"
+            app:drawableStartCompat="@drawable/ic_info"
+            app:drawableTint="#D32F2F" />
 
     </LinearLayout>
 

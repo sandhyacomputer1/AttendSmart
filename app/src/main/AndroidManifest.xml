@@ -50,6 +50,10 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <activity
+            android:name=".Activities.CurrentEmploymentActivity"
+            android:theme="@style/Theme.AttendSmart" />
         <activity
             android:name=".Activities.AttendanceDayDetailActivity"
             android:theme="@style/Theme.AttendSmart" />

@@ -76,6 +76,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
     private double currentLat = 0, currentLng = 0;
     private Bitmap currentPhotoBitmap;
     private boolean isCheckedIn = false;
+    private String markedBy = "";
 
     // Location
     private FusedLocationProviderClient fusedLocationClient;
@@ -224,8 +225,38 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         boolean hasCheckIn = checkInTime != null && !checkInTime.isEmpty();
         boolean hasCheckOut = checkOutTime != null && !checkOutTime.isEmpty();
 
-        boolean canCheckIn = locationReady && !hasCheckIn;
-        boolean canCheckOut = locationReady && hasCheckIn && !hasCheckOut;
+        // Case 1: Admin marked only status (no check-in/check-out) → Disable both buttons
+        boolean adminMarkedOnlyStatus = "Admin".equals(markedBy) &&
+                !hasCheckIn &&
+                !hasCheckOut &&
+                finalStatus != null && !finalStatus.isEmpty();
+
+        // Case 2: Admin marked check-in + status → Disable check-in, enable check-out
+        boolean adminMarkedCheckIn = "Admin".equals(markedBy) && hasCheckIn;
+
+        // Case 3: Admin marked complete (check-in + check-out + status) → Disable both
+        boolean adminMarkedComplete = "Admin".equals(markedBy) && hasCheckIn && hasCheckOut;
+
+        boolean canCheckIn = false;
+        boolean canCheckOut = false;
+
+        if (adminMarkedOnlyStatus) {
+            // Admin set only status → Both buttons disabled
+            canCheckIn = false;
+            canCheckOut = false;
+        } else if (adminMarkedComplete) {
+            // Admin marked complete attendance → Both buttons disabled
+            canCheckIn = false;
+            canCheckOut = false;
+        } else if (adminMarkedCheckIn) {
+            // Admin marked check-in → Check-in disabled, check-out enabled
+            canCheckIn = false;
+            canCheckOut = locationReady && !hasCheckOut;
+        } else {
+            // Normal employee flow
+            canCheckIn = locationReady && !hasCheckIn;
+            canCheckOut = locationReady && hasCheckIn && !hasCheckOut;
+        }
 
         cardCheckIn.setEnabled(canCheckIn);
         cardCheckIn.setAlpha(canCheckIn ? 1f : 0.4f);
@@ -237,6 +268,11 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                 "locationReady=" + locationReady +
                         ", checkIn=" + checkInTime +
                         ", checkOut=" + checkOutTime +
+                        ", markedBy=" + markedBy +
+                        ", finalStatus=" + finalStatus +
+                        ", adminMarkedOnlyStatus=" + adminMarkedOnlyStatus +
+                        ", adminMarkedCheckIn=" + adminMarkedCheckIn +
+                        ", adminMarkedComplete=" + adminMarkedComplete +
                         ", canCheckIn=" + canCheckIn +
                         ", canCheckOut=" + canCheckOut);
     }
@@ -421,6 +457,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                         checkInTime = snapshot.child("checkInTime").getValue(String.class);
                         checkOutTime = snapshot.child("checkOutTime").getValue(String.class);
                         finalStatus = snapshot.child("status").getValue(String.class);
+                        markedBy = snapshot.child("markedBy").getValue(String.class); // Load markedBy
 
                         isCheckedIn = (checkInTime != null && !checkInTime.isEmpty())
                                 && (checkOutTime == null || checkOutTime.isEmpty());
@@ -436,7 +473,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                     public void onCancelled(@NonNull DatabaseError error) {}
                 });
     }
-
     private void updateUI() {
         tvCheckInTime.setText(checkInTime != null ? checkInTime : "Not marked");
         tvCheckOutTime.setText(checkOutTime != null ? checkOutTime : "Not marked");
@@ -534,6 +570,13 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
             return;
         }
 
+        // Check if admin has marked attendance (any status without check-in)
+        if ("Admin".equals(markedBy) && finalStatus != null && !finalStatus.isEmpty()
+                && (checkInTime == null || checkInTime.isEmpty())) {
+            toast("⚠️ Attendance already marked by Admin");
+            return;
+        }
+
         String currentTime = getCurrentTime();
         String lateStatus = isLateCheckIn(shiftStart, currentTime) ? "Late" : "Present";
 
@@ -552,6 +595,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         openCamera("checkIn");
     }
 
+    // REPLACE your existing tryCheckOut() method with this:
     private void tryCheckOut() {
 
         if (!isInternetAvailable()) {
@@ -571,6 +615,13 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
 
         if (checkOutTime != null && !checkOutTime.isEmpty()) {
             toast("⚠️ Already checked out today");
+            return;
+        }
+
+        // Allow checkout if admin marked check-in (employee can complete)
+        // Block only if admin marked complete attendance
+        if ("Admin".equals(markedBy) && checkOutTime != null && !checkOutTime.isEmpty()) {
+            toast("⚠️ Attendance already completed by Admin");
             return;
         }
 
@@ -686,15 +737,33 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
 
-                // 🔒 HARD DB LOCK
+                // Get existing markedBy value
+                String existingMarkedBy = snapshot.child("markedBy").getValue(String.class);
+                String existingCheckIn = snapshot.child("checkInTime").getValue(String.class);
+                String existingCheckOut = snapshot.child("checkOutTime").getValue(String.class);
+                String existingStatus = snapshot.child("status").getValue(String.class);
+
+                // 🔒 Block if admin marked only status (no times)
+                if ("Admin".equals(existingMarkedBy) &&
+                        (existingCheckIn == null || existingCheckIn.isEmpty()) &&
+                        (existingCheckOut == null || existingCheckOut.isEmpty()) &&
+                        existingStatus != null && !existingStatus.isEmpty()) {
+                    toast("⚠️ Attendance already marked by Admin");
+                    return;
+                }
+
+                // 🔒 HARD DB LOCK for check-in
                 if (pendingAction.equals("checkIn")
-                        && snapshot.child("checkInTime").exists()) {
+                        && snapshot.child("checkInTime").exists()
+                        && existingCheckIn != null && !existingCheckIn.isEmpty()) {
                     toast("⚠️ Check-in already exists");
                     return;
                 }
 
+                // 🔒 HARD DB LOCK for check-out
                 if (pendingAction.equals("checkOut")
-                        && snapshot.child("checkOutTime").exists()) {
+                        && snapshot.child("checkOutTime").exists()
+                        && existingCheckOut != null && !existingCheckOut.isEmpty()) {
                     toast("⚠️ Check-out already exists");
                     return;
                 }
@@ -721,9 +790,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
 
                 else if (pendingAction.equals("checkOut")) {
 
-                    String existingCheckIn = snapshot.child("checkInTime").getValue(String.class);
                     String lateStatus = snapshot.child("lateStatus").getValue(String.class);
-                    String markedBy = snapshot.child("markedBy").getValue(String.class);
 
                     long totalMins = getDiffMinutes(existingCheckIn, time);
                     String finalStatus = getFinalStatus(totalMins);
@@ -742,8 +809,11 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                     node.child("shiftStart").setValue(shiftStart);
                     node.child("shiftEnd").setValue(shiftEnd);
 
-                    if ("Admin".equals(markedBy)) {
+                    // Update markedBy based on who marked check-in
+                    if ("Admin".equals(existingMarkedBy)) {
                         node.child("markedBy").setValue("Admin+Employee");
+                    } else {
+                        node.child("markedBy").setValue("Employee");
                     }
 
                     checkOutTime = time;
@@ -761,9 +831,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                 toast("❌ Save failed");
             }
         });
-    }
-
-    private boolean isLateCheckIn(String shiftStartTime, String checkInTime) {
+    }    private boolean isLateCheckIn(String shiftStartTime, String checkInTime) {
         if (shiftStartTime == null || shiftStartTime.isEmpty()) {
             return false;
         }
