@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    android:keepScreenOn="true">
+
+    <!-- Header with Gradient -->
+    <LinearLayout
+        android:id="@+id/headerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:background="@drawable/gradient_header">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Attendance Verification"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Position your face in the circle"
+            android:textColor="#FFFFFF"
+            android:alpha="0.95"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <!-- Camera Preview Container - OVAL CIRCLE -->
+    <RelativeLayout
+        android:id="@+id/cameraContainer"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_centerInParent="true"
+        android:background="@drawable/ic_grid_overlay"
+        android:clipChildren="true"
+        android:clipToPadding="true">
+
+        <SurfaceView
+            android:id="@+id/surfaceView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+
+            android:layout_centerInParent="true" />
+
+        <!-- Focus Indicator -->
+        <ImageView
+            android:id="@+id/focusIndicator"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_centerInParent="true"
+            android:src="@drawable/ic_focus"
+            android:visibility="invisible"
+            android:tint="#FD511B" />
+
+    </RelativeLayout>
+
+    <!-- Flash Toggle Icon -->
+    <ImageView
+        android:id="@+id/flashIcon"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_alignTop="@id/cameraContainer"
+        android:layout_alignEnd="@id/cameraContainer"
+        android:layout_marginTop="-10dp"
+        android:layout_marginEnd="-10dp"
+        android:src="@drawable/ic_flash_off"
+        android:background="@drawable/circle_bg_white"
+        android:padding="10dp"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true"
+        android:elevation="4dp"
+        android:tint="#FD511B"
+        android:contentDescription="Toggle flash" />
+
+    <!-- Quality Badge -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/cameraContainer"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="12dp"
+        android:textColor="#FD511B"
+        android:textSize="12sp"
+        android:textStyle="bold" />
+
+    <!-- Loading Overlay -->
+    <RelativeLayout
+        android:id="@+id/loadingLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#E6FFFFFF"
+        android:visibility="gone"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true">
+
+        <LinearLayout
+            android:layout_width="220dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/rounded_dialog_bg"
+            android:padding="30dp"
+            android:gravity="center"
+            android:elevation="8dp">
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:indeterminateTint="#FD511B" />
+
+            <TextView
+                android:id="@+id/txtLoading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Processing..."
+                android:textColor="#333333"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:gravity="center" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Please wait"
+                android:textColor="#666666"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <!-- Bottom Controls -->
+    <LinearLayout
+        android:id="@+id/bottomControls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:background="#FFFFFF"
+        android:padding="20dp"
+        android:elevation="8dp">
+
+        <!-- Action Text -->
+        <TextView
+            android:id="@+id/tvAction"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Check In Photo"
+            android:textColor="#333333"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Simple Buttons Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <!-- Cancel Button -->
+            <Button
+                android:id="@+id/btnCancel"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="Cancel"
+                android:backgroundTint="#FB0505"
+                android:textColor="#F4F1F1"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textAllCaps="false" />
+
+            <!-- Capture Button -->
+            <Button
+                android:id="@+id/btnCapture"
+                android:layout_width="0dp"
+                android:layout_height="52dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:backgroundTint="@color/colorPrimaryDark"
+                android:text="Capture"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Info Text -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:padding="8dp">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@drawable/ic_info"
+                app:tint="#F60606"
+                android:layout_marginEnd="6dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="wrap_content"
+                android:text="Make sure your face is clearly visible in good lighting"
+                android:textColor="#A47D7D"
+                android:textSize="11sp"
+                android:gravity="center" />
+        </LinearLayout>
+    </LinearLayout>
+
+</RelativeLayout>
