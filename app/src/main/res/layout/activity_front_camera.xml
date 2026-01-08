@@ -58,7 +58,7 @@
             android:layout_centerInParent="true"
             android:src="@drawable/ic_focus"
             android:visibility="invisible"
-            android:tint="#FD511B" />
+            app:tint="#FD511B" />
 
     </RelativeLayout>
 
@@ -78,7 +78,7 @@
         android:clickable="true"
         android:focusable="true"
         android:elevation="4dp"
-        android:tint="#FD511B"
+        app:tint="#FD511B"
         android:contentDescription="Toggle flash" />
 
     <!-- Quality Badge -->
