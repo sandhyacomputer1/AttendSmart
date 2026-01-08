@@ -101,7 +101,62 @@ public class AdminDashboardActivity extends AppCompatActivity {
         requestNotificationPermission();
         setupRealTimeLeaveListener();
         fetchAllData();
+        fetchPendingNotifications();
     }
+    private void fetchPendingNotifications() {
+
+        FirebaseDatabase.getInstance()
+                .getReference("Companies")
+                .child(companyKey)
+                .child("notifications")
+                .orderByChild("delivered")
+                .equalTo(false)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+                        if (!snapshot.exists()) return;
+
+                        StringBuilder messageBuilder = new StringBuilder();
+
+                        for (DataSnapshot notifSnap : snapshot.getChildren()) {
+
+                            String title = notifSnap.child("title").getValue(String.class);
+                            String body  = notifSnap.child("body").getValue(String.class);
+
+                            messageBuilder
+                                    .append("• ")
+                                    .append(title)
+                                    .append("\n")
+                                    .append(body)
+                                    .append("\n\n");
+
+                            // ✅ Mark delivered
+                            notifSnap.getRef().child("delivered").setValue(true);
+                        }
+
+                        showNotificationDialog(messageBuilder.toString());
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {}
+                });
+    }
+    private void showNotificationDialog(String message) {
+
+        View dialogView = getLayoutInflater()
+                .inflate(R.layout.dialog_pending_notifications, null);
+
+        TextView tvNotifications = dialogView.findViewById(R.id.tvNotifications);
+        tvNotifications.setText(message);
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(false)
+                .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                .show();
+    }
+
     private void setupRealTimeLeaveListener() {
         FirebaseDatabase.getInstance()
                 .getReference("Companies")
@@ -667,5 +722,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         fetchAllData();
+        fetchPendingNotifications();
     }
 }
