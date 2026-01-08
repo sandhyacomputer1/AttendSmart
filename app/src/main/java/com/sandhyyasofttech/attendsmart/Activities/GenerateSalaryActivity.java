@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -35,11 +36,11 @@ public class GenerateSalaryActivity extends AppCompatActivity {
     private EditText etMonth;
     private Spinner spEmployee;
     private Button btnGenerate;
+    private Button btnViewSalary;
+    private Toolbar toolbar;
 
     private String companyKey;
     private DatabaseReference companyRef;
-    private Button btnViewSalary;
-
     private final ArrayList<String> employeeMobiles = new ArrayList<>();
 
     @Override
@@ -47,12 +48,18 @@ public class GenerateSalaryActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_generate_salary);
 
+        // Initialize all views
+        toolbar = findViewById(R.id.toolbar);
         etMonth = findViewById(R.id.etMonth);
         spEmployee = findViewById(R.id.spEmployee);
         btnGenerate = findViewById(R.id.btnGenerateSalary);
+        btnViewSalary = findViewById(R.id.btnViewSalary);
+
+        // Setup toolbar with back arrow
+        setupToolbar();
 
         PrefManager pref = new PrefManager(this);
-        companyKey = pref.getUserEmail().replace(".", ",");
+        companyKey = pref.getCompanyKey(); // Use getCompanyKey() instead of getUserEmail()
 
         companyRef = FirebaseDatabase.getInstance()
                 .getReference("Companies")
@@ -60,9 +67,21 @@ public class GenerateSalaryActivity extends AppCompatActivity {
 
         setupMonthPicker();
         loadEmployees();
-        btnViewSalary = findViewById(R.id.btnViewSalary);
 
         btnGenerate.setOnClickListener(v -> validateAndGenerate());
+    }
+
+    // ================= TOOLBAR SETUP WITH BACK ARROW =================
+    private void setupToolbar() {
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+            getSupportActionBar().setTitle("Generate Salary");
+        }
+
+        // Handle back arrow click
+        toolbar.setNavigationOnClickListener(v -> onBackPressed());
     }
 
     // ================= MONTH PICKER =================
@@ -95,6 +114,13 @@ public class GenerateSalaryActivity extends AppCompatActivity {
                         employeeMobiles.clear();
                         for (DataSnapshot s : snapshot.getChildren()) {
                             employeeMobiles.add(s.getKey());
+                        }
+
+                        if (employeeMobiles.isEmpty()) {
+                            Toast.makeText(GenerateSalaryActivity.this,
+                                    "No employees found",
+                                    Toast.LENGTH_SHORT).show();
+                            return;
                         }
 
                         ArrayAdapter<String> adapter =
@@ -137,6 +163,9 @@ public class GenerateSalaryActivity extends AppCompatActivity {
             String month,
             String employeeMobile
     ) {
+        // Show loading
+        btnGenerate.setEnabled(false);
+        btnGenerate.setText("Processing...");
 
         companyRef.child("employees")
                 .child(employeeMobile)
@@ -147,8 +176,9 @@ public class GenerateSalaryActivity extends AppCompatActivity {
 
                         if (!snapshot.exists()) {
                             Toast.makeText(GenerateSalaryActivity.this,
-                                    "Salary config not set",
+                                    "Salary config not set for this employee",
                                     Toast.LENGTH_LONG).show();
+                            resetGenerateButton();
                             return;
                         }
 
@@ -158,6 +188,7 @@ public class GenerateSalaryActivity extends AppCompatActivity {
                             Toast.makeText(GenerateSalaryActivity.this,
                                     "Invalid salary configuration",
                                     Toast.LENGTH_LONG).show();
+                            resetGenerateButton();
                             return;
                         }
 
@@ -165,7 +196,7 @@ public class GenerateSalaryActivity extends AppCompatActivity {
                                 month,
                                 employeeMobile,
                                 config,
-                                new AttendanceCallback()  {
+                                new AttendanceCallback() {
                                     @Override
                                     public void onReady(MonthlyAttendanceSummary summary) {
                                         generateAndSaveSalary(
@@ -181,10 +212,10 @@ public class GenerateSalaryActivity extends AppCompatActivity {
                                         Toast.makeText(GenerateSalaryActivity.this,
                                                 error,
                                                 Toast.LENGTH_LONG).show();
+                                        resetGenerateButton();
                                     }
                                 }
                         );
-
                     }
 
                     @Override
@@ -192,8 +223,14 @@ public class GenerateSalaryActivity extends AppCompatActivity {
                         Toast.makeText(GenerateSalaryActivity.this,
                                 "Failed to fetch salary config",
                                 Toast.LENGTH_SHORT).show();
+                        resetGenerateButton();
                     }
                 });
+    }
+
+    private void resetGenerateButton() {
+        btnGenerate.setEnabled(true);
+        btnGenerate.setText("Generate Salary");
     }
 
     // ================= ATTENDANCE SUMMARY =================
@@ -203,7 +240,6 @@ public class GenerateSalaryActivity extends AppCompatActivity {
             SalaryConfig config,
             AttendanceCallback callback
     ) {
-
         MonthlyAttendanceSummary summary = new MonthlyAttendanceSummary();
 
         // ================= 1️⃣ ATTENDANCE =================
@@ -213,7 +249,6 @@ public class GenerateSalaryActivity extends AppCompatActivity {
                     public void onDataChange(@NonNull DataSnapshot attendanceSnap) {
 
                         for (DataSnapshot dateSnap : attendanceSnap.getChildren()) {
-
                             String dateKey = dateSnap.getKey(); // yyyy-MM-dd
                             if (dateKey == null || dateKey.length() < 7) continue;
 
@@ -240,7 +275,7 @@ public class GenerateSalaryActivity extends AppCompatActivity {
                             } else if (finalStatus.contains("half")) {
                                 summary.halfDays++;
                             } else {
-//                                summary.absentDays++;
+                                // summary.absentDays++;
                             }
                         }
 
@@ -254,6 +289,7 @@ public class GenerateSalaryActivity extends AppCompatActivity {
                     }
                 });
     }
+
     private int countDaysInMonth(
             String fromDate,
             String toDate,
@@ -269,7 +305,6 @@ public class GenerateSalaryActivity extends AppCompatActivity {
         return 1; // OK for single-day leave
     }
 
-
     private void countLeaves(
             String month,
             String employeeMobile,
@@ -277,7 +312,6 @@ public class GenerateSalaryActivity extends AppCompatActivity {
             MonthlyAttendanceSummary summary,
             AttendanceCallback callback
     ) {
-
         companyRef.child("leaves")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -287,7 +321,6 @@ public class GenerateSalaryActivity extends AppCompatActivity {
                         int paidUsed = 0;
 
                         for (DataSnapshot l : snapshot.getChildren()) {
-
                             if (!employeeMobile.equals(
                                     l.child("employeeMobile").getValue(String.class)))
                                 continue;
@@ -306,18 +339,14 @@ public class GenerateSalaryActivity extends AppCompatActivity {
                             );
 
                             if (isPaid && paidUsed < paidLimit) {
-
                                 int allowed = Math.min(days, paidLimit - paidUsed);
                                 summary.paidLeavesUsed += allowed;
                                 paidUsed += allowed;
-
                                 summary.unpaidLeaves += (days - allowed);
-
                             } else {
                                 summary.unpaidLeaves += days;
                             }
                             if (summary.absentDays < 0) summary.absentDays = 0;
-
                         }
 
                         // ✅ FINAL CALLBACK (ONLY ONCE)
@@ -331,7 +360,6 @@ public class GenerateSalaryActivity extends AppCompatActivity {
                 });
     }
 
-
     // ================= GENERATE & SAVE =================
     private void generateAndSaveSalary(
             String month,
@@ -339,7 +367,6 @@ public class GenerateSalaryActivity extends AppCompatActivity {
             MonthlyAttendanceSummary summary,
             SalaryConfig config
     ) {
-
         SalaryCalculationResult result =
                 SalaryCalculator.calculateSalary(summary, config);
 
@@ -356,14 +383,13 @@ public class GenerateSalaryActivity extends AppCompatActivity {
                 .child(employeeMobile)
                 .setValue(snapshot)
                 .addOnSuccessListener(aVoid -> {
-
                     Toast.makeText(
                             GenerateSalaryActivity.this,
                             "Salary generated successfully",
                             Toast.LENGTH_SHORT
                     ).show();
 
-                    // ✅ NOW show View Salary button
+                    // ✅ Show View Salary button
                     btnViewSalary.setVisibility(View.VISIBLE);
 
                     btnViewSalary.setOnClickListener(v -> {
@@ -375,34 +401,36 @@ public class GenerateSalaryActivity extends AppCompatActivity {
                         intent.putExtra("employeeMobile", employeeMobile);
                         startActivity(intent);
                     });
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(
-                                GenerateSalaryActivity.this,
-                                "Error: " + e.getMessage(),
-                                Toast.LENGTH_LONG
-                        ).show()
-                );
-    }
 
+                    resetGenerateButton();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(
+                            GenerateSalaryActivity.this,
+                            "Error: " + e.getMessage(),
+                            Toast.LENGTH_LONG
+                    ).show();
+                    resetGenerateButton();
+                });
+    }
 
     // ================= SAFE PARSING =================
     private SalaryConfig parseSalaryConfig(DataSnapshot s) {
         SalaryConfig c = new SalaryConfig();
 
         c.monthlySalary = getDouble(s, "monthlySalary");
-        c.workingDays   = getInt(s, "workingDays");
-        c.paidLeaves    = getInt(s, "paidLeaves");
+        c.workingDays = getInt(s, "workingDays");
+        c.paidLeaves = getInt(s, "paidLeaves");
 
-        c.pfPercent     = getDouble(s, "pfPercent");
-        c.esiPercent    = getDouble(s, "esiPercent");
-        c.otherDeduction= getDouble(s, "otherDeduction");
+        c.pfPercent = getDouble(s, "pfPercent");
+        c.esiPercent = getDouble(s, "esiPercent");
+        c.otherDeduction = getDouble(s, "otherDeduction");
 
         c.deductionEnabled =
                 Boolean.TRUE.equals(
                         s.child("deductionEnabled").getValue(Boolean.class));
 
-        c.lateRule      = getString(s, "lateRule");
+        c.lateRule = getString(s, "lateRule");
         c.effectiveFrom = getString(s, "effectiveFrom");
         c.deductionNote = getString(s, "deductionNote");
 
@@ -439,6 +467,13 @@ public class GenerateSalaryActivity extends AppCompatActivity {
     // ================= CALLBACK =================
     private interface AttendanceCallback {
         void onReady(MonthlyAttendanceSummary summary);
+
         void onError(String error);
+    }
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
     }
 }
