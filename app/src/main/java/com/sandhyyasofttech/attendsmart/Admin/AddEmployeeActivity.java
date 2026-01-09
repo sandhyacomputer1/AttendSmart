@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.Locale;
 
 public class AddEmployeeActivity extends AppCompatActivity {
-
     private static final String TAG = "AddEmployee";
 
     // UI Elements

@@ -33,6 +33,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.sandhyyasofttech.attendsmart.Activities.AdminLeaveListActivity;
+import com.sandhyyasofttech.attendsmart.Activities.AdminTodayWorkActivity;
 import com.sandhyyasofttech.attendsmart.Activities.AllAttendanceActivity;
 import com.sandhyyasofttech.attendsmart.Activities.DepartmentActivity;
 import com.sandhyyasofttech.attendsmart.Activities.EmployeeListActivity;
@@ -301,6 +302,9 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
             else if (id == R.id.nav_reports) {
                 intent = new Intent(this, ReportsActivity.class);
+            }
+            else if (id == R.id.nav_work_report) {
+                intent = new Intent(this, AdminTodayWorkActivity.class);
             }
 
             else if (id == R.id.nav_view_salary) {
@@ -722,6 +726,5 @@ public class AdminDashboardActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         fetchAllData();
-        fetchPendingNotifications();
     }
 }
