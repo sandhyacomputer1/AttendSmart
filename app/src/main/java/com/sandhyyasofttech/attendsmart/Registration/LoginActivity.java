@@ -4,15 +4,17 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -28,7 +30,7 @@ import java.util.ArrayList;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private EditText etEmail, etPassword;
+    private TextInputEditText etEmail, etPassword;
     private Button btnLogin;
     private TextView tvRegister, tvForgotPassword;
     private ProgressBar progressBar;
@@ -37,6 +39,13 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Make status bar transparent with gradient color
+        getWindow().setFlags(
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+        );
+
         setContentView(R.layout.activity_login);
 
         rootRef = FirebaseDatabase.getInstance().getReference();
@@ -139,7 +148,7 @@ public class LoginActivity extends AppCompatActivity {
                                     password.equals(storedPassword) &&
                                     "ACTIVE".equals(status)) {
                                 companies.add(companyKey);
-                            String employeeMobile = employeeSnapshot.getKey();  // ✅ Get mobile key
+                                String employeeMobile = employeeSnapshot.getKey();  // ✅ Get mobile key
                                 PrefManager prefManager = new PrefManager(LoginActivity.this);
                                 prefManager.setEmployeeEmail(employeeEmail);  // ✅ Employee email
                                 prefManager.setEmployeeMobile(employeeMobile);  // ✅ Mobile for attendance
@@ -169,6 +178,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 showLoading(false);
+                Toast.makeText(LoginActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -180,7 +190,6 @@ public class LoginActivity extends AppCompatActivity {
         intent.putStringArrayListExtra("companies", companies);
         startActivity(intent);
     }
-
 
     private void goToAdminDashboard() {
         showLoading(false);
@@ -199,6 +208,7 @@ public class LoginActivity extends AppCompatActivity {
     private void showLoading(boolean loading) {
         progressBar.setVisibility(loading ? View.VISIBLE : View.GONE);
         btnLogin.setEnabled(!loading);
+        btnLogin.setText(loading ? "Logging in..." : "Login");
         etEmail.setEnabled(!loading);
         etPassword.setEnabled(!loading);
     }
@@ -207,4 +217,3 @@ public class LoginActivity extends AppCompatActivity {
         Toast.makeText(this, "Contact your admin", Toast.LENGTH_SHORT).show();
     }
 }
-

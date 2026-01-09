@@ -4,21 +4,15 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.view.GravityCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.database.DataSnapshot;
@@ -30,7 +24,6 @@ import com.sandhyyasofttech.attendsmart.Adapters.EmployeeListAdapter;
 import com.sandhyyasofttech.attendsmart.Admin.AddEmployeeActivity;
 import com.sandhyyasofttech.attendsmart.Models.EmployeeModel;
 import com.sandhyyasofttech.attendsmart.R;
-import com.sandhyyasofttech.attendsmart.Registration.AdminDashboardActivity;
 import com.sandhyyasofttech.attendsmart.Registration.LoginActivity;
 import com.sandhyyasofttech.attendsmart.Utils.PrefManager;
 
@@ -39,29 +32,27 @@ import java.util.ArrayList;
 public class EmployeeListActivity extends AppCompatActivity {
 
     // UI Components
-    private MaterialToolbar toolbar;
-    private DrawerLayout drawerLayout;
-    private NavigationView navigationView;
+    private ImageButton btnBack, btnAddEmployee;
     private CircularProgressIndicator progressIndicator;
     private androidx.recyclerview.widget.RecyclerView rvEmployees;
     private EmployeeListAdapter adapter;
     private ArrayList<EmployeeModel> employeeList;
     private TextInputEditText etSearch;
     private View emptyStateLayout;
+    private TextView tvEmployeeCount;
 
     // Firebase
     private DatabaseReference employeesRef;
     private ValueEventListener employeesListener;
     private String companyKey;
-    private TextView tvEmployeeCount;  // ✅ TextView, NOT TextInputEditText
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_employee_list);
 
-        initializeAllViews();
-        setupToolbarAndDrawer();
+        initializeViews();
+        setupListeners();
 
         if (validateUserSession()) {
             setupRecyclerViewAndSearch();
@@ -69,33 +60,32 @@ public class EmployeeListActivity extends AppCompatActivity {
         }
     }
 
-    private void initializeAllViews() {
-        toolbar = findViewById(R.id.toolbar);
-        drawerLayout = findViewById(R.id.drawer_layout);
-        navigationView = findViewById(R.id.nav_view);
+    private void initializeViews() {
+        btnBack = findViewById(R.id.btnBack);
+        btnAddEmployee = findViewById(R.id.btnAddEmployee);
         progressIndicator = findViewById(R.id.progressIndicator);
         rvEmployees = findViewById(R.id.rvEmployees);
         etSearch = findViewById(R.id.etSearch);
         emptyStateLayout = findViewById(R.id.emptyStateLayout);
-        tvEmployeeCount = findViewById(R.id.tvEmployeeCount);  // ✅ UNCOMMENTED!
+        tvEmployeeCount = findViewById(R.id.tvEmployeeCount);
     }
 
-    private void setupToolbarAndDrawer() {
-        setSupportActionBar(toolbar);
-        toolbar.setTitle("Employee Management");
-        toolbar.setNavigationOnClickListener(v -> toggleNavigationDrawer());
-
-        androidx.appcompat.app.ActionBarDrawerToggle toggle = new androidx.appcompat.app.ActionBarDrawerToggle(
-                this, drawerLayout, toolbar, R.string.nav_open, R.string.nav_close);
-        drawerLayout.addDrawerListener(toggle);
-        toggle.syncState();
-
-        navigationView.setNavigationItemSelectedListener(item -> {
-            handleNavigationItem(item.getItemId());
-            drawerLayout.closeDrawer(GravityCompat.START);
-            return true;
+    private void setupListeners() {
+        // Back button to go to previous activity
+        btnBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onBackPressed();
+            }
         });
-        navigationView.setCheckedItem(R.id.nav_employees);
+
+        // Add employee button
+        btnAddEmployee.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(EmployeeListActivity.this, AddEmployeeActivity.class));
+            }
+        });
     }
 
     private boolean validateUserSession() {
@@ -145,7 +135,6 @@ public class EmployeeListActivity extends AppCompatActivity {
                 for (DataSnapshot empSnap : snapshot.getChildren()) {
                     DataSnapshot infoSnap = empSnap.child("info");
                     if (infoSnap.exists()) {
-                        // ✅ SAFE PARSING - Convert Long to String automatically
                         EmployeeModel model = parseEmployeeSafely(infoSnap);
                         if (model != null) {
                             employeeList.add(model);
@@ -173,14 +162,12 @@ public class EmployeeListActivity extends AppCompatActivity {
         employeesRef.addValueEventListener(employeesListener);
     }
 
-    // ✅ NEW SAFE PARSING METHOD
     private EmployeeModel parseEmployeeSafely(DataSnapshot infoSnap) {
         try {
             EmployeeModel model = new EmployeeModel();
 
-            // ✅ FIXED: Set mobile as employeeId (matches Firebase key)
-            model.setEmployeeId(safeToString(infoSnap.child("employeeMobile")));  // Use mobile as ID
-
+            // Set mobile as employeeId (matches Firebase key)
+            model.setEmployeeId(safeToString(infoSnap.child("employeeMobile")));
             model.setEmployeeName(safeToString(infoSnap.child("employeeName")));
             model.setEmployeeMobile(safeToString(infoSnap.child("employeeMobile")));
             model.setEmployeeEmail(safeToString(infoSnap.child("employeeEmail")));
@@ -203,7 +190,6 @@ public class EmployeeListActivity extends AppCompatActivity {
         }
     }
 
-    // ✅ UTILITY: Convert any DataSnapshot to String safely
     private String safeToString(DataSnapshot dataSnap) {
         if (!dataSnap.exists()) {
             return null;
@@ -214,7 +200,6 @@ public class EmployeeListActivity extends AppCompatActivity {
             return null;
         }
 
-        // ✅ Handle Long → String conversion
         if (value instanceof Long) {
             return ((Long) value).toString();
         } else if (value instanceof Number) {
@@ -252,38 +237,17 @@ public class EmployeeListActivity extends AppCompatActivity {
         emptyStateLayout.setVisibility(View.GONE);
     }
 
-    private void toggleNavigationDrawer() {
-        if (drawerLayout.isDrawerVisible(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START);
-        } else {
-            drawerLayout.openDrawer(GravityCompat.START);
-        }
+    private void onEmployeeClick(EmployeeModel employee) {
+        Intent intent = new Intent(this, EmployeeDetailsActivity.class);
+        intent.putExtra("employee", employee);
+        startActivity(intent);
     }
 
-    private void handleNavigationItem(int itemId) {
-        if (itemId == R.id.nav_dashboard) {
-            startActivity(new Intent(this, AdminDashboardActivity.class));
-            finish();
-        } else if (itemId == R.id.nav_logout) {
-            showLogoutConfirmation();
-        }
-    }
-
-    private void showLogoutConfirmation() {
-        new AlertDialog.Builder(this)
-                .setTitle("🚪 Logout")
-                .setMessage("Are you sure you want to logout?")
-                .setPositiveButton("Yes, Logout", (dialog, which) -> performLogout())
-                .setNegativeButton("Cancel", null)
-                .setCancelable(false)
-                .show();
-    }
-
-    private void performLogout() {
-        PrefManager prefManager = new PrefManager(this);
-        prefManager.logout();
-        Toast.makeText(this, "✅ Logged out successfully", Toast.LENGTH_SHORT).show();
-        navigateToLogin();
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        // Optional: Add animation
+        // overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 
     private void navigateToLogin() {
@@ -291,30 +255,6 @@ public class EmployeeListActivity extends AppCompatActivity {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
-    }
-
-    // ✅ CORRECT!
-    private void onEmployeeClick(EmployeeModel employee) {
-        Intent intent = new Intent(this, EmployeeDetailsActivity.class);
-        intent.putExtra("employee", employee);  // ✅ Serializable works!
-        startActivity(intent);
-    }
-
-
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.employee_list_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        if (item.getItemId() == R.id.action_add_employee) {
-            startActivity(new Intent(this, AddEmployeeActivity.class));
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 
     @Override

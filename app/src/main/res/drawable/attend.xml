@@ -1,0 +1,22 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+
+    <!-- Background Circle -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M60,60m-55,0a55,55 0,1 1,110 0a55,55 0,1 1,-110 0"/>
+
+    <!-- Attendance Icon (Checkmark in Circle) -->
+    <path
+        android:fillColor="#FD511B"
+        android:pathData="M60,20C42.36,20 28,34.36 28,52s14.36,32 32,32s32,-14.36 32,-32S77.64,20 60,20zM54,70L38,54l4.24,-4.24L54,61.51l19.76,-19.76L78,46L54,70z"/>
+
+    <!-- Clock Hand Effect -->
+    <path
+        android:fillColor="#FF8A65"
+        android:pathData="M60,30v22l15,8.66l-2,3.46l-17,-10V30z"
+        android:fillAlpha="0.7"/>
+</vector>

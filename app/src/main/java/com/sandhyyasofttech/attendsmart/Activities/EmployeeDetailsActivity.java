@@ -1,6 +1,9 @@
 package com.sandhyyasofttech.attendsmart.Activities;
 
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -57,6 +60,12 @@ public class EmployeeDetailsActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        // After setting up toolbar
+        Drawable overflowIcon = toolbar.getOverflowIcon();
+        if (overflowIcon != null) {
+            overflowIcon.setColorFilter(Color.WHITE, PorterDuff.Mode.SRC_ATOP);
+            toolbar.setOverflowIcon(overflowIcon);
+        }
     }
 
     private void loadEmployeeData() {

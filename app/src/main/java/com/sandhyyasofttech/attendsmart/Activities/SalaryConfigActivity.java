@@ -2,18 +2,21 @@ package com.sandhyyasofttech.attendsmart.Activities;
 
 import android.app.DatePickerDialog;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.Switch;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -22,6 +25,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.sandhyyasofttech.attendsmart.R;
 import com.sandhyyasofttech.attendsmart.Utils.PrefManager;
 
+import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
@@ -29,20 +33,23 @@ import java.util.Map;
 
 public class SalaryConfigActivity extends AppCompatActivity {
 
-    // UI
+    // UI Components
     private MaterialToolbar toolbar;
     private EditText etMonthlySalary, etWorkingDays, etPerDaySalary;
     private EditText etPaidLeaves, etEffectiveFrom;
     private Spinner spLateRule;
-    private Switch switchDeduction;
+    private SwitchMaterial switchDeduction;
     private EditText etPfPercent, etEsiPercent, etOtherDeduction, etDeductionNote;
+    private TextInputLayout tilPf, tilEsi, tilOtherDeduction, tilDeductionNote;
     private Button btnSave;
 
     // Firebase
     private DatabaseReference salaryRef;
     private String companyKey, employeeMobile;
 
+    // State
     private boolean isEditMode = false;
+    private DecimalFormat decimalFormat = new DecimalFormat("0.00");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,13 +61,14 @@ public class SalaryConfigActivity extends AppCompatActivity {
         setupLateRuleSpinner();
         setupDeductionToggle();
         setupEffectiveMonthPicker();
+        setupAutoCalculation();
         initFirebase();
         fetchSalaryConfig();
 
         btnSave.setOnClickListener(v -> saveSalaryConfig());
     }
 
-    // ---------------- INIT ----------------
+    // ==================== INITIALIZATION ====================
 
     private void initViews() {
         toolbar = findViewById(R.id.toolbar);
@@ -79,22 +87,28 @@ public class SalaryConfigActivity extends AppCompatActivity {
         etOtherDeduction = findViewById(R.id.etOtherDeduction);
         etDeductionNote = findViewById(R.id.etDeductionNote);
 
-        btnSave = findViewById(R.id.btnSaveSalary);
+        tilPf = findViewById(R.id.tilPf);
+        tilEsi = findViewById(R.id.tilEsi);
+        tilOtherDeduction = findViewById(R.id.tilOtherDeduction);
+        tilDeductionNote = findViewById(R.id.tilDeductionNote);
 
-        etPerDaySalary.setEnabled(false); // auto later
+        btnSave = findViewById(R.id.btnSaveSalary);
     }
 
     private void setupToolbar() {
         setSupportActionBar(toolbar);
-        toolbar.setTitle("Salary Settings");
-        toolbar.setNavigationOnClickListener(v -> finish());
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
+        toolbar.setNavigationOnClickListener(v -> onBackPressed());
     }
 
     private void setupLateRuleSpinner() {
         String[] rules = {
-                "No deduction",
-                "3 Late = 0.5 Day",
-                "5 Late = 1 Day"
+                "No deduction for late coming",
+                "3 Late marks = 0.5 Day deduction",
+                "5 Late marks = 1 Day deduction"
         };
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 this,
@@ -107,44 +121,101 @@ public class SalaryConfigActivity extends AppCompatActivity {
 
     private void setupDeductionToggle() {
         toggleDeductionFields(false);
-        switchDeduction.setOnCheckedChangeListener((b, checked) -> toggleDeductionFields(checked));
+        switchDeduction.setOnCheckedChangeListener((buttonView, isChecked) ->
+                toggleDeductionFields(isChecked)
+        );
     }
 
     private void toggleDeductionFields(boolean show) {
-        int v = show ? View.VISIBLE : View.GONE;
-        etPfPercent.setVisibility(v);
-        etEsiPercent.setVisibility(v);
-        etOtherDeduction.setVisibility(v);
-        etDeductionNote.setVisibility(v);
+        int visibility = show ? View.VISIBLE : View.GONE;
+        tilPf.setVisibility(visibility);
+        tilEsi.setVisibility(visibility);
+        tilOtherDeduction.setVisibility(visibility);
+        tilDeductionNote.setVisibility(visibility);
     }
 
     private void setupEffectiveMonthPicker() {
-        etEffectiveFrom.setOnClickListener(v -> {
-            Calendar c = Calendar.getInstance();
-            DatePickerDialog dialog = new DatePickerDialog(
-                    this,
-                    (view, year, month, day) -> {
-                        String value = String.format(
-                                Locale.getDefault(),
-                                "%02d-%d",
-                                month + 1,
-                                year
-                        );
-                        etEffectiveFrom.setText(value);
-                    },
-                    c.get(Calendar.YEAR),
-                    c.get(Calendar.MONTH),
-                    c.get(Calendar.DAY_OF_MONTH)
-            );
-            dialog.show();
-        });
+        etEffectiveFrom.setOnClickListener(v -> showMonthYearPicker());
+    }
+
+    private void showMonthYearPicker() {
+        Calendar calendar = Calendar.getInstance();
+        int currentYear = calendar.get(Calendar.YEAR);
+        int currentMonth = calendar.get(Calendar.MONTH);
+
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                this,
+                (view, year, month, dayOfMonth) -> {
+                    String selectedDate = String.format(Locale.getDefault(), "%02d-%d", month + 1, year);
+                    etEffectiveFrom.setText(selectedDate);
+                },
+                currentYear,
+                currentMonth,
+                1
+        );
+
+        datePickerDialog.show();
+    }
+
+    private void setupAutoCalculation() {
+        TextWatcher textWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                calculatePerDaySalary();
+            }
+        };
+
+        etMonthlySalary.addTextChangedListener(textWatcher);
+        etWorkingDays.addTextChangedListener(textWatcher);
+    }
+
+    private void calculatePerDaySalary() {
+        String salaryStr = etMonthlySalary.getText().toString().trim();
+        String workingDaysStr = etWorkingDays.getText().toString().trim();
+
+        if (!salaryStr.isEmpty() && !workingDaysStr.isEmpty()) {
+            try {
+                double salary = Double.parseDouble(salaryStr);
+                int workingDays = Integer.parseInt(workingDaysStr);
+
+                if (workingDays > 0) {
+                    double perDay = salary / workingDays;
+                    etPerDaySalary.setText(decimalFormat.format(perDay));
+                } else {
+                    etPerDaySalary.setText("");
+                }
+            } catch (NumberFormatException e) {
+                etPerDaySalary.setText("");
+            }
+        } else {
+            etPerDaySalary.setText("");
+        }
     }
 
     private void initFirebase() {
         employeeMobile = getIntent().getStringExtra("employeeMobile");
 
+        if (employeeMobile == null || employeeMobile.isEmpty()) {
+            Toast.makeText(this, "Error: Employee mobile not found", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
         PrefManager prefManager = new PrefManager(this);
         String email = prefManager.getUserEmail();
+
+        if (email == null || email.isEmpty()) {
+            Toast.makeText(this, "Error: Company email not found", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
         companyKey = email.replace(".", ",");
 
         salaryRef = FirebaseDatabase.getInstance()
@@ -155,7 +226,7 @@ public class SalaryConfigActivity extends AppCompatActivity {
                 .child("salaryConfig");
     }
 
-    // ---------------- FETCH ----------------
+    // ==================== FETCH DATA ====================
 
     private void fetchSalaryConfig() {
         salaryRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -163,50 +234,193 @@ public class SalaryConfigActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     isEditMode = true;
-                    btnSave.setText("Update Salary");
-
-                    etMonthlySalary.setText(snapshot.child("monthlySalary").getValue(String.class));
-                    etWorkingDays.setText(snapshot.child("workingDays").getValue(String.class));
-                    etPaidLeaves.setText(snapshot.child("paidLeaves").getValue(String.class));
-                    etEffectiveFrom.setText(snapshot.child("effectiveFrom").getValue(String.class));
-
-                    String lateRule = snapshot.child("lateRule").getValue(String.class);
-                    if (lateRule != null) {
-                        int pos = ((ArrayAdapter) spLateRule.getAdapter()).getPosition(lateRule);
-                        spLateRule.setSelection(pos);
-                    }
-
-                    Boolean deductionEnabled = snapshot.child("deductionEnabled").getValue(Boolean.class);
-                    if (deductionEnabled != null && deductionEnabled) {
-                        switchDeduction.setChecked(true);
-                        etPfPercent.setText(snapshot.child("pfPercent").getValue(String.class));
-                        etEsiPercent.setText(snapshot.child("esiPercent").getValue(String.class));
-                        etOtherDeduction.setText(snapshot.child("otherDeduction").getValue(String.class));
-                        etDeductionNote.setText(snapshot.child("deductionNote").getValue(String.class));
-                    }
+                    btnSave.setText("Update Salary Configuration");
+                    populateFields(snapshot);
+                } else {
+                    // Set default values for new configuration
+                    setDefaultValues();
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(SalaryConfigActivity.this,
-                        "Failed to load salary data", Toast.LENGTH_SHORT).show();
+                        "Failed to load salary data: " + error.getMessage(),
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    // ---------------- SAVE / UPDATE ----------------
+    private void populateFields(DataSnapshot snapshot) {
+        etMonthlySalary.setText(getStringValue(snapshot, "monthlySalary"));
+        etWorkingDays.setText(getStringValue(snapshot, "workingDays"));
+        etPaidLeaves.setText(getStringValue(snapshot, "paidLeaves"));
+        etEffectiveFrom.setText(getStringValue(snapshot, "effectiveFrom"));
+
+        // Set late rule spinner
+        String lateRule = getStringValue(snapshot, "lateRule");
+        if (!lateRule.isEmpty()) {
+            ArrayAdapter<String> adapter = (ArrayAdapter<String>) spLateRule.getAdapter();
+            int position = adapter.getPosition(lateRule);
+            if (position >= 0) {
+                spLateRule.setSelection(position);
+            }
+        }
+
+        // Set deduction fields
+        Boolean deductionEnabled = snapshot.child("deductionEnabled").getValue(Boolean.class);
+        if (deductionEnabled != null && deductionEnabled) {
+            switchDeduction.setChecked(true);
+            etPfPercent.setText(getStringValue(snapshot, "pfPercent"));
+            etEsiPercent.setText(getStringValue(snapshot, "esiPercent"));
+            etOtherDeduction.setText(getStringValue(snapshot, "otherDeduction"));
+            etDeductionNote.setText(getStringValue(snapshot, "deductionNote"));
+        }
+
+        // Calculate per day salary
+        calculatePerDaySalary();
+    }
+
+    private String getStringValue(DataSnapshot snapshot, String key) {
+        String value = snapshot.child(key).getValue(String.class);
+        return value != null ? value : "";
+    }
+
+    private void setDefaultValues() {
+        Calendar calendar = Calendar.getInstance();
+        String currentMonth = String.format(Locale.getDefault(),
+                "%02d-%d",
+                calendar.get(Calendar.MONTH) + 1,
+                calendar.get(Calendar.YEAR));
+        etEffectiveFrom.setText(currentMonth);
+        etWorkingDays.setText("26");
+    }
+
+    // ==================== VALIDATION ====================
+
+    private boolean validateInputs() {
+        boolean isValid = true;
+
+        // Validate Monthly Salary
+        String salaryStr = etMonthlySalary.getText().toString().trim();
+        if (salaryStr.isEmpty()) {
+            etMonthlySalary.setError("Monthly salary is required");
+            isValid = false;
+        } else {
+            try {
+                double salary = Double.parseDouble(salaryStr);
+                if (salary <= 0) {
+                    etMonthlySalary.setError("Salary must be greater than 0");
+                    isValid = false;
+                }
+            } catch (NumberFormatException e) {
+                etMonthlySalary.setError("Invalid salary amount");
+                isValid = false;
+            }
+        }
+
+        // Validate Working Days
+        String workingDaysStr = etWorkingDays.getText().toString().trim();
+        if (workingDaysStr.isEmpty()) {
+            etWorkingDays.setError("Working days is required");
+            isValid = false;
+        } else {
+            try {
+                int days = Integer.parseInt(workingDaysStr);
+                if (days <= 0 || days > 31) {
+                    etWorkingDays.setError("Working days must be between 1 and 31");
+                    isValid = false;
+                }
+            } catch (NumberFormatException e) {
+                etWorkingDays.setError("Invalid working days");
+                isValid = false;
+            }
+        }
+
+        // Validate Paid Leaves
+        String paidLeavesStr = etPaidLeaves.getText().toString().trim();
+        if (!paidLeavesStr.isEmpty()) {
+            try {
+                int leaves = Integer.parseInt(paidLeavesStr);
+                if (leaves < 0) {
+                    etPaidLeaves.setError("Paid leaves cannot be negative");
+                    isValid = false;
+                }
+            } catch (NumberFormatException e) {
+                etPaidLeaves.setError("Invalid number");
+                isValid = false;
+            }
+        }
+
+        // Validate Effective From
+        if (etEffectiveFrom.getText().toString().trim().isEmpty()) {
+            etEffectiveFrom.setError("Effective date is required");
+            isValid = false;
+        }
+
+        // Validate Deduction fields if enabled
+        if (switchDeduction.isChecked()) {
+            String pfStr = etPfPercent.getText().toString().trim();
+            if (!pfStr.isEmpty()) {
+                try {
+                    double pf = Double.parseDouble(pfStr);
+                    if (pf < 0 || pf > 100) {
+                        etPfPercent.setError("PF must be between 0 and 100");
+                        isValid = false;
+                    }
+                } catch (NumberFormatException e) {
+                    etPfPercent.setError("Invalid percentage");
+                    isValid = false;
+                }
+            }
+
+            String esiStr = etEsiPercent.getText().toString().trim();
+            if (!esiStr.isEmpty()) {
+                try {
+                    double esi = Double.parseDouble(esiStr);
+                    if (esi < 0 || esi > 100) {
+                        etEsiPercent.setError("ESI must be between 0 and 100");
+                        isValid = false;
+                    }
+                } catch (NumberFormatException e) {
+                    etEsiPercent.setError("Invalid percentage");
+                    isValid = false;
+                }
+            }
+
+            String otherDeductionStr = etOtherDeduction.getText().toString().trim();
+            if (!otherDeductionStr.isEmpty()) {
+                try {
+                    double amount = Double.parseDouble(otherDeductionStr);
+                    if (amount < 0) {
+                        etOtherDeduction.setError("Amount cannot be negative");
+                        isValid = false;
+                    }
+                } catch (NumberFormatException e) {
+                    etOtherDeduction.setError("Invalid amount");
+                    isValid = false;
+                }
+            }
+        }
+
+        return isValid;
+    }
+
+    // ==================== SAVE DATA ====================
 
     private void saveSalaryConfig() {
-
-        if (etMonthlySalary.getText().toString().trim().isEmpty()) {
-            etMonthlySalary.setError("Required");
+        if (!validateInputs()) {
+            Toast.makeText(this, "Please fix the errors", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        btnSave.setEnabled(false);
+        btnSave.setText("Saving...");
 
         Map<String, Object> data = new HashMap<>();
         data.put("monthlySalary", etMonthlySalary.getText().toString().trim());
         data.put("workingDays", etWorkingDays.getText().toString().trim());
+        data.put("perDaySalary", etPerDaySalary.getText().toString().trim());
         data.put("paidLeaves", etPaidLeaves.getText().toString().trim());
         data.put("lateRule", spLateRule.getSelectedItem().toString());
         data.put("effectiveFrom", etEffectiveFrom.getText().toString().trim());
@@ -219,9 +433,16 @@ public class SalaryConfigActivity extends AppCompatActivity {
             data.put("esiPercent", etEsiPercent.getText().toString().trim());
             data.put("otherDeduction", etOtherDeduction.getText().toString().trim());
             data.put("deductionNote", etDeductionNote.getText().toString().trim());
+        } else {
+            // Clear deduction fields if disabled
+            data.put("pfPercent", "");
+            data.put("esiPercent", "");
+            data.put("otherDeduction", "");
+            data.put("deductionNote", "");
         }
 
         data.put("updatedAt", System.currentTimeMillis());
+        data.put("updatedBy", companyKey);
 
         salaryRef.updateChildren(data)
                 .addOnSuccessListener(aVoid -> {
@@ -230,8 +451,17 @@ public class SalaryConfigActivity extends AppCompatActivity {
                             Toast.LENGTH_SHORT).show();
                     finish();
                 })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show()
-                );
+                .addOnFailureListener(e -> {
+                    btnSave.setEnabled(true);
+                    btnSave.setText(isEditMode ? "Update Salary Configuration" : "Save Salary Configuration");
+                    Toast.makeText(this,
+                            "Error: " + e.getMessage(),
+                            Toast.LENGTH_LONG).show();
+                });
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
     }
 }

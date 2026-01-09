@@ -32,7 +32,6 @@
             app:tint="#FF5722"
             android:scaleType="centerCrop" />
 
-        <!-- Info Section -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -51,6 +50,16 @@
                 android:ellipsize="end" />
 
             <!-- ID & Mobile (Compact) -->
+            <TextView
+                android:id="@+id/tvMobile"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:text="9876543210"
+                android:textColor="#333333"
+                android:textSize="13sp" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -68,23 +77,8 @@
                     android:maxLines="1"
                     android:ellipsize="end" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="📱"
-                    android:textSize="13sp"
-                    android:layout_marginStart="8dp" />
-
-                <TextView
-                    android:id="@+id/tvMobile"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="9876543210"
-                    android:textSize="13sp"
-                    android:textColor="#333333"
-                    android:maxLines="1"
-                    android:ellipsize="end" />
             </LinearLayout>
+
         </LinearLayout>
 
         <!-- Role Badge (Compact) -->

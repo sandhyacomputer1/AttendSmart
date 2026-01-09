@@ -17,6 +17,8 @@
             android:layout_height="150dp"
             app:layout_scrollFlags="scroll|exitUntilCollapsed"
             app:contentScrim="#FF5722"
+            app:titleTextColor="@color/white"
+            app:collapsedTitleTextColor="@color/white"
             app:expandedTitleMarginStart="16dp"
             app:expandedTitleMarginBottom="16dp">
 
@@ -48,6 +50,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 app:navigationIcon="@drawable/ic_arrow_back"
+                app:titleTextColor="@color/white"
                 app:navigationIconTint="@android:color/white"
                 app:layout_collapseMode="pin" />
 
@@ -102,7 +105,6 @@
                         android:text="ID: Loading..."
                         android:textSize="14sp"
                         android:textColor="#FF5722"
-                        android:background="@drawable/id_badge_bg"
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="6dp" />
 
@@ -113,7 +115,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="📞 Contact Information"
+                android:text=" Contact Information"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="#FF5722"
@@ -140,7 +142,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="📱 Mobile"
+                        android:text=" Mobile"
                         android:textSize="14sp"
                         android:textColor="#666666" />
 
@@ -150,7 +152,7 @@
                         android:layout_height="wrap_content"
                         android:text="Loading..."
                         android:textSize="16sp"
-                        android:textColor="@color/black"
+                        android:textColor="@color/textPrimary"
                         android:textStyle="bold" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -176,7 +178,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="✉️ Email"
+                        android:text=" Email"
                         android:textSize="14sp"
                         android:textColor="#666666" />
 
@@ -187,7 +189,7 @@
                         android:layout_height="wrap_content"
                         android:text="Loading..."
                         android:textSize="14sp"
-                        android:textColor="@color/black"
+                        android:textColor="@color/textPrimary"
                         android:textAlignment="textEnd"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -197,7 +199,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="💼 Work Details"
+                android:text=" Work Details"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="#FF5722"
@@ -229,7 +231,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="🏷️ Role"
+                            android:text=" Role"
                             android:textSize="12sp"
                             android:textColor="#666666"
                             android:layout_marginBottom="4dp" />
@@ -263,7 +265,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="🏢 Department"
+                            android:text=" Department"
                             android:textSize="12sp"
                             android:textColor="#666666"
                             android:layout_marginBottom="4dp" />
@@ -306,7 +308,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="⏰ Shift"
+                            android:text=" Shift"
                             android:textSize="12sp"
                             android:textColor="#666666"
                             android:layout_marginBottom="4dp" />
@@ -341,7 +343,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="💰 Salary"
+                            android:text=" Salary"
                             android:textSize="12sp"
                             android:textColor="#666666"
                             android:layout_marginBottom="4dp" />
@@ -385,7 +387,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="✅ Status"
+                            android:text=" Status"
                             android:textSize="12sp"
                             android:textColor="#666666"
                             android:layout_marginBottom="4dp" />
@@ -420,7 +422,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="📅 Holiday"
+                            android:text=" Holiday"
                             android:textSize="12sp"
                             android:textColor="#666666"
                             android:layout_marginBottom="4dp" />
@@ -442,7 +444,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="📅 Important Dates"
+                android:text=" Important Dates"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="#FF5722"
@@ -474,7 +476,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="📆 Join Date"
+                            android:text=" Join Date"
                             android:textSize="12sp"
                             android:textColor="#666666"
                             android:layout_marginBottom="4dp" />
@@ -508,7 +510,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="📝 Created At"
+                            android:text=" Created At"
                             android:textSize="12sp"
                             android:textColor="#666666"
                             android:layout_marginBottom="4dp" />
