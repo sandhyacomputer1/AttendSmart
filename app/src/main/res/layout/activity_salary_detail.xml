@@ -83,22 +83,45 @@
                         android:textStyle="bold"
                         android:textSize="18sp"
                         android:textColor="#1A1A1A"
-                        android:layout_marginBottom="16dp"/>
+                        android:layout_marginBottom="10dp"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:text="Employee Name"/>
+
+                    <TextView
+                        android:id="@+id/tvEmployeeName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Employee Name"
+                        android:textColor="@color/textPrimary"
+                        android:textSize="18sp"
+                        />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
+                        android:layout_marginTop="5dp"
                         android:layout_marginBottom="8dp">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="4dp"
+                            android:text="Mobile No : "/>
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
+                            android:layout_marginStart="10dp"
                             android:id="@+id/tvEmployeeMobile"
                             android:text="Mobile"
                             android:textSize="16sp"
-                            android:textColor="#424242"/>
+                            android:textColor="@color/textPrimary"
+                            />
+
 
                     </LinearLayout>
 
@@ -106,6 +129,11 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="4dp"
+                            android:text="Selected Month : "/>
 
                         <TextView
                             android:layout_width="0dp"
@@ -114,9 +142,31 @@
                             android:id="@+id/tvMonth"
                             android:text="Month"
                             android:textSize="16sp"
-                            android:textColor="#424242"/>
+                            android:textColor="@color/textPrimary"
+                            />
 
                     </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvPaidLeaves"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone"
+                        android:text="Paid Leaves: 0" />
+
+                    <TextView
+                        android:id="@+id/tvUnpaidLeaves"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:visibility="gone"
+                        android:text="Unpaid Leaves: 0" />
+
+                    <TextView
+                        android:id="@+id/tvTotalDeductions"
+                        android:layout_width="wrap_content"
+                        android:visibility="gone"
+                        android:layout_height="wrap_content"
+                        android:text="Deductions: ₹0" />
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

@@ -30,7 +30,6 @@
                 android:id="@+id/tvToolbarTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
                 android:text="Salary Records"
                 android:textSize="19sp"
                 android:textStyle="bold"
@@ -184,6 +183,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:background="@color/white"
             android:padding="14dp"
             android:weightSum="3">
 

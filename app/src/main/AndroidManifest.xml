@@ -51,6 +51,12 @@
                 android:resource="@xml/file_paths" />
         </provider>
         <activity
+            android:name=".Activities.WebViewActivity"
+            android:theme="@style/Theme.AttendSmart" />
+        <activity
+            android:name=".Activities.ExportDataActivity"
+            android:theme="@style/Theme.AttendSmart" />
+        <activity
             android:name=".Activities.FrontCameraActivity"
             android:theme="@style/Theme.AttendSmart" />
 

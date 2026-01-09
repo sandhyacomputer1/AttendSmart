@@ -11,8 +11,9 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
+import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,6 +27,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.sandhyyasofttech.attendsmart.Models.MonthlyAttendanceSummary;
+import com.sandhyyasofttech.attendsmart.Models.SalaryCalculationResult;
 import com.sandhyyasofttech.attendsmart.Models.SalarySnapshot;
 import com.sandhyyasofttech.attendsmart.R;
 import com.sandhyyasofttech.attendsmart.Utils.PrefManager;
@@ -40,13 +43,15 @@ import java.util.Locale;
 
 public class SalaryDetailActivity extends AppCompatActivity {
 
-    private TextView tvEmployeeMobile, tvMonth;
-    private TextView tvPresent, tvHalf, tvAbsent, tvLate;
-    private TextView tvPerDay, tvGross, tvNet;
+    private TextView tvEmployeeName, tvEmployeeMobile, tvMonth;
+    private TextView tvPresent, tvHalf, tvAbsent, tvLate, tvPaidLeaves, tvUnpaidLeaves;
+    private TextView tvPerDay, tvGross, tvNet, tvDeductions;
     private Button btnPdf;
+    private ImageButton btnBack;
 
     private String companyKey, month, employeeMobile;
     private SalarySnapshot cachedSnapshot;
+    private String employeeName = "";
 
     // PDF Colors
     private static final int HEADER_COLOR = Color.parseColor("#2C3E50");
@@ -63,7 +68,15 @@ public class SalaryDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_salary_detail);
 
+        // ================= BACK BUTTON =================
+        btnBack = findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(v -> {
+            finish();
+            // Optional animation: overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+        });
+
         // ================= BIND VIEWS =================
+        tvEmployeeName = findViewById(R.id.tvEmployeeName);
         tvEmployeeMobile = findViewById(R.id.tvEmployeeMobile);
         tvMonth = findViewById(R.id.tvMonth);
 
@@ -71,10 +84,13 @@ public class SalaryDetailActivity extends AppCompatActivity {
         tvHalf = findViewById(R.id.tvHalfDays);
         tvAbsent = findViewById(R.id.tvAbsentDays);
         tvLate = findViewById(R.id.tvLateDays);
+        tvPaidLeaves = findViewById(R.id.tvPaidLeaves);
+        tvUnpaidLeaves = findViewById(R.id.tvUnpaidLeaves);
 
         tvPerDay = findViewById(R.id.tvPerDaySalary);
         tvGross = findViewById(R.id.tvGrossSalary);
         tvNet = findViewById(R.id.tvNetSalary);
+        tvDeductions = findViewById(R.id.tvTotalDeductions);
 
         btnPdf = findViewById(R.id.btnGeneratePdf);
 
@@ -89,9 +105,10 @@ public class SalaryDetailActivity extends AppCompatActivity {
         }
 
         PrefManager pref = new PrefManager(this);
-        companyKey = pref.getCompanyKey();
+        companyKey = pref.getUserEmail().replace(".", ",");
 
-        fetchSalaryDetails();
+        // First fetch employee name, then salary details
+        fetchEmployeeName();
 
         btnPdf.setOnClickListener(v -> {
             if (cachedSnapshot != null) {
@@ -102,16 +119,60 @@ public class SalaryDetailActivity extends AppCompatActivity {
         });
     }
 
-    // ================= FETCH SALARY =================
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        // Optional animation: overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+    }
+
+    // ================= FETCH EMPLOYEE NAME =================
+    private void fetchEmployeeName() {
+        DatabaseReference employeeRef = FirebaseDatabase.getInstance()
+                .getReference("Companies")
+                .child(companyKey)
+                .child("employees")
+                .child(employeeMobile)
+                .child("info");
+
+        employeeRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    employeeName = snapshot.child("employeeName").getValue(String.class);
+                    if (employeeName != null) {
+                        tvEmployeeName.setText(employeeName);
+                    } else {
+                        tvEmployeeName.setText("N/A");
+                    }
+                } else {
+                    tvEmployeeName.setText("Employee not found");
+                }
+
+                // Now fetch salary details after getting employee name
+                fetchSalaryDetails();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(SalaryDetailActivity.this,
+                        "Error loading employee data: " + error.getMessage(),
+                        Toast.LENGTH_SHORT).show();
+                tvEmployeeName.setText("Error loading");
+                fetchSalaryDetails(); // Still try to fetch salary
+            }
+        });
+    }
+
+    // ================= FETCH SALARY DETAILS =================
     private void fetchSalaryDetails() {
-        DatabaseReference ref = FirebaseDatabase.getInstance()
+        DatabaseReference salaryRef = FirebaseDatabase.getInstance()
                 .getReference("Companies")
                 .child(companyKey)
                 .child("salary")
                 .child(month)
                 .child(employeeMobile);
 
-        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+        salaryRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (!snapshot.exists()) {
@@ -137,7 +198,7 @@ public class SalaryDetailActivity extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(SalaryDetailActivity.this,
-                        error.getMessage(),
+                        "Error loading salary: " + error.getMessage(),
                         Toast.LENGTH_SHORT).show();
             }
         });
@@ -145,25 +206,89 @@ public class SalaryDetailActivity extends AppCompatActivity {
 
     // ================= BIND DATA =================
     private void bindData(SalarySnapshot s) {
+        // Set basic info
         tvEmployeeMobile.setText(s.employeeMobile);
         tvMonth.setText(s.month);
 
+        // Set attendance summary with proper null checks
         if (s.attendanceSummary != null) {
             tvPresent.setText("Present: " + s.attendanceSummary.presentDays);
             tvHalf.setText("Half Day: " + s.attendanceSummary.halfDays);
             tvAbsent.setText("Absent: " + s.attendanceSummary.absentDays);
             tvLate.setText("Late: " + s.attendanceSummary.lateCount);
+            tvPaidLeaves.setText("Paid Leaves: " + s.attendanceSummary.paidLeavesUsed);
+            tvUnpaidLeaves.setText("Unpaid Leaves: " + s.attendanceSummary.unpaidLeaves);
+        } else {
+            tvPresent.setText("Present: 0");
+            tvHalf.setText("Half Day: 0");
+            tvAbsent.setText("Absent: 0");
+            tvLate.setText("Late: 0");
+            tvPaidLeaves.setText("Paid Leaves: 0");
+            tvUnpaidLeaves.setText("Unpaid Leaves: 0");
         }
 
+        // Set salary calculation with proper parsing
         if (s.calculationResult != null) {
             NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
-            tvPerDay.setText("Per Day Salary: " + formatter.format(s.calculationResult.perDaySalary));
-            tvGross.setText("Gross Salary: " + formatter.format(s.calculationResult.grossSalary));
-            tvNet.setText("Net Salary: " + formatter.format(s.calculationResult.netSalary));
+
+            // Parse per day salary
+            double perDaySalary = parseSalaryValue(s.calculationResult.perDaySalary);
+            tvPerDay.setText("Per Day: " + formatter.format(perDaySalary));
+
+            // Parse gross salary
+            double grossSalary = parseSalaryValue(s.calculationResult.grossSalary);
+            tvGross.setText("Gross: " + formatter.format(grossSalary));
+
+            // Parse net salary
+            double netSalary = parseSalaryValue(s.calculationResult.netSalary);
+            tvNet.setText("Net: " + formatter.format(netSalary));
+
+            // Parse total deduction
+            double totalDeduction = parseSalaryValue(s.calculationResult.totalDeduction);
+            tvDeductions.setText("Deductions: " + formatter.format(totalDeduction));
+
+            // If deduction is 0, calculate it from gross - net
+            if (totalDeduction == 0 && grossSalary > 0 && netSalary > 0) {
+                totalDeduction = grossSalary - netSalary;
+                tvDeductions.setText("Deductions: " + formatter.format(totalDeduction));
+            }
+        } else {
+            tvPerDay.setText("Per Day: ₹0");
+            tvGross.setText("Gross: ₹0");
+            tvNet.setText("Net: ₹0");
+            tvDeductions.setText("Deductions: ₹0");
         }
     }
 
-    // ================= PROFESSIONAL PDF GENERATION =================
+    // ================= PARSE SALARY VALUE =================
+    private double parseSalaryValue(Object salaryValue) {
+        if (salaryValue == null) {
+            return 0.0;
+        }
+
+        try {
+            if (salaryValue instanceof String) {
+                String strValue = (String) salaryValue;
+                String cleanStr = strValue.replaceAll("[₹$,]", "").trim();
+                if (cleanStr.isEmpty()) {
+                    return 0.0;
+                }
+                return Double.parseDouble(cleanStr);
+            } else if (salaryValue instanceof Number) {
+                return ((Number) salaryValue).doubleValue();
+            } else if (salaryValue instanceof Double) {
+                return (Double) salaryValue;
+            } else if (salaryValue instanceof Integer) {
+                return ((Integer) salaryValue).doubleValue();
+            } else if (salaryValue instanceof Long) {
+                return ((Long) salaryValue).doubleValue();
+            }
+        } catch (Exception e) {
+            // Return 0 if parsing fails
+        }
+        return 0.0;
+    }
+
     private void generateAndOpenPdf(SalarySnapshot s) {
         try {
             PdfDocument pdf = new PdfDocument();
