@@ -17,14 +17,17 @@ public class AttendanceReminderReceiver extends BroadcastReceiver {
 
     private static final String CHANNEL_ID = "attendance_reminder_channel";
     private static final String CHANNEL_NAME = "Attendance Reminders";
-    private static final int NOTIFICATION_ID = 1001;
+    private static final int NOTIFICATION_ID_CHECKIN = 1001;
+    private static final int NOTIFICATION_ID_CHECKOUT = 1002;
 
     @Override
     public void onReceive(Context context, Intent intent) {
         createNotificationChannel(context);
-        showNotification(context);
 
-        // Reschedule for next day
+        String reminderType = intent.getStringExtra("REMINDER_TYPE");
+        showNotification(context, reminderType);
+
+        // Reschedule both reminders for next day
         rescheduleForNextDay(context);
     }
 
@@ -35,7 +38,7 @@ public class AttendanceReminderReceiver extends BroadcastReceiver {
                     CHANNEL_NAME,
                     NotificationManager.IMPORTANCE_HIGH
             );
-            channel.setDescription("Reminders for attendance punch-in");
+            channel.setDescription("Reminders for attendance check-in and check-out");
             channel.enableVibration(true);
             channel.enableLights(true);
 
@@ -46,7 +49,20 @@ public class AttendanceReminderReceiver extends BroadcastReceiver {
         }
     }
 
-    private void showNotification(Context context) {
+    private void showNotification(Context context, String reminderType) {
+        String title, message;
+        int notificationId;
+
+        if ("CHECKOUT".equals(reminderType)) {
+            title = "⏰ Time to Check-Out!";
+            message = "Your shift is ending in 5 minutes! Don't forget to mark your attendance out.";
+            notificationId = NOTIFICATION_ID_CHECKOUT;
+        } else { // CHECKIN (default)
+            title = "⏰ Time to Check-In!";
+            message = "Your shift starts in 5 minutes! Don't forget to punch in.";
+            notificationId = NOTIFICATION_ID_CHECKIN;
+        }
+
         Intent intent = new Intent(context, EmployeeDashboardActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 
@@ -59,20 +75,19 @@ public class AttendanceReminderReceiver extends BroadcastReceiver {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.salarylogo)
-                .setContentTitle("Attendance Reminder")
-                .setContentText("Your shift starts in 5 minutes! Don't forget to punch in.")
+                .setContentTitle(title)
+                .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
                 .setVibrate(new long[]{1000, 1000, 1000})
-                .setStyle(new NotificationCompat.BigTextStyle()
-                        .bigText("Your shift starts in 5 minutes! Don't forget to punch in."));
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(message));
 
         NotificationManager notificationManager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
         if (notificationManager != null) {
-            notificationManager.notify(NOTIFICATION_ID, builder.build());
+            notificationManager.notify(notificationId, builder.build());
         }
     }
 
@@ -82,8 +97,14 @@ public class AttendanceReminderReceiver extends BroadcastReceiver {
 
         if (notificationsEnabled) {
             String shiftStartTime = pref.getShiftStartTime();
+            String shiftEndTime = pref.getShiftEndTime();
+
             if (shiftStartTime != null && !shiftStartTime.isEmpty()) {
-                AttendanceReminderHelper.scheduleNextDay(context, shiftStartTime);
+                AttendanceReminderHelper.scheduleCheckinReminder(context, shiftStartTime);
+            }
+
+            if (shiftEndTime != null && !shiftEndTime.isEmpty()) {
+                AttendanceReminderHelper.scheduleCheckoutReminder(context, shiftEndTime);
             }
         }
     }

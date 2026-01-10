@@ -49,9 +49,6 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
     private RelativeLayout loadingLayout;
     private ProgressBar progressBar;
 
-    private View flashOverlay;
-    private ImageView successCheckmark;
-    private TextView captureCountdown;
     private boolean isFlashOn = false;
     private boolean isFocusing = false;
     private static final int IMAGE_MAX_SIZE = 1024; // Max dimension for the image
@@ -97,12 +94,8 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
         loadingLayout = findViewById(R.id.loadingLayout);
         progressBar = findViewById(R.id.progressBar);
         txtLoading = findViewById(R.id.txtLoading);
-
-        // New elements
-        flashOverlay = findViewById(R.id.flashOverlay);
-        successCheckmark = findViewById(R.id.successCheckmark);
-        captureCountdown = findViewById(R.id.captureCountdown);
     }
+
     private void updateActionText() {
         if ("checkIn".equals(action)) {
             tvAction.setText("Check In Photo");
@@ -460,250 +453,27 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
             btnCapture.setEnabled(false);
             btnCancel.setEnabled(false);
 
-            // Start the capture sequence
-            startCaptureSequence();
-        }
-    }
-    private void startCaptureSequence() {
-        // Step 1: Green focus ring animation
-        showGreenFocusAnimation();
+            // Show loading animation
+            showLoading("Capturing photo...");
 
-        // Step 2: After focus, show countdown (optional)
-        new Handler().postDelayed(() -> {
-            playShutterSound();
-            captureWithFlashEffect();
-        }, 800);
-    }
+            mCamera.takePicture(null, null, new Camera.PictureCallback() {
+                @Override
+                public void onPictureTaken(byte[] data, Camera camera) {
+                    updateLoadingText("Processing image...");
 
-
-    private void showGreenFocusAnimation() {
-        // Animate the camera container border to green
-        cameraContainer.animate()
-                .scaleX(1.05f)
-                .scaleY(1.05f)
-                .setDuration(200)
-                .withEndAction(() -> {
-                    // Change border color and pulse
-                    runOnUiThread(() -> {
-                        cameraContainer.setBackgroundResource(R.drawable.ic_grid_overlay_green);
-
-                        // Pulse effect
-                        cameraContainer.animate()
-                                .scaleX(1.0f)
-                                .scaleY(1.0f)
-                                .setDuration(200)
-                                .withEndAction(() -> {
-                                    // Pulse again
-                                    cameraContainer.animate()
-                                            .scaleX(1.03f)
-                                            .scaleY(1.03f)
-                                            .setDuration(150)
-                                            .withEndAction(() -> {
-                                                cameraContainer.animate()
-                                                        .scaleX(1.0f)
-                                                        .scaleY(1.0f)
-                                                        .setDuration(150)
-                                                        .start();
-                                            })
-                                            .start();
-                                })
-                                .start();
-                    });
-                })
-                .start();
-
-        // Show green focus indicator in center
-        focusIndicator.setVisibility(View.VISIBLE);
-        focusIndicator.setColorFilter(getResources().getColor(R.color.green));
-        focusIndicator.animate()
-                .scaleX(1.2f)
-                .scaleY(1.2f)
-                .alpha(1.0f)
-                .setDuration(300)
-                .withEndAction(() -> {
-                    focusIndicator.animate()
-                            .scaleX(0.8f)
-                            .scaleY(0.8f)
-                            .alpha(0.7f)
-                            .setDuration(200)
-                            .start();
-                })
-                .start();
-    }
-
-    private void captureWithFlashEffect() {
-        // White flash overlay effect
-        flashOverlay.setVisibility(View.VISIBLE);
-        flashOverlay.setAlpha(0f);
-        flashOverlay.animate()
-                .alpha(1.0f)
-                .setDuration(100)
-                .withEndAction(() -> {
-                    flashOverlay.animate()
-                            .alpha(0f)
-                            .setDuration(200)
-                            .withEndAction(() -> {
-                                flashOverlay.setVisibility(View.GONE);
-                            })
-                            .start();
-
-                    // Actually capture the photo
-                    mCamera.takePicture(null, null, new Camera.PictureCallback() {
-                        @Override
-                        public void onPictureTaken(byte[] data, Camera camera) {
-                            showSuccessAnimation();
-
-                            // Process image after animation
-                            new Handler().postDelayed(() -> {
-                                showLoading("Processing image...");
-                                processCapturedImageEnhanced(data);
-                            }, 1000);
+                    // Small delay to show processing text
+                    new Handler().postDelayed(() -> {
+                        try {
+                            processCapturedImage(data);
+                        } catch (Exception e) {
+                            Log.e(TAG, "Image processing error: " + e.getMessage(), e);
+                            hideLoading();
+                            Toast.makeText(FrontCameraActivity.this, "Error processing image", Toast.LENGTH_SHORT).show();
+                            finish();
                         }
-                    });
-                })
-                .start();
-    }
-
-    private void showSuccessAnimation() {
-        // Hide focus indicator
-        focusIndicator.setVisibility(View.GONE);
-
-        // Show success checkmark
-        successCheckmark.setVisibility(View.VISIBLE);
-        successCheckmark.setScaleX(0f);
-        successCheckmark.setScaleY(0f);
-        successCheckmark.setAlpha(0f);
-
-        // Animate checkmark with bounce
-        successCheckmark.animate()
-                .scaleX(1.3f)
-                .scaleY(1.3f)
-                .alpha(1.0f)
-                .setDuration(300)
-                .withEndAction(() -> {
-                    successCheckmark.animate()
-                            .scaleX(1.0f)
-                            .scaleY(1.0f)
-                            .setDuration(200)
-                            .withEndAction(() -> {
-                                // Fade out after showing
-                                new Handler().postDelayed(() -> {
-                                    successCheckmark.animate()
-                                            .alpha(0f)
-                                            .setDuration(300)
-                                            .withEndAction(() -> {
-                                                successCheckmark.setVisibility(View.GONE);
-                                            })
-                                            .start();
-                                }, 300);
-                            })
-                            .start();
-                })
-                .start();
-
-        // Vibration feedback
-        vibrateDevice(100);
-    }
-
-    private void processCapturedImageEnhanced(byte[] data) {
-        // Convert byte array to bitmap
-        Bitmap originalBitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
-
-        if (originalBitmap == null) {
-            hideLoading();
-            Toast.makeText(FrontCameraActivity.this, "Failed to capture image", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
-
-        // Progressive loading text updates
-        updateLoadingText("✓ Photo captured");
-
-        new Handler().postDelayed(() -> {
-            updateLoadingText("🎨 Optimizing quality...");
-        }, 400);
-
-        // Calculate optimal scale
-        int width = originalBitmap.getWidth();
-        int height = originalBitmap.getHeight();
-
-        float scale;
-        if (width > height) {
-            scale = (float) IMAGE_MAX_SIZE / width;
-        } else {
-            scale = (float) IMAGE_MAX_SIZE / height;
-        }
-
-        if (scale > 1) {
-            scale = 1;
-        }
-
-        Matrix matrix = new Matrix();
-        matrix.preScale(-1, 1);
-        matrix.postRotate(90);
-        matrix.postScale(scale, scale);
-
-        Bitmap processedBitmap = Bitmap.createBitmap(originalBitmap,
-                0, 0, width, height, matrix, true);
-
-        new Handler().postDelayed(() -> {
-            updateLoadingText("📦 Compressing...");
-        }, 800);
-
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        processedBitmap.compress(Bitmap.CompressFormat.JPEG, IMAGE_QUALITY, stream);
-        byte[] compressedData = stream.toByteArray();
-
-        Log.d(TAG, "Original: " + (data.length / 1024) + " KB");
-        Log.d(TAG, "Compressed: " + (compressedData.length / 1024) + " KB");
-
-        originalBitmap.recycle();
-        processedBitmap.recycle();
-
-        new Handler().postDelayed(() -> {
-            updateLoadingText("✨ Finalizing...");
-
-            new Handler().postDelayed(() -> {
-                Intent resultIntent = new Intent();
-                resultIntent.putExtra("image_data", compressedData);
-                resultIntent.putExtra("action", action);
-                setResult(RESULT_OK, resultIntent);
-
-                hideLoading();
-
-                // Reset camera container color
-                cameraContainer.setBackgroundResource(R.drawable.ic_grid_overlay);
-
-                Toast.makeText(FrontCameraActivity.this,
-                        "🎉 Photo captured perfectly!", Toast.LENGTH_SHORT).show();
-                finish();
-            }, 500);
-        }, 1200);
-    }
-
-    private void playShutterSound() {
-        try {
-            // Play camera shutter sound
-            android.media.MediaActionSound sound = new android.media.MediaActionSound();
-            sound.play(android.media.MediaActionSound.SHUTTER_CLICK);
-        } catch (Exception e) {
-            Log.e(TAG, "Sound error: " + e.getMessage());
-        }
-    }
-
-    private void vibrateDevice(int duration) {
-        try {
-            android.os.Vibrator vibrator = (android.os.Vibrator) getSystemService(VIBRATOR_SERVICE);
-            if (vibrator != null && vibrator.hasVibrator()) {
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-                    vibrator.vibrate(android.os.VibrationEffect.createOneShot(
-                            duration, android.os.VibrationEffect.DEFAULT_AMPLITUDE));
-                } else {
-                    vibrator.vibrate(duration);
+                    }, 300);
                 }
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Vibration error: " + e.getMessage());
+            });
         }
     }
 

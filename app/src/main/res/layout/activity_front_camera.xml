@@ -27,11 +27,27 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Position your face in the circle"
+            android:text="Position your face - Auto capture enabled"
             android:textColor="#FFFFFF"
             android:alpha="0.95"
             android:textSize="13sp" />
     </LinearLayout>
+
+    <!-- Face Detection Status -->
+    <TextView
+        android:id="@+id/tvFaceStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/headerLayout"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:text="Position your face"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/holo_red_light"
+        android:padding="12dp"
+        android:elevation="4dp"
+        android:visibility="visible" />
 
     <!-- Camera Preview Container -->
     <RelativeLayout
@@ -41,7 +57,8 @@
         android:layout_centerInParent="true"
         android:background="@drawable/ic_grid_overlay"
         android:clipChildren="true"
-        android:clipToPadding="true">
+        android:clipToPadding="true"
+        android:elevation="2dp">
 
         <SurfaceView
             android:id="@+id/surfaceView"
@@ -61,8 +78,8 @@
         <!-- Focus Indicator -->
         <ImageView
             android:id="@+id/focusIndicator"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:layout_centerInParent="true"
             android:src="@drawable/ic_focus"
             android:visibility="invisible"
@@ -80,21 +97,21 @@
             app:tint="#4CAF50"
             android:elevation="12dp" />
 
-        <!-- Capture Countdown (optional) -->
+        <!-- Countdown Timer -->
         <TextView
-            android:id="@+id/captureCountdown"
+            android:id="@+id/tvCountdown"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
-            android:textSize="48sp"
+            android:textSize="72sp"
             android:textColor="#4CAF50"
             android:textStyle="bold"
             android:visibility="gone"
             android:elevation="13dp"
             android:shadowColor="#000000"
             android:shadowDx="0"
-            android:shadowDy="2"
-            android:shadowRadius="4" />
+            android:shadowDy="3"
+            android:shadowRadius="8" />
 
     </RelativeLayout>
 
@@ -113,9 +130,38 @@
         android:visibility="gone"
         android:clickable="true"
         android:focusable="true"
-        android:elevation="4dp"
+        android:elevation="14dp"
         app:tint="#FD511B"
         android:contentDescription="Toggle flash" />
+
+    <!-- Auto Capture Indicator -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/cameraContainer"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="8dp"
+        android:background="@drawable/accent_bar"
+        android:elevation="4dp">
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/ic_auto_capture"
+            app:tint="#FFFFFF"
+            android:layout_marginEnd="6dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" Capture ON"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 
     <!-- Loading Overlay -->
     <RelativeLayout
@@ -138,7 +184,6 @@
             android:gravity="center"
             android:elevation="21dp">
 
-            <!-- Circular Progress -->
             <ProgressBar
                 android:id="@+id/progressBar"
                 android:layout_width="60dp"
@@ -146,7 +191,6 @@
                 android:indeterminateTint="#4CAF50"
                 style="?android:attr/progressBarStyle" />
 
-            <!-- Loading Text with Icon -->
             <TextView
                 android:id="@+id/txtLoading"
                 android:layout_width="wrap_content"
@@ -167,7 +211,6 @@
                 android:textSize="12sp"
                 android:gravity="center" />
 
-            <!-- Progress Dots Animation -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -211,26 +254,23 @@
         android:padding="20dp"
         android:elevation="8dp">
 
-        <!-- Action Text -->
         <TextView
             android:id="@+id/tvAction"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="Check In Photo"
+            android:text="Check In - Auto Capture"
             android:textColor="#333333"
             android:textSize="16sp"
             android:textStyle="bold"
             android:layout_marginBottom="16dp" />
 
-        <!-- Buttons Row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center">
 
-            <!-- Cancel Button -->
             <Button
                 android:id="@+id/btnCancel"
                 android:layout_width="0dp"
@@ -244,7 +284,6 @@
                 android:textStyle="bold"
                 android:textAllCaps="false" />
 
-            <!-- Capture Button with Icon -->
             <Button
                 android:id="@+id/btnCapture"
                 android:layout_width="0dp"
@@ -252,14 +291,13 @@
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
                 android:backgroundTint="@color/green"
-                android:text="📸 Capture"
+                android:text="📸 Capture Now"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
                 android:textSize="15sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Info Text -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -272,15 +310,15 @@
                 android:layout_width="14dp"
                 android:layout_height="14dp"
                 android:src="@drawable/ic_info"
-                app:tint="#F42B2B"
+                app:tint="#4CAF50"
                 android:layout_marginEnd="6dp" />
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
-                android:text="Make sure your face is clearly visible in good lighting"
-                android:textColor="#A47D7D"
+                android:text="Face detection active • Photo will capture automatically"
+                android:textColor="#666666"
                 android:textSize="11sp"
                 android:gravity="center" />
         </LinearLayout>
