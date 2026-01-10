@@ -1260,6 +1260,13 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         });
         btnMyLeaves.setOnClickListener(v -> openMyLeaves());
 
+        cardCheckIn.setOnClickListener(v -> checkApprovedLeaveThenCheckIn());
+        cardCheckOut.setOnClickListener(v -> tryCheckOut());
+        cardAttendanceReport.setOnClickListener(v -> openAttendanceReport());
+        cardLogout.setOnClickListener(v -> showLogoutConfirmation());
+        findViewById(R.id.cardDailyReport).setOnClickListener(v -> openTodaysWork());
+        findViewById(R.id.cardApplyLeave).setOnClickListener(v -> openApplyLeave());
+
         updateButtonStates();
         loadMonthlyAttendance();
         loadLeaveBalance();
@@ -1272,6 +1279,20 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                 hour < 17 ? "Good Afternoon" : "Good Evening";
         tvWelcome.setText(greeting);
     }
+    private void openTodaysWork() {
+        Intent intent = new Intent(this, EmployeeTodayWorkActivity.class);
+        intent.putExtra("companyKey", companyKey);
+        intent.putExtra("employeeMobile", employeeMobile);
+        startActivity(intent);
+    }
+
+    private void openApplyLeave() {
+        Intent intent = new Intent(this, ApplyLeaveActivity.class);
+        intent.putExtra("companyKey", companyKey);
+        intent.putExtra("employeeMobile", employeeMobile);
+        startActivity(intent);
+    }
+
     private void openMyLeaves() {
         Intent intent = new Intent(this, MyLeavesActivity.class);
         startActivity(intent);

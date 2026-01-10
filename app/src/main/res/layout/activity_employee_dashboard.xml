@@ -610,6 +610,7 @@
                         android:layout_width="18dp"
                         android:layout_height="18dp"
                         android:layout_marginStart="-27dp"
+                        android:layout_marginEnd="10dp"
                         android:src="@drawable/ic_chart"
                         app:tint="#2196F3" />
 
@@ -644,6 +645,140 @@
                         app:tint="#CFD8DC" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
+
+
+
+            <!-- Add this code RIGHT AFTER the closing </com.google.android.material.card.MaterialCardView> of cardAttendanceReport
+     and BEFORE the cardLogout -->
+
+            <!-- Quick Action Buttons Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="16dp">
+
+                <!-- Daily Report Button -->
+                <!-- Quick Action Buttons Row - SAME HEIGHT as Check In/Out -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="16dp">
+
+                    <!-- Daily Report Button - 140dp height like Check In -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardDailyReport"
+                        android:layout_width="0dp"
+                        android:layout_height="110dp"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="6dp"
+                        app:cardBackgroundColor="#FFFFFF"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="2dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:padding="16dp">
+
+                            <View
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:background="@drawable/circle_bg_orange" />
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_leaves"
+                                app:tint="#FF9800"
+                                android:layout_gravity="center"
+                                android:layout_marginTop="-32dp"
+                                android:layout_marginBottom="10dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Daily Report"
+                                android:textColor="#263238"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tvDailyReportTime"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="View today"
+                                android:textColor="#90A4AE"
+                                android:textSize="10sp"
+                                android:layout_marginTop="4dp" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Apply Leave Button - 140dp height like Check Out -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardApplyLeave"
+                        android:layout_width="0dp"
+                        android:layout_height="110dp"
+                        android:layout_weight="1"
+                        android:layout_marginStart="6dp"
+                        app:cardBackgroundColor="#FFFFFF"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="2dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:padding="16dp">
+
+                            <View
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:background="@drawable/circle_bg_purple" />
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/leaves"
+                                app:tint="#9C27B0"
+                                android:layout_marginTop="-32dp"
+                                android:layout_marginBottom="12dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Apply Leave"
+                                android:textColor="#263238"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tvApplyLeaveStatus"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Request leave"
+                                android:textColor="#90A4AE"
+                                android:textSize="10sp"
+                                android:layout_marginTop="4dp" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+
+                <!-- Apply Leave Button -->
+            </LinearLayout>
+
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardLogout"
