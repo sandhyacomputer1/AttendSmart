@@ -602,6 +602,9 @@ import java.util.Date;
 import java.util.Locale;
 
 public class SettingsActivity extends AppCompatActivity {
+    // Add these 2 lines with other card variables
+    private View cardAddTodaysWork;
+    private View cardViewWork;
 
     private Switch switchNotifications;
     private TextView tvShiftTiming;
@@ -663,6 +666,9 @@ public class SettingsActivity extends AppCompatActivity {
         cardMySalary = findViewById(R.id.cardMySalary);
         cardNotifications = findViewById(R.id.cardNotifications);
         cardLogout = findViewById(R.id.cardLogout);
+
+        cardAddTodaysWork = findViewById(R.id.cardAddTodaysWork);
+        cardViewWork = findViewById(R.id.cardViewWork);
     }
 
 
@@ -919,6 +925,25 @@ public class SettingsActivity extends AppCompatActivity {
                 }
             });
         }
+        // ✅ NEW WORK SECTION - Add BEFORE switchNotifications
+        if (cardAddTodaysWork != null) {
+            cardAddTodaysWork.setOnClickListener(v -> {
+                Intent intent = new Intent(SettingsActivity.this, EmployeeTodayWorkActivity.class);
+                intent.putExtra("companyKey", companyKey);
+                intent.putExtra("employeeMobile", employeeMobile);
+                startActivity(intent);
+            });
+        }
+
+        if (cardViewWork != null) {
+            cardViewWork.setOnClickListener(v -> {
+                Intent intent = new Intent(SettingsActivity.this, EmployeeAllWorksActivity.class);
+                intent.putExtra("companyKey", companyKey);
+                intent.putExtra("employeeMobile", employeeMobile);
+                startActivity(intent);
+            });
+        }
+
 
         if (cardLogout != null) {
             cardLogout.setOnClickListener(v -> showLogoutConfirmation());

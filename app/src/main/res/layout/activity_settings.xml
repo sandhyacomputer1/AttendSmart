@@ -4,7 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-
     android:background="#F5F7FA">
 
     <!-- Toolbar -->
@@ -51,7 +50,6 @@
                     android:paddingStart="16dp"
                     android:paddingEnd="16dp">
 
-                    <!-- Profile Image -->
                     <ImageView
                         android:id="@+id/ivProfile"
                         android:layout_width="65dp"
@@ -111,7 +109,6 @@
                     android:divider="@drawable/divider_horizontal"
                     android:showDividers="middle">
 
-                    <!-- Personal Details -->
                     <LinearLayout
                         android:id="@+id/cardPersonalDetails"
                         android:layout_width="match_parent"
@@ -145,7 +142,6 @@
                             app:tint="#CBD5E1" />
                     </LinearLayout>
 
-                    <!-- Current Employment -->
                     <LinearLayout
                         android:id="@+id/cardEmployment"
                         android:layout_width="match_parent"
@@ -209,7 +205,6 @@
                     android:divider="@drawable/divider_horizontal"
                     android:showDividers="middle">
 
-                    <!-- View Attendance -->
                     <LinearLayout
                         android:id="@+id/cardAttendanceReport"
                         android:layout_width="match_parent"
@@ -243,7 +238,6 @@
                             app:tint="#CBD5E1" />
                     </LinearLayout>
 
-                    <!-- Apply Leave -->
                     <LinearLayout
                         android:id="@+id/cardApplyLeave"
                         android:layout_width="match_parent"
@@ -277,7 +271,6 @@
                             app:tint="#CBD5E1" />
                     </LinearLayout>
 
-                    <!-- My Leaves -->
                     <LinearLayout
                         android:id="@+id/cardMyLeaves"
                         android:layout_width="match_parent"
@@ -301,6 +294,94 @@
                             android:layout_weight="1"
                             android:layout_marginStart="13dp"
                             android:text="My Leaves"
+                            android:textColor="#1E293B"
+                            android:textSize="14sp" />
+
+                        <ImageView
+                            android:layout_width="17dp"
+                            android:layout_height="17dp"
+                            android:src="@drawable/ic_arrow_forward"
+                            app:tint="#CBD5E1" />
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- WORK Section - PERFECTLY PLACED -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="WORK"
+                android:textColor="#64748B"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.05"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginBottom="8dp" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardBackgroundColor="#FFFFFF"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:divider="@drawable/divider_horizontal"
+                    android:showDividers="middle">
+
+                    <LinearLayout
+                        android:id="@+id/cardAddTodaysWork"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="13dp"
+                        android:gravity="center_vertical"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground">
+
+                        <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/attendance" app:tint="#4CAF50" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="13dp"
+                            android:text="Add Today's Work"
+                            android:textColor="#1E293B"
+                            android:textSize="14sp" />
+
+                        <ImageView
+                            android:layout_width="17dp"
+                            android:layout_height="17dp"
+                            android:src="@drawable/ic_arrow_forward"
+                            app:tint="#CBD5E1" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/cardViewWork"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="13dp"
+                        android:gravity="center_vertical"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground">
+
+                        <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/salarymy" app:tint="#2196F3" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="13dp"
+                            android:text="View Work"
                             android:textColor="#1E293B"
                             android:textSize="14sp" />
 
@@ -423,7 +504,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- DANGER ZONE Section -->
+            <!-- LOG OUT Section -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -436,7 +517,6 @@
                 android:layout_marginTop="4dp"
                 android:layout_marginBottom="8dp" />
 
-            <!-- Logout Button -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardLogout"
                 android:layout_width="match_parent"
