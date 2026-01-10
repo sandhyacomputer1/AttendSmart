@@ -53,7 +53,9 @@ public class AttendanceReportActivity extends AppCompatActivity {
     private List<String> allAttendanceDates;
     private CalendarAdapter calendarAdapter;
 
-    private int[] weeklyHolidays = {Calendar.SUNDAY};
+    // ✅ Employee-specific weekly holiday (fetched from Firebase)
+    private String employeeWeeklyHoliday = ""; // e.g., "Monday", "Sunday", etc.
+    private int[] weeklyHolidays = {}; // Will be calculated from employeeWeeklyHoliday
 
     // ✅ 4-FIELD STATS
     private int monthlyPresentDays = 0;
@@ -63,16 +65,27 @@ public class AttendanceReportActivity extends AppCompatActivity {
 
     private boolean isCalculatingStats = false;
     private String currentEmployeeMobile = null;
+    private String currentJoiningDate = null; // Store joining date
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_attendance_report);
 
+        androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
+
+        toolbar.setNavigationOnClickListener(v -> onBackPressed());
+
         initViews();
         setupFirebase();
         setupCalendar();
-        loadAllAttendanceDates();
+        loadEmployeeDataAndAttendance(); // ✅ Changed method name
     }
 
     private void initViews() {
@@ -125,52 +138,133 @@ public class AttendanceReportActivity extends AppCompatActivity {
         attendanceRef = db.getReference("Companies").child(companyKey).child("attendance");
     }
 
-    private void loadAllAttendanceDates() {
+    /**
+     * ✅ NEW METHOD: Load employee data first (holiday + joining date), then attendance
+     */
+    private void loadEmployeeDataAndAttendance() {
         progressBar.setVisibility(View.VISIBLE);
         allAttendanceDates.clear();
 
         String employeeEmail = prefManager.getEmployeeEmail();
-        if (employeeEmail == null) return;
+        if (employeeEmail == null) {
+            progressBar.setVisibility(View.GONE);
+            return;
+        }
 
         employeesRef.orderByChild("info/employeeEmail").equalTo(employeeEmail)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot empSnap) {
-                        if (!empSnap.exists()) return;
+                        if (!empSnap.exists()) {
+                            progressBar.setVisibility(View.GONE);
+                            return;
+                        }
 
-                        String mobile = empSnap.getChildren().iterator().next().getKey();
+                        DataSnapshot employeeData = empSnap.getChildren().iterator().next();
+                        currentEmployeeMobile = employeeData.getKey();
 
-                        attendanceRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                                for (DataSnapshot dateSnap : snapshot.getChildren()) {
-                                    if (dateSnap.hasChild(mobile)) {
-                                        allAttendanceDates.add(dateSnap.getKey());
-                                    }
-                                }
-                                calendarAdapter.updateAttendanceDates(allAttendanceDates);
-                                calculateMonthlyStats();
-                                progressBar.setVisibility(View.GONE);
-                            }
+                        // ✅ Fetch weekly holiday from Firebase
+                        DataSnapshot infoNode = employeeData.child("info");
+                        employeeWeeklyHoliday = infoNode.child("weeklyHoliday").getValue(String.class);
+                        currentJoiningDate = infoNode.child("joinDate").getValue(String.class);
 
-                            @Override public void onCancelled(@NonNull DatabaseError error) {
-                                progressBar.setVisibility(View.GONE);
-                            }
-                        });
+                        // ✅ Convert day name to Calendar constant
+                        weeklyHolidays = convertDayNameToCalendarArray(employeeWeeklyHoliday);
+
+                        Log.d(TAG, "Employee Mobile: " + currentEmployeeMobile);
+                        Log.d(TAG, "Weekly Holiday: " + employeeWeeklyHoliday);
+                        Log.d(TAG, "Joining Date: " + currentJoiningDate);
+                        Log.d(TAG, "Holiday Array: " + (weeklyHolidays.length > 0 ? weeklyHolidays[0] : "None"));
+
+                        // ✅ Update calendar adapter with new holidays
+                        calendarAdapter.updateWeeklyHolidays(weeklyHolidays);
+
+                        // ✅ Now load attendance dates
+                        loadAllAttendanceDates();
                     }
 
-                    @Override public void onCancelled(@NonNull DatabaseError error) {}
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        progressBar.setVisibility(View.GONE);
+                        Log.e(TAG, "Error loading employee data: " + error.getMessage());
+                    }
                 });
     }
 
+    /**
+     * ✅ Convert day name (e.g., "Monday") to Calendar constant (e.g., Calendar.MONDAY)
+     */
+    private int[] convertDayNameToCalendarArray(String dayName) {
+        if (dayName == null || dayName.trim().isEmpty()) {
+            return new int[]{Calendar.SUNDAY}; // Default fallback
+        }
+
+        dayName = dayName.trim();
+
+        switch (dayName) {
+            case "Sunday":
+                return new int[]{Calendar.SUNDAY};
+            case "Monday":
+                return new int[]{Calendar.MONDAY};
+            case "Tuesday":
+                return new int[]{Calendar.TUESDAY};
+            case "Wednesday":
+                return new int[]{Calendar.WEDNESDAY};
+            case "Thursday":
+                return new int[]{Calendar.THURSDAY};
+            case "Friday":
+                return new int[]{Calendar.FRIDAY};
+            case "Saturday":
+                return new int[]{Calendar.SATURDAY};
+            default:
+                Log.w(TAG, "Unknown day name: " + dayName + ", defaulting to Sunday");
+                return new int[]{Calendar.SUNDAY};
+        }
+    }
+
+    /**
+     * ✅ Load attendance dates for the employee
+     */
+    private void loadAllAttendanceDates() {
+        if (currentEmployeeMobile == null) {
+            progressBar.setVisibility(View.GONE);
+            return;
+        }
+
+        attendanceRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot dateSnap : snapshot.getChildren()) {
+                    if (dateSnap.hasChild(currentEmployeeMobile)) {
+                        allAttendanceDates.add(dateSnap.getKey());
+                    }
+                }
+                calendarAdapter.updateAttendanceDates(allAttendanceDates);
+                calculateMonthlyStats();
+                progressBar.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                progressBar.setVisibility(View.GONE);
+                Log.e(TAG, "Error loading attendance dates: " + error.getMessage());
+            }
+        });
+    }
+
+    /**
+     * ✅ Calculate monthly stats from joining date
+     */
     private void calculateMonthlyStats() {
         if (isCalculatingStats) {
             Log.d(TAG, "Already calculating...");
             return;
         }
 
-        String employeeEmail = prefManager.getEmployeeEmail();
-        if (employeeEmail == null) return;
+        if (currentEmployeeMobile == null) {
+            Log.w(TAG, "Employee mobile not loaded yet");
+            return;
+        }
 
         isCalculatingStats = true;
         progressBar.setVisibility(View.VISIBLE);
@@ -179,29 +273,13 @@ public class AttendanceReportActivity extends AppCompatActivity {
         Log.d(TAG, "Calculating for: " +
                 new SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(currentMonth.getTime()));
 
-        employeesRef.orderByChild("info/employeeEmail").equalTo(employeeEmail)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        if (snapshot.exists()) {
-                            DataSnapshot empData = snapshot.getChildren().iterator().next();
-                            currentEmployeeMobile = empData.getKey();
-                            calendarAdapter.updateFirebaseData(companyKey, currentEmployeeMobile);
-                            String joiningDate = empData.child("info/joiningDate").getValue(String.class);
-
-                            Log.d(TAG, "Employee mobile: " + currentEmployeeMobile);
-                            calculateMonthAttendance(currentEmployeeMobile, joiningDate);
-                        } else {
-                            finishCalculation(0, 0, 0, 0);
-                        }
-                    }
-
-                    @Override public void onCancelled(@NonNull DatabaseError error) {
-                        finishCalculation(0, 0, 0, 0);
-                    }
-                });
+        calendarAdapter.updateFirebaseData(companyKey, currentEmployeeMobile);
+        calculateMonthAttendance(currentEmployeeMobile, currentJoiningDate);
     }
 
+    /**
+     * ✅ Calculate attendance considering joining date and weekly holiday
+     */
     private void calculateMonthAttendance(String employeeMobile, String joiningDate) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         Calendar monthCal = (Calendar) currentMonth.clone();
@@ -216,13 +294,29 @@ public class AttendanceReportActivity extends AppCompatActivity {
             monthCal.set(Calendar.DAY_OF_MONTH, day);
             String dateStr = sdf.format(monthCal.getTime());
 
-            if (dateStr.compareTo(today) > 0) continue;
-            if (joiningDate != null && dateStr.compareTo(joiningDate) < 0) continue;
-            if (isHoliday(dateStr)) continue;
+            // ✅ Skip future dates
+            if (dateStr.compareTo(today) > 0) {
+                Log.d(TAG, "Skipping future date: " + dateStr);
+                continue;
+            }
+
+            // ✅ Skip dates before joining
+            if (joiningDate != null && dateStr.compareTo(joiningDate) < 0) {
+                Log.d(TAG, "Skipping before joining: " + dateStr + " (Join: " + joiningDate + ")");
+                continue;
+            }
+
+            // ✅ Skip weekly holidays
+            if (isHoliday(dateStr)) {
+                Log.d(TAG, "Skipping holiday: " + dateStr + " (" + employeeWeeklyHoliday + ")");
+                continue;
+            }
 
             validDates.add(dateStr);
             checks[0]++;
         }
+
+        Log.d(TAG, "Total valid working dates: " + checks[0]);
 
         if (checks[0] == 0) {
             finishCalculation(0, 0, 0, 0);
@@ -236,15 +330,20 @@ public class AttendanceReportActivity extends AppCompatActivity {
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     processAttendance(snapshot, dateStr, present, late, halfDay, absent, checks);
                 }
+
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
                     checks[0]--;
-                    if (checks[0] == 0) finishCalculation(present[0], late[0], halfDay[0], absent[0]);
+                    if (checks[0] == 0)
+                        finishCalculation(present[0], late[0], halfDay[0], absent[0]);
                 }
             });
         }
     }
 
+    /**
+     * ✅ Process individual attendance record
+     */
     private void processAttendance(DataSnapshot snapshot, String dateStr,
                                    final int[] present, final int[] late,
                                    final int[] halfDay, final int[] absent, final int[] checks) {
@@ -292,9 +391,6 @@ public class AttendanceReportActivity extends AppCompatActivity {
         }
     }
 
-
-
-
     private void finishCalculation(int present, int late, int halfDay, int absent) {
         monthlyPresentDays = present;
         monthlyLateDays = late;
@@ -337,23 +433,31 @@ public class AttendanceReportActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    /**
+     * ✅ Check if date is a holiday based on employee's weekly holiday
+     */
     private boolean isHoliday(String dateStr) {
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
             Date date = sdf.parse(dateStr);
+            if (date == null) return false;
+
             Calendar cal = Calendar.getInstance();
             cal.setTime(date);
             int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK);
+
             for (int holiday : weeklyHolidays) {
-                if (dayOfWeek == holiday) return true;
+                if (dayOfWeek == holiday) {
+                    return true;
+                }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Error checking holiday: " + e.getMessage());
         }
         return false;
     }
 
-    // ✅ INNER CLASSES (UNCHANGED)
+    // ✅ EMPLOYEE ATTENDANCE CLASS
     public static class EmployeeAttendance {
         String name, role, mobile, status;
         String checkInTime, checkOutTime, totalHours;
@@ -383,6 +487,7 @@ public class AttendanceReportActivity extends AppCompatActivity {
         }
     }
 
+    // ✅ CALENDAR ADAPTER (with holiday update support)
     public static class CalendarAdapter extends RecyclerView.Adapter<CalendarAdapter.ViewHolder> {
         private Calendar monthCalendar;
         private List<String> attendanceDates;
@@ -406,7 +511,7 @@ public class AttendanceReportActivity extends AppCompatActivity {
                                String companyKey, String employeeMobile) {
             this.monthCalendar = (Calendar) monthCalendar.clone();
             this.attendanceDates = new ArrayList<>(attendanceDates);
-            this.weeklyHolidays = weeklyHolidays;
+            this.weeklyHolidays = weeklyHolidays != null ? weeklyHolidays : new int[]{};
             this.listener = listener;
             this.companyKey = companyKey;
             this.employeeMobile = employeeMobile;
@@ -456,22 +561,19 @@ public class AttendanceReportActivity extends AppCompatActivity {
 
                 // ✅ TODAY GETS PRIORITY - Purple Color
                 if (isTodayDay && hasAttendance && companyKey != null && employeeMobile != null) {
-                    // Today with attendance - show purple first, then fetch real status
                     holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_purple);
                     holder.tvDay.setTextColor(Color.WHITE);
                     holder.itemView.setTag("🟣 Today");
-                    checkRealStatus(holder, dateStr); // Async Firebase call
+                    checkRealStatus(holder, dateStr);
                 } else if (isTodayDay && !hasAttendance) {
-                    // Today without attendance
                     holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_purple);
                     holder.tvDay.setTextColor(Color.WHITE);
                     holder.itemView.setTag("🟣 Today");
                 } else if (hasAttendance && companyKey != null && employeeMobile != null) {
-                    // Past/Future date with attendance
                     holder.containerDay.setBackgroundResource(android.R.color.darker_gray);
                     holder.tvDay.setTextColor(Color.WHITE);
                     holder.itemView.setTag("⏳ Loading...");
-                    checkRealStatus(holder, dateStr); // Async Firebase call
+                    checkRealStatus(holder, dateStr);
                 } else if (hasAttendance) {
                     holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_green);
                     holder.tvDay.setTextColor(Color.WHITE);
@@ -485,7 +587,6 @@ public class AttendanceReportActivity extends AppCompatActivity {
                     holder.tvDay.setTextColor(Color.WHITE);
                     holder.itemView.setTag("🔴 Absent");
                 } else {
-                    // Future date
                     holder.containerDay.setBackground(null);
                     holder.tvDay.setTextColor(Color.parseColor("#212121"));
                     holder.itemView.setTag("⚪ Future");
@@ -507,12 +608,12 @@ public class AttendanceReportActivity extends AppCompatActivity {
                 holder.itemView.setTag(null);
             }
         }
+
         @Override
         public int getItemCount() {
             return 49;
         }
 
-        // ✅ INTEGRATED checkRealStatus METHOD
         private void checkRealStatus(ViewHolder holder, String dateStr) {
             DatabaseReference ref = FirebaseDatabase.getInstance()
                     .getReference("Companies")
@@ -524,7 +625,6 @@ public class AttendanceReportActivity extends AppCompatActivity {
             ref.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-
                     holder.tvDay.setTextColor(Color.WHITE);
 
                     if (!snapshot.exists()) {
@@ -535,9 +635,6 @@ public class AttendanceReportActivity extends AppCompatActivity {
 
                     String status = snapshot.child("status").getValue(String.class);
                     String lateStatus = snapshot.child("lateStatus").getValue(String.class);
-                    Long totalMinutesRaw = snapshot.child("totalMinutes").getValue(Long.class);
-                    long totalMinutes = totalMinutesRaw != null ? totalMinutesRaw : 0;
-
                     String statusSafe = status != null ? status.toLowerCase() : "";
 
                     // ✅ 1. HALF DAY (TOP PRIORITY)
@@ -577,7 +674,6 @@ public class AttendanceReportActivity extends AppCompatActivity {
             });
         }
 
-        // ✅ ALL HELPER METHODS (unchanged)
         private int getDayOfMonth(int position) {
             monthCalendar.set(Calendar.DAY_OF_MONTH, 1);
             int firstDayOffset = monthCalendar.get(Calendar.DAY_OF_WEEK) - 1;
@@ -625,7 +721,6 @@ public class AttendanceReportActivity extends AppCompatActivity {
                 Date todayDate = sdf.parse(today);
                 return date != null && todayDate != null && date.before(todayDate);
             } catch (Exception e) {
-                e.printStackTrace();
                 return false;
             }
         }
@@ -647,6 +742,14 @@ public class AttendanceReportActivity extends AppCompatActivity {
             notifyDataSetChanged();
         }
 
+        /**
+         * ✅ NEW METHOD: Update weekly holidays dynamically
+         */
+        public void updateWeeklyHolidays(int[] holidays) {
+            this.weeklyHolidays = holidays != null ? holidays : new int[]{};
+            notifyDataSetChanged();
+        }
+
         static class ViewHolder extends RecyclerView.ViewHolder {
             TextView tvDay;
             FrameLayout containerDay;
@@ -658,109 +761,6 @@ public class AttendanceReportActivity extends AppCompatActivity {
             }
         }
     }
-
-
-
-    public static class EmployeeAdapter extends RecyclerView.Adapter<EmployeeAdapter.ViewHolder> {
-        private List<EmployeeAttendance> originalList, filteredList;
-        private AttendanceReportActivity context;
-
-        public EmployeeAdapter(List<EmployeeAttendance> list, AttendanceReportActivity context) {
-            this.originalList = new ArrayList<>(list);
-            this.filteredList = new ArrayList<>(list);
-            this.context = context;
-        }
-
-        @NonNull
-        @Override
-        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.item_attendance_employee, parent, false);
-            return new ViewHolder(view);
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-            EmployeeAttendance item = filteredList.get(position);
-
-            holder.tvName.setText(item.name);
-            holder.tvRole.setText(item.role);
-            holder.tvStatus.setText(item.status);
-
-            int statusColor = item.status.equals("Present") ? Color.parseColor("#4CAF50") :
-                    item.status.equals("Late") ? Color.parseColor("#FF9800") :
-                            Color.parseColor("#F44336");
-            holder.tvStatus.setTextColor(statusColor);
-
-            holder.tvCheckIn.setText(item.checkInTime != null ? item.checkInTime : "-");
-            holder.tvCheckOut.setText(item.checkOutTime != null ? item.checkOutTime : "-");
-            holder.tvHours.setText(item.totalHours != null ? item.totalHours + "h" : "-");
-
-            if (item.checkInLat != null && item.checkInLng != null) {
-                String locationText = item.checkInAddr != null && !item.checkInAddr.isEmpty() ?
-                        item.checkInAddr.substring(0, Math.min(30, item.checkInAddr.length())) + "..." :
-                        String.format(Locale.getDefault(), "%.4f, %.4f", item.checkInLat, item.checkInLng);
-                holder.tvLocation.setText(locationText);
-                holder.tvLocation.setOnClickListener(v -> openGoogleMaps(item.checkInLat, item.checkInLng));
-            } else {
-                holder.tvLocation.setText("-");
-            }
-
-            if (item.checkInPhoto != null && !item.checkInPhoto.isEmpty()) {
-                holder.ivCheckInPhoto.setVisibility(View.VISIBLE);
-                holder.ivCheckInPhoto.setOnClickListener(v -> openPhoto(item.checkInPhoto));
-            } else {
-                holder.ivCheckInPhoto.setVisibility(View.GONE);
-            }
-        }
-
-        @Override
-        public int getItemCount() { return filteredList.size(); }
-
-        public void filter(String query) {
-            filteredList.clear();
-            if (query.trim().isEmpty()) {
-                filteredList.addAll(originalList);
-            } else {
-                String lowerQuery = query.toLowerCase();
-                for (EmployeeAttendance item : originalList) {
-                    if (item != null && (
-                            (item.name != null && item.name.toLowerCase().contains(lowerQuery)) ||
-                                    (item.mobile != null && item.mobile.contains(lowerQuery))
-                    )) {
-                        filteredList.add(item);
-                    }
-                }
-            }
-            notifyDataSetChanged();
-        }
-
-        private void openGoogleMaps(Double lat, Double lng) {
-            String uri = String.format(Locale.getDefault(), "geo:%.6f,%.6f?q=%.6f,%.6f", lat, lng, lat, lng);
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-            context.startActivity(intent);
-        }
-
-        private void openPhoto(String photoUrl) {
-            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(photoUrl));
-            context.startActivity(intent);
-        }
-
-        static class ViewHolder extends RecyclerView.ViewHolder {
-            TextView tvName, tvRole, tvStatus, tvCheckIn, tvCheckOut, tvHours, tvLocation;
-            ImageView ivCheckInPhoto;
-
-            ViewHolder(@NonNull View itemView) {
-                super(itemView);
-                tvName = itemView.findViewById(R.id.tvName);
-                tvRole = itemView.findViewById(R.id.tvRole);
-                tvStatus = itemView.findViewById(R.id.tvStatus);
-                tvCheckIn = itemView.findViewById(R.id.tvCheckIn);
-                tvCheckOut = itemView.findViewById(R.id.tvCheckOut);
-                tvHours = itemView.findViewById(R.id.tvHours);
-                tvLocation = itemView.findViewById(R.id.tvLocation);
-                ivCheckInPhoto = itemView.findViewById(R.id.ivCheckInPhoto);
-            }
-        }
-    }
 }
+
+//
