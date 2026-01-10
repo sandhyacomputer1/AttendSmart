@@ -194,7 +194,7 @@ public class AdminDayAttendanceDetailActivity extends AppCompatActivity {
     }
 
     private void setupSpinners() {
-        String[] statusOptions = {"Present", "Half Day", "Absent", "Full Day"};
+        String[] statusOptions = {"Present", "Half Day", "Absent"};
         ArrayAdapter<String> statusAdapter = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_dropdown_item_1line,
