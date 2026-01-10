@@ -26,11 +26,12 @@
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@drawable/salarylogo"
-        android:label="S Salery"
+        android:label="S Salary"
         android:roundIcon="@drawable/salarylogo"
         android:supportsRtl="true"
         android:theme="@style/Theme.AttendSmart"
         tools:targetApi="31">
+
         <activity
             android:name=".Activities.EmployeeAllWorksActivity"
             android:exported="false" />

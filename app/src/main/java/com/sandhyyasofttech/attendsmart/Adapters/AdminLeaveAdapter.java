@@ -52,27 +52,40 @@ public class AdminLeaveAdapter extends RecyclerView.Adapter<AdminLeaveAdapter.VH
     public void onBindViewHolder(@NonNull VH h, int i) {
         LeaveModel m = list.get(i);
 
-        h.tvName.setText(m.employeeName);
-        h.tvDates.setText(m.fromDate + " → " + m.toDate);
-        h.tvReason.setText(" " + m.reason);
-        h.tvStatus.setText(m.status);
+        // ✅ NULL SAFE BINDING - NO CRASH!
+        safeSetText(h.tvName, m.employeeName);
+        safeSetText(h.tvDates, m.fromDate + " → " + m.toDate);
+        safeSetText(h.tvReason, m.reason);
+        safeSetText(h.tvStatus, m.status);
 
-        boolean pending = "PENDING".equals(m.status);
+        boolean pending = "PENDING".equals(getSafeString(m.status));
         h.btnApprove.setEnabled(pending);
         h.btnReject.setEnabled(pending);
 
-//        h.btnApprove.setOnClickListener(v -> {
-//            leavesRef.child(m.leaveId)
-//                    .child("status").setValue("APPROVED");
-//            leavesRef.child(m.leaveId)
-//                    .child("actionAt").setValue(System.currentTimeMillis());
-//            Toast.makeText(context,"Approved",Toast.LENGTH_SHORT).show();
-//        });
-        h.btnApprove.setOnClickListener(v -> {
-            showApproveDialog(m);
-        });
+        h.btnApprove.setOnClickListener(v -> showApproveDialog(m));
         h.btnReject.setOnClickListener(v -> showRejectDialog(m.leaveId));
     }
+
+    // ✅ ADD THESE HELPER METHODS (Add after onBindViewHolder)
+    private void safeSetText(TextView tv, String text) {
+        // 🔥 100% CRASH-PROOF - FIRST CHECK TV NULL
+        if (tv == null) {
+            android.util.Log.e("AdminLeaveAdapter", "⚠️ TextView is NULL - Skipping!");
+            return;  // EXIT IMMEDIATELY - NO CRASH
+        }
+
+        if (text == null || text.trim().isEmpty()) {
+            tv.setText("N/A");
+        } else {
+            tv.setText(text);
+        }
+    }
+
+
+    private String getSafeString(String value) {
+        return value != null ? value : "";
+    }
+
     private void showApproveDialog(LeaveModel m) {
 
         String companyKey = new PrefManager(context).getCompanyKey();
@@ -129,7 +142,7 @@ public class AdminLeaveAdapter extends RecyclerView.Adapter<AdminLeaveAdapter.VH
 //                            && Boolean.TRUE.equals(lm.isPaid)) {
 //
 //                        // TODO: month check later (can add)
-////                        usedPaidLeaves += lm.leaveType.equals("HALF_DAY") ? 0.5 : 1;
+////                    usedPaidLeaves += lm.leaveType.equals("HALF_DAY") ? 0.5 : 1;
 //                          usedPaidLeaves += "HALF_DAY".equals(lm.leaveType) ? 0.5 : 1.0;
 //
 //                    }
@@ -266,16 +279,27 @@ private void showDecisionDialog(
     @Override public int getItemCount() { return list.size(); }
 
     static class VH extends RecyclerView.ViewHolder {
-        TextView tvName,tvDates,tvReason,tvStatus;
-        MaterialButton btnApprove,btnReject;
-        VH(View v){
+        TextView tvName, tvDates, tvReason, tvStatus;
+        MaterialButton btnApprove, btnReject;
+
+        VH(View v) {
             super(v);
-            tvName=v.findViewById(R.id.tvName);
-            tvDates=v.findViewById(R.id.tvDates);
-            tvReason=v.findViewById(R.id.tvReason);
-            tvStatus=v.findViewById(R.id.tvStatus);
-            btnApprove=v.findViewById(R.id.btnApprove);
-            btnReject=v.findViewById(R.id.btnReject);
+
+            // ✅ NULL-SAFE findViewById with LOGGING
+            tvName = v.findViewById(R.id.tvName);
+            tvDates = v.findViewById(R.id.tvDates);
+            tvReason = v.findViewById(R.id.tvReason);
+            tvStatus = v.findViewById(R.id.tvStatus);
+            btnApprove = v.findViewById(R.id.btnApprove);
+            btnReject = v.findViewById(R.id.btnReject);
+
+            // ✅ DEBUG: Log if ANY view is missing
+            if (tvName == null) android.util.Log.e("AdminLeaveAdapter", "❌ tvName is NULL!");
+            if (tvDates == null) android.util.Log.e("AdminLeaveAdapter", "❌ tvDates is NULL!");
+            if (tvReason == null) android.util.Log.e("AdminLeaveAdapter", "❌ tvReason is NULL!");
+            if (tvStatus == null) android.util.Log.e("AdminLeaveAdapter", "❌ tvStatus is NULL!");
+            if (btnApprove == null) android.util.Log.e("AdminLeaveAdapter", "❌ btnApprove is NULL!");
+            if (btnReject == null) android.util.Log.e("AdminLeaveAdapter", "❌ btnReject is NULL!");
         }
     }
 }
