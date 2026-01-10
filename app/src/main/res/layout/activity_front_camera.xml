@@ -33,7 +33,7 @@
             android:textSize="13sp" />
     </LinearLayout>
 
-    <!-- Camera Preview Container - OVAL CIRCLE -->
+    <!-- Camera Preview Container -->
     <RelativeLayout
         android:id="@+id/cameraContainer"
         android:layout_width="300dp"
@@ -47,18 +47,54 @@
             android:id="@+id/surfaceView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-
             android:layout_centerInParent="true" />
+
+        <!-- White Flash Overlay -->
+        <View
+            android:id="@+id/flashOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#FFFFFF"
+            android:visibility="gone"
+            android:elevation="10dp" />
 
         <!-- Focus Indicator -->
         <ImageView
             android:id="@+id/focusIndicator"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:layout_centerInParent="true"
             android:src="@drawable/ic_focus"
             android:visibility="invisible"
-            app:tint="#FD511B" />
+            app:tint="#4CAF50"
+            android:elevation="11dp" />
+
+        <!-- Success Checkmark -->
+        <ImageView
+            android:id="@+id/successCheckmark"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_centerInParent="true"
+            android:src="@drawable/ic_check_circle"
+            android:visibility="gone"
+            app:tint="#4CAF50"
+            android:elevation="12dp" />
+
+        <!-- Capture Countdown (optional) -->
+        <TextView
+            android:id="@+id/captureCountdown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:textSize="48sp"
+            android:textColor="#4CAF50"
+            android:textStyle="bold"
+            android:visibility="gone"
+            android:elevation="13dp"
+            android:shadowColor="#000000"
+            android:shadowDx="0"
+            android:shadowDy="2"
+            android:shadowRadius="4" />
 
     </RelativeLayout>
 
@@ -81,17 +117,6 @@
         app:tint="#FD511B"
         android:contentDescription="Toggle flash" />
 
-    <!-- Quality Badge -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/cameraContainer"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="12dp"
-        android:textColor="#FD511B"
-        android:textSize="12sp"
-        android:textStyle="bold" />
-
     <!-- Loading Overlay -->
     <RelativeLayout
         android:id="@+id/loadingLayout"
@@ -101,41 +126,77 @@
         android:visibility="gone"
         android:gravity="center"
         android:clickable="true"
-        android:focusable="true">
+        android:focusable="true"
+        android:elevation="20dp">
 
         <LinearLayout
-            android:layout_width="220dp"
+            android:layout_width="240dp"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="@drawable/rounded_dialog_bg"
             android:padding="30dp"
             android:gravity="center"
-            android:elevation="8dp">
+            android:elevation="21dp">
 
+            <!-- Circular Progress -->
             <ProgressBar
                 android:id="@+id/progressBar"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:indeterminateTint="#FD511B" />
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:indeterminateTint="#4CAF50"
+                style="?android:attr/progressBarStyle" />
 
+            <!-- Loading Text with Icon -->
             <TextView
                 android:id="@+id/txtLoading"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="20dp"
                 android:text="Processing..."
                 android:textColor="#333333"
-                android:textSize="15sp"
+                android:textSize="16sp"
                 android:textStyle="bold"
                 android:gravity="center" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Please wait"
+                android:layout_marginTop="6dp"
+                android:text="Please wait a moment"
                 android:textColor="#666666"
-                android:textSize="12sp" />
+                android:textSize="12sp"
+                android:gravity="center" />
+
+            <!-- Progress Dots Animation -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <View
+                    android:id="@+id/dot1"
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_margin="3dp"
+                    android:background="@drawable/circle_bg_green" />
+
+                <View
+                    android:id="@+id/dot2"
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_margin="3dp"
+                    android:background="@drawable/circle_bg_green" />
+
+                <View
+                    android:id="@+id/dot3"
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_margin="3dp"
+                    android:background="@drawable/circle_bg_green" />
+            </LinearLayout>
+
         </LinearLayout>
     </RelativeLayout>
 
@@ -162,7 +223,7 @@
             android:textStyle="bold"
             android:layout_marginBottom="16dp" />
 
-        <!-- Simple Buttons Row -->
+        <!-- Buttons Row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -177,21 +238,21 @@
                 android:layout_weight="1"
                 android:layout_marginEnd="8dp"
                 android:text="Cancel"
-                android:backgroundTint="#FB0505"
+                android:backgroundTint="#ED1818"
                 android:textColor="#F4F1F1"
                 android:textSize="15sp"
                 android:textStyle="bold"
                 android:textAllCaps="false" />
 
-            <!-- Capture Button -->
+            <!-- Capture Button with Icon -->
             <Button
                 android:id="@+id/btnCapture"
                 android:layout_width="0dp"
                 android:layout_height="52dp"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:backgroundTint="@color/colorPrimaryDark"
-                android:text="Capture"
+                android:backgroundTint="@color/green"
+                android:text="📸 Capture"
                 android:textAllCaps="false"
                 android:textColor="#FFFFFF"
                 android:textSize="15sp"
@@ -211,7 +272,7 @@
                 android:layout_width="14dp"
                 android:layout_height="14dp"
                 android:src="@drawable/ic_info"
-                app:tint="#F60606"
+                app:tint="#F42B2B"
                 android:layout_marginEnd="6dp" />
 
             <TextView
