@@ -625,6 +625,7 @@ public class SettingsActivity extends AppCompatActivity {
     private static final int PICK_IMAGE_REQUEST = 1001;
     private Uri selectedImageUri;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -641,6 +642,7 @@ public class SettingsActivity extends AppCompatActivity {
             finish();
             return;
         }
+
 
         initViews();
         setupToolbar();
@@ -663,6 +665,7 @@ public class SettingsActivity extends AppCompatActivity {
         cardLogout = findViewById(R.id.cardLogout);
     }
 
+
     private void setupToolbar() {
         Toolbar toolbar = findViewById(R.id.toolbar);
         if (toolbar != null) {
@@ -672,6 +675,7 @@ public class SettingsActivity extends AppCompatActivity {
                 getSupportActionBar().setDisplayShowTitleEnabled(true);
                 getSupportActionBar().setTitle("Settings");
             }
+
         }
     }
 
