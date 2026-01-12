@@ -2,6 +2,8 @@ package com.sandhyyasofttech.attendsmart.Activities;
 
 import android.app.AlertDialog;
 import android.app.TimePickerDialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -13,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.database.*;
 import com.sandhyyasofttech.attendsmart.R;
@@ -28,9 +31,15 @@ public class AdminDayAttendanceDetailActivity extends AppCompatActivity {
     private TextView tvDate, tvTotalHours, tvShiftTiming;
     private TextView tvCheckInAddress, tvCheckOutAddress;
     private TextInputEditText etCheckIn, etCheckOut;
-    private AutoCompleteTextView spinnerStatus, spinnerLateStatus;
     private ImageView ivCheckInPhoto, ivCheckOutPhoto;
     private MaterialButton btnSave, btnDelete;
+
+    // Status buttons
+    private MaterialButton btnStatusPresent, btnStatusHalfDay, btnStatusAbsent;
+    private MaterialButton btnLateOnTime, btnLateLate;
+
+    // Photo cards
+    private MaterialCardView cardCheckInPhoto, cardCheckOutPhoto;
 
     private String companyKey, employeeMobile, date;
     private DatabaseReference attendanceRef, employeeRef, companyRef;
@@ -38,6 +47,14 @@ public class AdminDayAttendanceDetailActivity extends AppCompatActivity {
     private String employeeShift = "";
     private String shiftStartTime = "";
     private String shiftEndTime = "";
+
+    // Selected status
+    private String selectedStatus = "";
+    private String selectedLateStatus = "";
+
+    // Photo URLs
+    private String checkInPhotoUrl = "";
+    private String checkOutPhotoUrl = "";
 
     // Store original data for comparison
     private String originalCheckIn = "";
@@ -61,7 +78,6 @@ public class AdminDayAttendanceDetailActivity extends AppCompatActivity {
         initViews();
         setupToolbar();
         setupFirebase();
-        setupSpinners();
         loadEmployeeData(); // Load employee data first
     }
 
@@ -77,8 +93,18 @@ public class AdminDayAttendanceDetailActivity extends AppCompatActivity {
         etCheckIn = findViewById(R.id.etCheckIn);
         etCheckOut = findViewById(R.id.etCheckOut);
 
-        spinnerStatus = findViewById(R.id.spinnerStatus);
-        spinnerLateStatus = findViewById(R.id.spinnerLateStatus);
+        // Status buttons
+        btnStatusPresent = findViewById(R.id.btnStatusPresent);
+        btnStatusHalfDay = findViewById(R.id.btnStatusHalfDay);
+        btnStatusAbsent = findViewById(R.id.btnStatusAbsent);
+
+        // Late status buttons
+        btnLateOnTime = findViewById(R.id.btnLateOnTime);
+        btnLateLate = findViewById(R.id.btnLateLate);
+
+        // Photo cards
+        cardCheckInPhoto = findViewById(R.id.cardCheckInPhoto);
+        cardCheckOutPhoto = findViewById(R.id.cardCheckOutPhoto);
 
         ivCheckInPhoto = findViewById(R.id.ivCheckInPhoto);
         ivCheckOutPhoto = findViewById(R.id.ivCheckOutPhoto);
@@ -89,12 +115,123 @@ public class AdminDayAttendanceDetailActivity extends AppCompatActivity {
         // Format and display date
         formatAndDisplayDate();
 
+        // Setup status button listeners
+        setupStatusButtons();
+
         // Set click listeners
         etCheckIn.setOnClickListener(v -> openTimePicker(etCheckIn));
         etCheckOut.setOnClickListener(v -> openTimePicker(etCheckOut));
 
+        // Image click listeners for gallery view
+        cardCheckInPhoto.setOnClickListener(v -> {
+            if (checkInPhotoUrl != null && !checkInPhotoUrl.isEmpty()) {
+                openImageInGallery(checkInPhotoUrl);
+            }
+        });
+
+        cardCheckOutPhoto.setOnClickListener(v -> {
+            if (checkOutPhotoUrl != null && !checkOutPhotoUrl.isEmpty()) {
+                openImageInGallery(checkOutPhotoUrl);
+            }
+        });
+
         btnSave.setOnClickListener(v -> saveAttendance());
         btnDelete.setOnClickListener(v -> showDeletePopup());
+    }
+
+    private void setupStatusButtons() {
+        // Attendance status buttons
+        btnStatusPresent.setOnClickListener(v -> selectStatus("Present"));
+        btnStatusHalfDay.setOnClickListener(v -> selectStatus("Half Day"));
+        btnStatusAbsent.setOnClickListener(v -> selectStatus("Absent"));
+
+        // Punctuality status buttons
+        btnLateOnTime.setOnClickListener(v -> selectLateStatus("On Time"));
+        btnLateLate.setOnClickListener(v -> selectLateStatus("Late"));
+    }
+
+    private void selectStatus(String status) {
+        selectedStatus = status;
+
+        // Reset all buttons
+        resetStatusButton(btnStatusPresent);
+        resetStatusButton(btnStatusHalfDay);
+        resetStatusButton(btnStatusAbsent);
+
+        // Highlight selected button
+        MaterialButton selectedBtn = null;
+        int color = 0;
+
+        switch (status) {
+            case "Present":
+                selectedBtn = btnStatusPresent;
+                color = 0xFF43A047; // Green
+                break;
+            case "Half Day":
+                selectedBtn = btnStatusHalfDay;
+                color = 0xFFFF9800; // Orange
+                break;
+            case "Absent":
+                selectedBtn = btnStatusAbsent;
+                color = 0xFFE53935; // Red
+                break;
+        }
+
+        if (selectedBtn != null) {
+            selectedBtn.setBackgroundColor(color);
+            selectedBtn.setTextColor(0xFFFFFFFF);
+            selectedBtn.setStrokeWidth(0);
+        }
+    }
+
+    private void selectLateStatus(String lateStatus) {
+        selectedLateStatus = lateStatus;
+
+        // Reset all buttons
+        resetStatusButton(btnLateOnTime);
+        resetStatusButton(btnLateLate);
+
+        // Highlight selected button
+        MaterialButton selectedBtn = null;
+        int color = 0;
+
+        if ("On Time".equals(lateStatus)) {
+            selectedBtn = btnLateOnTime;
+            color = 0xFF43A047; // Green
+        } else if ("Late".equals(lateStatus)) {
+            selectedBtn = btnLateLate;
+            color = 0xFFE53935; // Red
+        }
+
+        if (selectedBtn != null) {
+            selectedBtn.setBackgroundColor(color);
+            selectedBtn.setTextColor(0xFFFFFFFF);
+            selectedBtn.setStrokeWidth(0);
+        }
+    }
+
+    private void resetStatusButton(MaterialButton button) {
+        button.setBackgroundColor(0xFFFFFFFF); // White
+        button.setTextColor(0xFF757575); // Gray
+        button.setStrokeColorResource(android.R.color.darker_gray);
+        button.setStrokeWidth(4); // 1.5dp approximation
+    }
+
+    private void openImageInGallery(String imageUrl) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(Uri.parse(imageUrl), "image/*");
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        } catch (Exception e) {
+            // If no app can handle it, try browser
+            try {
+                Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(imageUrl));
+                startActivity(browserIntent);
+            } catch (Exception ex) {
+                Toast.makeText(this, "Cannot open image", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void formatAndDisplayDate() {
@@ -154,13 +291,11 @@ public class AdminDayAttendanceDetailActivity extends AppCompatActivity {
     private boolean hasUnsavedChanges() {
         String currentCheckIn = etCheckIn.getText() != null ? etCheckIn.getText().toString().trim() : "";
         String currentCheckOut = etCheckOut.getText() != null ? etCheckOut.getText().toString().trim() : "";
-        String currentStatus = spinnerStatus.getText().toString();
-        String currentLateStatus = spinnerLateStatus.getText().toString();
 
         return !currentCheckIn.equals(originalCheckIn) ||
                 !currentCheckOut.equals(originalCheckOut) ||
-                !currentStatus.equals(originalStatus) ||
-                !currentLateStatus.equals(originalLateStatus);
+                !selectedStatus.equals(originalStatus) ||
+                !selectedLateStatus.equals(originalLateStatus);
     }
 
     private void showUnsavedChangesDialog() {
@@ -191,30 +326,6 @@ public class AdminDayAttendanceDetailActivity extends AppCompatActivity {
         Log.d(TAG, "Company Path: " + companyRef.toString());
         Log.d(TAG, "Attendance Path: " + attendanceRef.toString());
         Log.d(TAG, "Employee Path: " + employeeRef.toString());
-    }
-
-    private void setupSpinners() {
-        String[] statusOptions = {"Present", "Half Day", "Absent"};
-        ArrayAdapter<String> statusAdapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_dropdown_item_1line,
-                statusOptions
-        );
-        spinnerStatus.setAdapter(statusAdapter);
-        spinnerStatus.setFocusable(false);
-        spinnerStatus.setCursorVisible(false);
-        spinnerStatus.setOnClickListener(v -> spinnerStatus.showDropDown());
-
-        String[] lateOptions = {"On Time", "Late"};
-        ArrayAdapter<String> lateAdapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_dropdown_item_1line,
-                lateOptions
-        );
-        spinnerLateStatus.setAdapter(lateAdapter);
-        spinnerLateStatus.setFocusable(false);
-        spinnerLateStatus.setCursorVisible(false);
-        spinnerLateStatus.setOnClickListener(v -> spinnerLateStatus.showDropDown());
     }
 
     // Load employee data and shift - FIXED TO MATCH YOUR FIREBASE STRUCTURE
@@ -319,8 +430,8 @@ public class AdminDayAttendanceDetailActivity extends AppCompatActivity {
                 Log.d(TAG, "Attendance snapshot exists: " + s.exists());
 
                 if (!s.exists()) {
-                    spinnerStatus.setText("Absent", false);
-                    spinnerLateStatus.setText("On Time", false);
+                    selectStatus("Absent");
+                    selectLateStatus("On Time");
                     tvTotalHours.setText("0h 0m");
                     tvCheckInAddress.setText("No check-in recorded");
                     tvCheckOutAddress.setText("No check-out recorded");
@@ -353,20 +464,20 @@ public class AdminDayAttendanceDetailActivity extends AppCompatActivity {
                 // Load status
                 String status = s.child("status").getValue(String.class);
                 if (status != null) {
-                    spinnerStatus.setText(status, false);
+                    selectStatus(status);
                     originalStatus = status;
                 } else {
-                    spinnerStatus.setText("Present", false);
+                    selectStatus("Present");
                     originalStatus = "Present";
                 }
 
                 // Load late status
                 String lateStatus = s.child("lateStatus").getValue(String.class);
                 if (lateStatus != null) {
-                    spinnerLateStatus.setText(lateStatus, false);
+                    selectLateStatus(lateStatus);
                     originalLateStatus = lateStatus;
                 } else {
-                    spinnerLateStatus.setText("On Time", false);
+                    selectLateStatus("On Time");
                     originalLateStatus = "On Time";
                 }
 
@@ -393,6 +504,7 @@ public class AdminDayAttendanceDetailActivity extends AppCompatActivity {
                 // Load photos
                 String checkInPhoto = s.child("checkInPhoto").getValue(String.class);
                 if (checkInPhoto != null && !checkInPhoto.isEmpty()) {
+                    checkInPhotoUrl = checkInPhoto; // Store URL
                     Glide.with(AdminDayAttendanceDetailActivity.this)
                             .load(checkInPhoto)
                             .placeholder(R.drawable.ic_image_placeholder)
@@ -402,6 +514,7 @@ public class AdminDayAttendanceDetailActivity extends AppCompatActivity {
 
                 String checkOutPhoto = s.child("checkOutPhoto").getValue(String.class);
                 if (checkOutPhoto != null && !checkOutPhoto.isEmpty()) {
+                    checkOutPhotoUrl = checkOutPhoto; // Store URL
                     Glide.with(AdminDayAttendanceDetailActivity.this)
                             .load(checkOutPhoto)
                             .placeholder(R.drawable.ic_image_placeholder)
@@ -443,35 +556,10 @@ public class AdminDayAttendanceDetailActivity extends AppCompatActivity {
             target.setText(formattedTime);
 
             // Auto-calculate total hours when both times are set
-            calculateTotalHours(); // ← Changed from calculateTotalHours(in, out)
+            calculateTotalHours();
 
         }, cal.get(Calendar.HOUR_OF_DAY), cal.get(Calendar.MINUTE), false).show();
     }
-//    private void calculateTotalHours() {
-//        String in = etCheckIn.getText() != null ? etCheckIn.getText().toString().trim() : "";
-//        String out = etCheckOut.getText() != null ? etCheckOut.getText().toString().trim() : "";
-//
-//        if (in.isEmpty() || out.isEmpty()) {
-//            return;
-//        }
-//
-//        try {
-//            SimpleDateFormat sdf = new SimpleDateFormat("h:mm a", Locale.ENGLISH);
-//            Date inTime = sdf.parse(in);
-//            Date outTime = sdf.parse(out);
-//
-//            if (inTime != null && outTime != null) {
-//                long diff = outTime.getTime() - inTime.getTime();
-//                if (diff < 0) diff += 24 * 60 * 60 * 1000; // Handle overnight shifts
-//
-//                long totalMinutes = diff / 60000;
-//                long hours = totalMinutes / 60;
-//                long minutes = totalMinutes % 60;
-//
-//                tvTotalHours.setText(String.format(Locale.ENGLISH, "%dh %dm", hours, minutes));
-//            }
-//        } catch (Exception ignored) {}
-//    }
 
     private void calculateTotalHours() {
         String in = etCheckIn.getText() != null ? etCheckIn.getText().toString().trim() : "";
@@ -546,193 +634,11 @@ public class AdminDayAttendanceDetailActivity extends AppCompatActivity {
         }
     }
 
-
-
-//    private void saveAttendance() {
-//        String in = etCheckIn.getText() != null ? etCheckIn.getText().toString().trim() : "";
-//        String out = etCheckOut.getText() != null ? etCheckOut.getText().toString().trim() : "";
-//        String status = spinnerStatus.getText().toString();
-//        String lateStatus = spinnerLateStatus.getText().toString();
-//
-//        // Validate status is selected
-//        if (status.isEmpty()) {
-//            Toast.makeText(this, "Please select a status", Toast.LENGTH_SHORT).show();
-//            spinnerStatus.requestFocus();
-//            return;
-//        }
-//
-//        // No validation for check-in/check-out times
-//        // Admin can set any status without entering times
-//
-//        try {
-//            long totalMinutes = 0;
-//
-//            // Calculate total minutes only if both times are provided
-//            if (!in.isEmpty() && !out.isEmpty()) {
-//                SimpleDateFormat sdf = new SimpleDateFormat("h:mm a", Locale.ENGLISH);
-//                Date inTime = sdf.parse(in);
-//                Date outTime = sdf.parse(out);
-//
-//                if (inTime != null && outTime != null) {
-//                    long diff = outTime.getTime() - inTime.getTime();
-//                    if (diff < 0) diff += 24 * 60 * 60 * 1000; // Handle overnight shifts
-//                    totalMinutes = diff / 60000;
-//                }
-//            }
-//
-//            Map<String, Object> map = new HashMap<>();
-//
-//            // Add times only if they exist
-//            if (!in.isEmpty()) {
-//                map.put("checkInTime", in);
-//            } else {
-//                map.put("checkInTime", ""); // Set empty string for absent/full day
-//            }
-//
-//            if (!out.isEmpty()) {
-//                map.put("checkOutTime", out);
-//            } else {
-//                map.put("checkOutTime", ""); // Set empty string
-//            }
-//
-//            map.put("status", status);
-//            map.put("finalStatus", status);
-//            map.put("lateStatus", lateStatus);
-//            map.put("totalMinutes", totalMinutes);
-//
-//            // Set total hours display
-//            if (totalMinutes > 0) {
-//                map.put("totalHours", (totalMinutes / 60) + "h " + (totalMinutes % 60) + "m");
-//            } else {
-//                map.put("totalHours", "0h 0m");
-//            }
-//
-//            map.put("markedBy", "Admin");
-//            map.put("lastModified", System.currentTimeMillis());
-//
-//            // Disable save button to prevent multiple clicks
-//            btnSave.setEnabled(false);
-//
-//            attendanceRef.updateChildren(map)
-//                    .addOnSuccessListener(a -> {
-//                        Toast.makeText(this, "Attendance updated successfully", Toast.LENGTH_SHORT).show();
-//
-//                        // Update original values after successful save
-//                        originalCheckIn = in;
-//                        originalCheckOut = out;
-//                        originalStatus = status;
-//                        originalLateStatus = lateStatus;
-//
-//                        finish();
-//                    })
-//                    .addOnFailureListener(e -> {
-//                        Toast.makeText(this, "Failed to update attendance", Toast.LENGTH_SHORT).show();
-//                        btnSave.setEnabled(true);
-//                    });
-//
-//        } catch (Exception e) {
-//            Toast.makeText(this, "Invalid time format", Toast.LENGTH_SHORT).show();
-//            btnSave.setEnabled(true);
-//        }
-//    }
-
-
-//    private void saveAttendance() {
-//        String in = etCheckIn.getText() != null ? etCheckIn.getText().toString().trim() : "";
-//        String out = etCheckOut.getText() != null ? etCheckOut.getText().toString().trim() : "";
-//        String status = spinnerStatus.getText().toString();
-//        String lateStatus = spinnerLateStatus.getText().toString();
-//
-//        if (status.isEmpty()) {
-//            Toast.makeText(this, "Please select a status", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-//
-//        try {
-//            long totalMinutes = 0;
-//            String totalHoursDisplay = "0h 0m";
-//
-//            SimpleDateFormat sdfParse = new SimpleDateFormat("h:mm a", Locale.ENGLISH);
-//
-//            if (!in.isEmpty() && !out.isEmpty()) {
-//                // Both times provided
-//                Date inTime = sdfParse.parse(in);
-//                Date outTime = sdfParse.parse(out);
-//
-//                if (inTime != null && outTime != null) {
-//                    Calendar calIn = Calendar.getInstance();
-//                    calIn.setTime(inTime);
-//                    Calendar calOut = Calendar.getInstance();
-//                    calOut.setTime(outTime);
-//
-//                    totalMinutes = (calOut.getTimeInMillis() - calIn.getTimeInMillis()) / 60000;
-//                    if (totalMinutes < 0) totalMinutes += 24 * 60;
-//
-//                    long hours = totalMinutes / 60;
-//                    long minutes = totalMinutes % 60;
-//                    totalHoursDisplay = String.format(Locale.ENGLISH, "%dh %dm", hours, minutes);
-//                }
-//            } else if (!in.isEmpty()) {
-//                // Only check-in: live duration
-//                Date inTime = sdfParse.parse(in);
-//                if (inTime != null) {
-//                    Calendar calIn = Calendar.getInstance();
-//                    calIn.set(Calendar.YEAR, Calendar.getInstance().get(Calendar.YEAR));
-//                    calIn.set(Calendar.MONTH, Calendar.getInstance().get(Calendar.MONTH));
-//                    calIn.set(Calendar.DAY_OF_MONTH, Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
-//                    calIn.setTime(inTime);
-//
-//                    Calendar calNow = Calendar.getInstance();
-//                    totalMinutes = (calNow.getTimeInMillis() - calIn.getTimeInMillis()) / 60000;
-//                    if (totalMinutes < 0) totalMinutes = 0;
-//
-//                    long hours = totalMinutes / 60;
-//                    long minutes = totalMinutes % 60;
-//                    totalHoursDisplay = String.format(Locale.ENGLISH, "%dh %dm ", hours, minutes);
-//                }
-//            }
-//
-//            Map<String, Object> map = new HashMap<>();
-//            map.put("checkInTime", in.isEmpty() ? "" : in);
-//            map.put("checkOutTime", out.isEmpty() ? "" : out);
-//            map.put("status", status);
-//            map.put("finalStatus", status);
-//            map.put("lateStatus", lateStatus);
-//            map.put("totalMinutes", Math.abs(totalMinutes));
-//            map.put("totalHours", totalHoursDisplay);
-//            map.put("markedBy", "Admin");
-//            map.put("lastModified", System.currentTimeMillis());
-//
-//            btnSave.setEnabled(false);
-//
-//            attendanceRef.setValue(map)
-//                    .addOnSuccessListener(a -> {
-//                        Toast.makeText(this, "Attendance saved successfully", Toast.LENGTH_SHORT).show();
-//                        originalCheckIn = in;
-//                        originalCheckOut = out;
-//                        originalStatus = status;
-//                        originalLateStatus = lateStatus;
-//                        finish();
-//                    })
-//                    .addOnFailureListener(e -> {
-//                        Toast.makeText(this, "Save failed", Toast.LENGTH_SHORT).show();
-//                        btnSave.setEnabled(true);
-//                    });
-//
-//        } catch (Exception e) {
-//            Log.e(TAG, "Save error", e);
-//            Toast.makeText(this, "Invalid time format", Toast.LENGTH_SHORT).show();
-//        }
-//    }
-
-// uper attence method save attence properly working
-    //below method add the after the admin set the attence calculate the working hoeurs
-
     private void saveAttendance() {
         String in = etCheckIn.getText() != null ? etCheckIn.getText().toString().trim() : "";
         String out = etCheckOut.getText() != null ? etCheckOut.getText().toString().trim() : "";
-        String status = spinnerStatus.getText().toString();
-        String lateStatus = spinnerLateStatus.getText().toString();
+        String status = selectedStatus;
+        String lateStatus = selectedLateStatus;
 
         if (status.isEmpty()) {
             Toast.makeText(this, "Please select a status", Toast.LENGTH_SHORT).show();
@@ -872,5 +778,4 @@ public class AdminDayAttendanceDetailActivity extends AppCompatActivity {
             return 0;
         }
     }
-
 }
