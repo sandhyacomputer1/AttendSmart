@@ -637,6 +637,97 @@ public class AdminDayAttendanceDetailActivity extends AppCompatActivity {
 //    }
 
 
+//    private void saveAttendance() {
+//        String in = etCheckIn.getText() != null ? etCheckIn.getText().toString().trim() : "";
+//        String out = etCheckOut.getText() != null ? etCheckOut.getText().toString().trim() : "";
+//        String status = spinnerStatus.getText().toString();
+//        String lateStatus = spinnerLateStatus.getText().toString();
+//
+//        if (status.isEmpty()) {
+//            Toast.makeText(this, "Please select a status", Toast.LENGTH_SHORT).show();
+//            return;
+//        }
+//
+//        try {
+//            long totalMinutes = 0;
+//            String totalHoursDisplay = "0h 0m";
+//
+//            SimpleDateFormat sdfParse = new SimpleDateFormat("h:mm a", Locale.ENGLISH);
+//
+//            if (!in.isEmpty() && !out.isEmpty()) {
+//                // Both times provided
+//                Date inTime = sdfParse.parse(in);
+//                Date outTime = sdfParse.parse(out);
+//
+//                if (inTime != null && outTime != null) {
+//                    Calendar calIn = Calendar.getInstance();
+//                    calIn.setTime(inTime);
+//                    Calendar calOut = Calendar.getInstance();
+//                    calOut.setTime(outTime);
+//
+//                    totalMinutes = (calOut.getTimeInMillis() - calIn.getTimeInMillis()) / 60000;
+//                    if (totalMinutes < 0) totalMinutes += 24 * 60;
+//
+//                    long hours = totalMinutes / 60;
+//                    long minutes = totalMinutes % 60;
+//                    totalHoursDisplay = String.format(Locale.ENGLISH, "%dh %dm", hours, minutes);
+//                }
+//            } else if (!in.isEmpty()) {
+//                // Only check-in: live duration
+//                Date inTime = sdfParse.parse(in);
+//                if (inTime != null) {
+//                    Calendar calIn = Calendar.getInstance();
+//                    calIn.set(Calendar.YEAR, Calendar.getInstance().get(Calendar.YEAR));
+//                    calIn.set(Calendar.MONTH, Calendar.getInstance().get(Calendar.MONTH));
+//                    calIn.set(Calendar.DAY_OF_MONTH, Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
+//                    calIn.setTime(inTime);
+//
+//                    Calendar calNow = Calendar.getInstance();
+//                    totalMinutes = (calNow.getTimeInMillis() - calIn.getTimeInMillis()) / 60000;
+//                    if (totalMinutes < 0) totalMinutes = 0;
+//
+//                    long hours = totalMinutes / 60;
+//                    long minutes = totalMinutes % 60;
+//                    totalHoursDisplay = String.format(Locale.ENGLISH, "%dh %dm ", hours, minutes);
+//                }
+//            }
+//
+//            Map<String, Object> map = new HashMap<>();
+//            map.put("checkInTime", in.isEmpty() ? "" : in);
+//            map.put("checkOutTime", out.isEmpty() ? "" : out);
+//            map.put("status", status);
+//            map.put("finalStatus", status);
+//            map.put("lateStatus", lateStatus);
+//            map.put("totalMinutes", Math.abs(totalMinutes));
+//            map.put("totalHours", totalHoursDisplay);
+//            map.put("markedBy", "Admin");
+//            map.put("lastModified", System.currentTimeMillis());
+//
+//            btnSave.setEnabled(false);
+//
+//            attendanceRef.setValue(map)
+//                    .addOnSuccessListener(a -> {
+//                        Toast.makeText(this, "Attendance saved successfully", Toast.LENGTH_SHORT).show();
+//                        originalCheckIn = in;
+//                        originalCheckOut = out;
+//                        originalStatus = status;
+//                        originalLateStatus = lateStatus;
+//                        finish();
+//                    })
+//                    .addOnFailureListener(e -> {
+//                        Toast.makeText(this, "Save failed", Toast.LENGTH_SHORT).show();
+//                        btnSave.setEnabled(true);
+//                    });
+//
+//        } catch (Exception e) {
+//            Log.e(TAG, "Save error", e);
+//            Toast.makeText(this, "Invalid time format", Toast.LENGTH_SHORT).show();
+//        }
+//    }
+
+// uper attence method save attence properly working
+    //below method add the after the admin set the attence calculate the working hoeurs
+
     private void saveAttendance() {
         String in = etCheckIn.getText() != null ? etCheckIn.getText().toString().trim() : "";
         String out = etCheckOut.getText() != null ? etCheckOut.getText().toString().trim() : "";
@@ -654,43 +745,55 @@ public class AdminDayAttendanceDetailActivity extends AppCompatActivity {
 
             SimpleDateFormat sdfParse = new SimpleDateFormat("h:mm a", Locale.ENGLISH);
 
+            // 🔹 CASE 1: Admin entered check-in & check-out
             if (!in.isEmpty() && !out.isEmpty()) {
-                // Both times provided
+
                 Date inTime = sdfParse.parse(in);
                 Date outTime = sdfParse.parse(out);
 
                 if (inTime != null && outTime != null) {
-                    Calendar calIn = Calendar.getInstance();
-                    calIn.setTime(inTime);
-                    Calendar calOut = Calendar.getInstance();
-                    calOut.setTime(outTime);
+                    long diff = (outTime.getTime() - inTime.getTime()) / 60000;
+                    if (diff < 0) diff += 24 * 60;
 
-                    totalMinutes = (calOut.getTimeInMillis() - calIn.getTimeInMillis()) / 60000;
-                    if (totalMinutes < 0) totalMinutes += 24 * 60;
-
-                    long hours = totalMinutes / 60;
-                    long minutes = totalMinutes % 60;
-                    totalHoursDisplay = String.format(Locale.ENGLISH, "%dh %dm", hours, minutes);
+                    totalMinutes = diff;
                 }
-            } else if (!in.isEmpty()) {
-                // Only check-in: live duration
+
+            }
+            // 🔹 CASE 2: Only check-in (live)
+            else if (!in.isEmpty()) {
+
                 Date inTime = sdfParse.parse(in);
                 if (inTime != null) {
                     Calendar calIn = Calendar.getInstance();
-                    calIn.set(Calendar.YEAR, Calendar.getInstance().get(Calendar.YEAR));
-                    calIn.set(Calendar.MONTH, Calendar.getInstance().get(Calendar.MONTH));
-                    calIn.set(Calendar.DAY_OF_MONTH, Calendar.getInstance().get(Calendar.DAY_OF_MONTH));
                     calIn.setTime(inTime);
 
                     Calendar calNow = Calendar.getInstance();
                     totalMinutes = (calNow.getTimeInMillis() - calIn.getTimeInMillis()) / 60000;
                     if (totalMinutes < 0) totalMinutes = 0;
-
-                    long hours = totalMinutes / 60;
-                    long minutes = totalMinutes % 60;
-                    totalHoursDisplay = String.format(Locale.ENGLISH, "%dh %dm ", hours, minutes);
                 }
+
             }
+            // 🔹 CASE 3: Admin manual PRESENT (no times)
+            else if ("Present".equals(status)) {
+
+                totalMinutes = getShiftMinutes();
+
+            }
+            // 🔹 CASE 4: Admin manual HALF DAY
+            else if ("Half Day".equals(status)) {
+
+                totalMinutes = getShiftMinutes() / 2;
+
+            }
+            // 🔹 CASE 5: ABSENT
+            else {
+                totalMinutes = 0;
+            }
+
+            // Format hours
+            long hours = totalMinutes / 60;
+            long minutes = totalMinutes % 60;
+            totalHoursDisplay = hours + "h " + minutes + "m";
 
             Map<String, Object> map = new HashMap<>();
             map.put("checkInTime", in.isEmpty() ? "" : in);
@@ -698,7 +801,7 @@ public class AdminDayAttendanceDetailActivity extends AppCompatActivity {
             map.put("status", status);
             map.put("finalStatus", status);
             map.put("lateStatus", lateStatus);
-            map.put("totalMinutes", Math.abs(totalMinutes));
+            map.put("totalMinutes", totalMinutes);
             map.put("totalHours", totalHoursDisplay);
             map.put("markedBy", "Admin");
             map.put("lastModified", System.currentTimeMillis());
@@ -725,8 +828,6 @@ public class AdminDayAttendanceDetailActivity extends AppCompatActivity {
         }
     }
 
-
-
     private void showDeletePopup() {
         new AlertDialog.Builder(this)
                 .setTitle("Delete Attendance")
@@ -750,4 +851,26 @@ public class AdminDayAttendanceDetailActivity extends AppCompatActivity {
                     btnDelete.setEnabled(true);
                 });
     }
+
+    private long getShiftMinutes() {
+        if (shiftStartTime == null || shiftEndTime == null) return 0;
+
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("h:mm a", Locale.ENGLISH);
+
+            Date start = sdf.parse(shiftStartTime);
+            Date end = sdf.parse(shiftEndTime);
+
+            if (start == null || end == null) return 0;
+
+            long diff = (end.getTime() - start.getTime()) / 60000;
+            if (diff < 0) diff += 24 * 60; // overnight shift support
+
+            return diff;
+
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
 }
