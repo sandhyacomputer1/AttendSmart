@@ -25,7 +25,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class EmployeeWorkAdapter extends RecyclerView.Adapter<EmployeeWorkAdapter.ViewHolder> {
+public class WorkReportPagerAdapter extends RecyclerView.Adapter<WorkReportPagerAdapter.ViewHolder> {
 
     private List<WorkSummary> works = new ArrayList<>();
     private Context context;
@@ -38,7 +38,7 @@ public class EmployeeWorkAdapter extends RecyclerView.Adapter<EmployeeWorkAdapte
         void onDeleteSuccess();
     }
 
-    public EmployeeWorkAdapter(Context context, OnWorkActionListener listener) {
+    public WorkReportPagerAdapter(Context context, OnWorkActionListener listener) {
         this.context = context;
         this.pref = new PrefManager(context);
         this.todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
@@ -56,7 +56,7 @@ public class EmployeeWorkAdapter extends RecyclerView.Adapter<EmployeeWorkAdapte
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_employee_work, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.item_work_report_page, parent, false);
         return new ViewHolder(view);
     }
 
@@ -73,15 +73,16 @@ public class EmployeeWorkAdapter extends RecyclerView.Adapter<EmployeeWorkAdapte
 
     class ViewHolder extends RecyclerView.ViewHolder {
         MaterialCardView cardView;
-        TextView tvDate, tvEmployeeName, tvSubmittedTime;
+        TextView tvDate, tvDayName, tvEmployeeName, tvSubmittedTime;
         TextView tvCompletedWork, tvOngoingWork, tvTomorrowWork;
-        TextView tvCompletedLabel, tvOngoingLabel, tvTomorrowLabel;
+        View layoutCompleted, layoutOngoing, layoutTomorrow;
         MaterialButton btnEdit, btnDelete;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
-            cardView = (MaterialCardView) itemView;
+            cardView = itemView.findViewById(R.id.cardWorkReport);
             tvDate = itemView.findViewById(R.id.tvDate);
+            tvDayName = itemView.findViewById(R.id.tvDayName);
             tvEmployeeName = itemView.findViewById(R.id.tvEmployeeName);
             tvSubmittedTime = itemView.findViewById(R.id.tvSubmittedTime);
 
@@ -89,26 +90,44 @@ public class EmployeeWorkAdapter extends RecyclerView.Adapter<EmployeeWorkAdapte
             tvOngoingWork = itemView.findViewById(R.id.tvOngoingWork);
             tvTomorrowWork = itemView.findViewById(R.id.tvTomorrowWork);
 
-            tvCompletedLabel = itemView.findViewById(R.id.tvCompletedLabel);
-            tvOngoingLabel = itemView.findViewById(R.id.tvOngoingLabel);
-            tvTomorrowLabel = itemView.findViewById(R.id.tvTomorrowLabel);
+            layoutCompleted = itemView.findViewById(R.id.layoutCompleted);
+            layoutOngoing = itemView.findViewById(R.id.layoutOngoing);
+            layoutTomorrow = itemView.findViewById(R.id.layoutTomorrow);
 
             btnEdit = itemView.findViewById(R.id.btnEdit);
             btnDelete = itemView.findViewById(R.id.btnDelete);
         }
 
         void bind(WorkSummary work) {
-            // Date Header
+            // Format and display date
             if (work.workDate != null) {
-                String formattedDate = formatDisplayDate(work.workDate);
-                tvDate.setText(formattedDate);
+                try {
+                    SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                    Date date = inputFormat.parse(work.workDate);
 
-                // Highlight today's work
-                if (work.workDate.equals(todayDate)) {
-                    tvDate.setBackgroundResource(R.drawable.bg_today_highlight);
-                    tvDate.setText("📌 TODAY - " + formattedDate);
-                } else {
-                    tvDate.setBackgroundResource(R.drawable.bg_date_normal);
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
+                    SimpleDateFormat dayFormat = new SimpleDateFormat("EEEE", Locale.getDefault());
+
+                    // Highlight today with border only
+                    if (work.workDate.equals(todayDate)) {
+                        tvDate.setText("  " + dateFormat.format(date));
+                        tvDayName.setText("TODAY");
+                        cardView.setStrokeColor(0xFFFF5722);
+                        cardView.setStrokeWidth(2);
+                    } else {
+                        tvDate.setText(dateFormat.format(date));
+                        tvDayName.setText(dayFormat.format(date).toUpperCase());
+                        cardView.setStrokeColor(0xFFE0E0E0);
+                        cardView.setStrokeWidth(2);
+                    }
+
+                    // Keep header text WHITE for all days
+                    tvDate.setTextColor(0xFFFFFFFF);
+                    tvDayName.setTextColor(0xFFBBDEFB);
+
+                } catch (Exception e) {
+                    tvDate.setText(work.workDate);
+                    tvDayName.setText("");
                 }
             }
 
@@ -116,36 +135,30 @@ public class EmployeeWorkAdapter extends RecyclerView.Adapter<EmployeeWorkAdapte
             tvEmployeeName.setText(work.employeeName != null ? work.employeeName : "Employee");
 
             // Submitted Time
-            tvSubmittedTime.setText("Submitted: " + formatTime(work.submittedAt));
+            tvSubmittedTime.setText("⏰ " + formatTime(work.submittedAt));
 
             // Completed Work
             if (!TextUtils.isEmpty(work.completedWork)) {
-                tvCompletedLabel.setVisibility(View.VISIBLE);
-                tvCompletedWork.setVisibility(View.VISIBLE);
+                layoutCompleted.setVisibility(View.VISIBLE);
                 tvCompletedWork.setText(work.completedWork);
             } else {
-                tvCompletedLabel.setVisibility(View.GONE);
-                tvCompletedWork.setVisibility(View.GONE);
+                layoutCompleted.setVisibility(View.GONE);
             }
 
             // Ongoing Work
             if (!TextUtils.isEmpty(work.ongoingWork)) {
-                tvOngoingLabel.setVisibility(View.VISIBLE);
-                tvOngoingWork.setVisibility(View.VISIBLE);
+                layoutOngoing.setVisibility(View.VISIBLE);
                 tvOngoingWork.setText(work.ongoingWork);
             } else {
-                tvOngoingLabel.setVisibility(View.GONE);
-                tvOngoingWork.setVisibility(View.GONE);
+                layoutOngoing.setVisibility(View.GONE);
             }
 
             // Tomorrow Work
             if (!TextUtils.isEmpty(work.tomorrowWork)) {
-                tvTomorrowLabel.setVisibility(View.VISIBLE);
-                tvTomorrowWork.setVisibility(View.VISIBLE);
+                layoutTomorrow.setVisibility(View.VISIBLE);
                 tvTomorrowWork.setText(work.tomorrowWork);
             } else {
-                tvTomorrowLabel.setVisibility(View.GONE);
-                tvTomorrowWork.setVisibility(View.GONE);
+                layoutTomorrow.setVisibility(View.GONE);
             }
 
             // Edit Button - Only enabled for today's work
@@ -170,17 +183,6 @@ public class EmployeeWorkAdapter extends RecyclerView.Adapter<EmployeeWorkAdapte
                     Toast.makeText(context, "🗑️ Only today's work can be deleted", Toast.LENGTH_SHORT).show();
                 }
             });
-        }
-
-        private String formatDisplayDate(String date) {
-            try {
-                SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-                SimpleDateFormat outputFormat = new SimpleDateFormat("dd MMM yyyy, EEEE", Locale.getDefault());
-                Date d = inputFormat.parse(date);
-                return outputFormat.format(d);
-            } catch (Exception e) {
-                return date;
-            }
         }
 
         private String formatTime(long timestamp) {

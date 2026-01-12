@@ -4,141 +4,204 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
+    android:layout_marginBottom="16dp"
     app:cardCornerRadius="16dp"
     app:cardElevation="4dp"
-    app:strokeColor="#E0E0E0"
-    app:strokeWidth="1dp">
+    app:strokeWidth="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
+        android:orientation="vertical">
 
-        <!-- 🔥 DATE HEADER - ADD केला! -->
+        <!-- DATE HEADER -->
         <TextView
             android:id="@+id/tvDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="2026-01-09"
-            android:textSize="18sp"
+            android:text="12 Jan 2026, Monday"
+            android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="#FF5722"
-            android:background="#FFF3E0"
+            android:textColor="@android:color/white"
+            android:background="#1976D2"
             android:padding="16dp"
-            android:gravity="center"
-            android:layout_marginBottom="16dp"/>
+            android:gravity="center"/>
 
-        <!-- Header -->
+        <!-- CONTENT SECTION -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
+            android:orientation="vertical"
+            android:padding="20dp">
 
-            <TextView
-                android:id="@+id/tvEmployeeName"
-                android:layout_width="0dp"
+            <!-- HEADER ROW -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Your Name"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="#212121"/>
+                android:orientation="horizontal"
+                android:layout_marginBottom="20dp">
 
-            <TextView
-                android:id="@+id/tvSubmittedTime"
-                android:layout_width="wrap_content"
+                <TextView
+                    android:id="@+id/tvEmployeeName"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Employee Name"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#212121"/>
+
+                <TextView
+                    android:id="@+id/tvSubmittedTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="11:30 AM"
+                    android:textSize="13sp"
+                    android:textColor="#757575"
+                    android:drawablePadding="4dp"
+                    app:drawableStartCompat="@android:drawable/ic_menu_recent_history"
+                    app:drawableTint="#757575"/>
+
+            </LinearLayout>
+
+            <!-- COMPLETED WORK SECTION -->
+            <LinearLayout
+                android:id="@+id/layoutCompleted"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="11:30 AM"
-                android:textSize="12sp"
-                android:textColor="#757575"/>
+                android:orientation="vertical"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:id="@+id/tvCompletedLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✅ Completed Work"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#4CAF50"
+                    android:layout_marginBottom="8dp"/>
+
+                <TextView
+                    android:id="@+id/tvCompletedWork"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Login bug fixed\nAttendance testing done"
+                    android:textSize="14sp"
+                    android:textColor="#212121"
+                    android:lineSpacingExtra="4dp"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="0dp"
+                    android:background="#E8F5E9"
+                    android:padding="12dp"/>
+
+            </LinearLayout>
+
+            <!-- ONGOING WORK SECTION -->
+            <LinearLayout
+                android:id="@+id/layoutOngoing"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:id="@+id/tvOngoingLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔄 Ongoing Work"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#FF9800"
+                    android:layout_marginBottom="8dp"/>
+
+                <TextView
+                    android:id="@+id/tvOngoingWork"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Report PDF export in progress"
+                    android:textSize="14sp"
+                    android:textColor="#212121"
+                    android:lineSpacingExtra="4dp"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="0dp"
+                    android:background="#FFF3E0"
+                    android:padding="12dp"/>
+
+            </LinearLayout>
+
+            <!-- TOMORROW WORK SECTION -->
+            <LinearLayout
+                android:id="@+id/layoutTomorrow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="20dp">
+
+                <TextView
+                    android:id="@+id/tvTomorrowLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="📅 Tomorrow's Plan"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#2196F3"
+                    android:layout_marginBottom="8dp"/>
+
+                <TextView
+                    android:id="@+id/tvTomorrowWork"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Complete PDF feature\nStart notification module"
+                    android:textSize="14sp"
+                    android:textColor="#212121"
+                    android:lineSpacingExtra="4dp"
+                    android:paddingStart="24dp"
+                    android:paddingEnd="0dp"
+                    android:background="#E3F2FD"
+                    android:padding="12dp"/>
+
+            </LinearLayout>
+
+            <!-- DIVIDER -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E0E0E0"
+                android:layout_marginVertical="12dp"/>
+
+            <!-- ACTION BUTTONS -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="end">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnEdit"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✏️ Edit"
+                    android:textSize="14sp"
+                    app:cornerRadius="8dp"
+                    app:strokeColor="#1976D2"
+                    android:layout_marginEnd="8dp"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnDelete"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🗑️ Delete"
+                    android:textSize="14sp"
+                    app:cornerRadius="8dp"
+                    app:strokeColor="#F44336"/>
+
+            </LinearLayout>
+
         </LinearLayout>
 
-        <!-- Work Summary -->
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/tvWorkSummary"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="आज मी हे काम केले..."
-            android:textSize="15sp"
-            android:textColor="#212121"
-            android:lineSpacingExtra="4dp"
-            android:layout_marginBottom="12dp"/>
-
-        <!-- Tasks -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
-
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                app:tint="#4CAF50"/>
-
-            <TextView
-                android:id="@+id/tvTasks"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Tasks: ..."
-                android:textSize="14sp"
-                android:textColor="#424242"
-                android:layout_marginStart="8dp"/>
-        </LinearLayout>
-
-        <!-- Issues -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="20dp">
-
-            <ImageView
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                app:tint="#FF5722"/>
-
-            <TextView
-                android:id="@+id/tvIssues"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Issues: ..."
-                android:textSize="14sp"
-                android:textColor="#424242"
-                android:layout_marginStart="8dp"/>
-        </LinearLayout>
-
-        <!-- Action Buttons -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnEdit"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                android:text="✏️ Edit"
-                app:cornerRadius="12dp"/>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnDelete"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:text="🗑️ Delete"
-                app:strokeColor="#FF5722"
-                app:cornerRadius="12dp"/>
-        </LinearLayout>
     </LinearLayout>
+
 </com.google.android.material.card.MaterialCardView>

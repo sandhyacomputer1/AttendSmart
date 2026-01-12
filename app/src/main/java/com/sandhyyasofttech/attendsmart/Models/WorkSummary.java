@@ -4,22 +4,52 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 public class WorkSummary implements Parcelable {
+
+    public String workDate;
     public String employeeName;
-    public String workSummary;
-    public String tasks;
-    public String issues;
+    public String completedWork;
+    public String ongoingWork;
+    public String tomorrowWork;
     public long submittedAt;
-    public String workDate; // ← NEW FIELD
 
-    public WorkSummary() {}
+    // Default Constructor (Required for Firebase)
+    public WorkSummary() {
+    }
 
+    // Full Constructor
+    public WorkSummary(String workDate, String employeeName, String completedWork,
+                       String ongoingWork, String tomorrowWork, long submittedAt) {
+        this.workDate = workDate;
+        this.employeeName = employeeName;
+        this.completedWork = completedWork;
+        this.ongoingWork = ongoingWork;
+        this.tomorrowWork = tomorrowWork;
+        this.submittedAt = submittedAt;
+    }
+
+    // Parcelable Implementation
     protected WorkSummary(Parcel in) {
-        employeeName = in.readString();
-        workSummary = in.readString();
-        tasks = in.readString();
-        issues = in.readString();
-        submittedAt = in.readLong();
         workDate = in.readString();
+        employeeName = in.readString();
+        completedWork = in.readString();
+        ongoingWork = in.readString();
+        tomorrowWork = in.readString();
+        submittedAt = in.readLong();
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(workDate);
+        dest.writeString(employeeName);
+        dest.writeString(completedWork);
+        dest.writeString(ongoingWork);
+        dest.writeString(tomorrowWork);
+        dest.writeLong(submittedAt);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
     }
 
     public static final Creator<WorkSummary> CREATOR = new Creator<WorkSummary>() {
@@ -34,22 +64,52 @@ public class WorkSummary implements Parcelable {
         }
     };
 
+    // Getter/Setter (Optional - Firebase works with public fields too)
+    public String getWorkDate() {
+        return workDate;
+    }
+
     public void setWorkDate(String workDate) {
         this.workDate = workDate;
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
+    public String getEmployeeName() {
+        return employeeName;
     }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeString(employeeName);
-        dest.writeString(workSummary);
-        dest.writeString(tasks);
-        dest.writeString(issues);
-        dest.writeLong(submittedAt);
-        dest.writeString(workDate);
+    public void setEmployeeName(String employeeName) {
+        this.employeeName = employeeName;
+    }
+
+    public String getCompletedWork() {
+        return completedWork;
+    }
+
+    public void setCompletedWork(String completedWork) {
+        this.completedWork = completedWork;
+    }
+
+    public String getOngoingWork() {
+        return ongoingWork;
+    }
+
+    public void setOngoingWork(String ongoingWork) {
+        this.ongoingWork = ongoingWork;
+    }
+
+    public String getTomorrowWork() {
+        return tomorrowWork;
+    }
+
+    public void setTomorrowWork(String tomorrowWork) {
+        this.tomorrowWork = tomorrowWork;
+    }
+
+    public long getSubmittedAt() {
+        return submittedAt;
+    }
+
+    public void setSubmittedAt(long submittedAt) {
+        this.submittedAt = submittedAt;
     }
 }

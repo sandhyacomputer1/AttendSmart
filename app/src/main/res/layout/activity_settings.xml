@@ -374,7 +374,11 @@
                         android:focusable="true"
                         android:background="?attr/selectableItemBackground">
 
-                        <ImageView android:layout_width="20dp" android:layout_height="20dp" android:src="@drawable/salarymy" app:tint="#2196F3" />
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/viewwork"
+                            app:tint="#2196F3" />
 
                         <TextView
                             android:layout_width="0dp"

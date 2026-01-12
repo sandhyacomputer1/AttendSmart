@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#FFFFFF"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardWorkReport"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="12dp"
+            android:padding="10dp"
+            app:cardCornerRadius="10dp"
+            app:cardElevation="2dp"
+            app:strokeWidth="2dp"
+            app:strokeColor="#E0E0E0"
+            android:backgroundTint="#FFFFFF">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFFFFF"
+                android:orientation="vertical">
+
+                <!-- COMPACT DATE HEADER -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/gradient_header"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="12dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="12 Jan 2026"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="#FFFFFF"/>
+
+                        <TextView
+                            android:id="@+id/tvDayName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="MONDAY"
+                            android:textSize="11sp"
+                            android:textColor="#BBDEFB"
+                            android:letterSpacing="0.1"
+                            android:layout_marginTop="1dp"/>
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvSubmittedTime"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="⏰ 11:30 AM"
+                        android:textSize="12sp"
+                        android:textColor="#FFFFFF"
+                        android:background="#F46135"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:gravity="center"/>
+
+                </LinearLayout>
+
+                <!-- EMPLOYEE NAME BAR -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="#F5F5F5"
+                    android:padding="10dp"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="28dp"
+                        android:layout_height="28dp"
+                        android:text="👤"
+                        android:textSize="16sp"
+                        android:gravity="center"
+                        android:background="#E0E0E0"
+                        android:layout_marginEnd="8dp"/>
+
+                    <TextView
+                        android:id="@+id/tvEmployeeName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Employee Name"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="#424242"/>
+
+                </LinearLayout>
+
+                <!-- WORK CONTENT -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    <!-- COMPLETED WORK -->
+                    <LinearLayout
+                        android:id="@+id/layoutCompleted"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginBottom="10dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="✅ Completed Work"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="#4CAF50"
+                            android:paddingVertical="6dp"
+                            android:paddingHorizontal="8dp"
+                            android:background="#E8F5E9"/>
+
+                        <TextView
+                            android:id="@+id/tvCompletedWork"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="• Login bug fixed\n• Testing completed"
+                            android:textSize="13sp"
+                            android:textColor="#212121"
+                            android:lineSpacingExtra="3dp"
+                            android:padding="10dp"
+                            android:background="#F1F8F4"/>
+
+                    </LinearLayout>
+
+                    <!-- ONGOING WORK -->
+                    <LinearLayout
+                        android:id="@+id/layoutOngoing"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginBottom="10dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="🔄 Ongoing Work"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="#FF9800"
+                            android:paddingVertical="6dp"
+                            android:paddingHorizontal="8dp"
+                            android:background="#FFF3E0"/>
+
+                        <TextView
+                            android:id="@+id/tvOngoingWork"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="• PDF export in progress"
+                            android:textSize="13sp"
+                            android:textColor="#212121"
+                            android:lineSpacingExtra="3dp"
+                            android:padding="10dp"
+                            android:background="#FFF8F0"/>
+
+                    </LinearLayout>
+
+                    <!-- TOMORROW WORK -->
+                    <LinearLayout
+                        android:id="@+id/layoutTomorrow"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginBottom="10dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="📅 Tomorrow's Plan"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="#2196F3"
+                            android:paddingVertical="6dp"
+                            android:paddingHorizontal="8dp"
+                            android:background="#E3F2FD"/>
+
+                        <TextView
+                            android:id="@+id/tvTomorrowWork"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="• Complete PDF\n• Start notifications"
+                            android:textSize="13sp"
+                            android:textColor="#212121"
+                            android:lineSpacingExtra="3dp"
+                            android:padding="10dp"
+                            android:background="#F0F7FD"/>
+
+                    </LinearLayout>
+
+                    <!-- ACTION BUTTONS -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="4dp">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnEdit"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_weight="1"
+                            android:text="✏️ Edit"
+                            android:textSize="13sp"
+                            android:textAllCaps="false"
+                            app:cornerRadius="8dp"
+                            app:strokeColor="#FF5722"
+                            app:strokeWidth="1.5dp"
+                            android:textColor="#FF5722"
+                            android:layout_marginEnd="5dp"/>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnDelete"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="44dp"
+                            android:layout_weight="1"
+                            android:text="🗑️ Delete"
+                            android:textSize="13sp"
+                            android:textAllCaps="false"
+                            app:cornerRadius="8dp"
+                            app:strokeColor="#F44336"
+                            app:strokeWidth="1.5dp"
+                            android:textColor="#F44336"
+                            android:layout_marginStart="5dp"/>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

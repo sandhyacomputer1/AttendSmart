@@ -46,7 +46,7 @@ public class SplashActivity extends AppCompatActivity {
         startAnimations();
 
         // Start login status check after animations (3.5 seconds total)
-        new Handler().postDelayed(this::checkLoginStatus, 3500);
+        new Handler().postDelayed(this::checkLoginStatus, 1000);
     }
 
     private void initViews() {

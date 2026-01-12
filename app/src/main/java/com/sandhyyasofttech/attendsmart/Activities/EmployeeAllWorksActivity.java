@@ -1,29 +1,35 @@
 package com.sandhyyasofttech.attendsmart.Activities;
 
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.sandhyyasofttech.attendsmart.Adapters.EmployeeWorkAdapter; // ← Existing Adapter use कर
-import com.sandhyyasofttech.attendsmart.Activities.EmployeeTodayWorkActivity;
+import com.sandhyyasofttech.attendsmart.Adapters.WorkReportPagerAdapter;
 import com.sandhyyasofttech.attendsmart.Models.WorkSummary;
 import com.sandhyyasofttech.attendsmart.R;
+import com.sandhyyasofttech.attendsmart.Registration.LoginActivity;
 import com.sandhyyasofttech.attendsmart.Utils.PrefManager;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -33,19 +39,27 @@ import java.util.List;
 import java.util.Locale;
 
 public class EmployeeAllWorksActivity extends AppCompatActivity {
-    private RecyclerView rvAllWorks;
+
+    private ViewPager2 viewPager;
     private MaterialToolbar toolbar;
-    private EmployeeWorkAdapter adapter; // ← Existing Adapter
+    private WorkReportPagerAdapter pagerAdapter;
+    private ProgressBar progressBar;
+    private LinearLayout emptyState;
+    private TextView tvEmptyMessage, tvPageIndicator;
+    private MaterialButton btnDatePicker, btnPrevDate, btnNextDate;
+    private FloatingActionButton fabAddWork;
+
     private String companyKey, employeeMobile;
-    private List<WorkSummary> allWorks = new ArrayList<>();
-    private int currentPage = 0;
-    private MaterialButton btnPrev, btnNext;
-    private PrefManager pref;
+    private List<WorkSummary> allWorksList = new ArrayList<>();
+    private String todayDate;
+    private int currentPosition = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_employee_all_works);
+
+        todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
 
         initViews();
         loadSession();
@@ -53,40 +67,98 @@ public class EmployeeAllWorksActivity extends AppCompatActivity {
     }
 
     private void initViews() {
-        rvAllWorks = findViewById(R.id.rvAllWorks);
+        // Initialize all views
+        viewPager = findViewById(R.id.viewPager);
         toolbar = findViewById(R.id.toolbar);
-        btnPrev = findViewById(R.id.btnPrev);
-        btnNext = findViewById(R.id.btnNext);
+        progressBar = findViewById(R.id.progressBar);
+        emptyState = findViewById(R.id.emptyState);
+        tvEmptyMessage = findViewById(R.id.tvEmptyMessage);
+        tvPageIndicator = findViewById(R.id.tvPageIndicator);
+        btnDatePicker = findViewById(R.id.btnDatePicker);
+        btnPrevDate = findViewById(R.id.btnPrevDate);
+        btnNextDate = findViewById(R.id.btnNextDate);
+        fabAddWork = findViewById(R.id.fabAddWork);
 
-        pref = new PrefManager(this);
+        // Null checks for safety
+        if (viewPager == null) {
+            Toast.makeText(this, "Error: ViewPager not found in layout", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
 
         // Toolbar setup
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        toolbar.setTitle("All My Works");
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setTitle("My Work Reports");
+        }
+        if (toolbar != null) {
+            toolbar.setNavigationOnClickListener(v -> onBackPressed());
+        }
 
-        // RecyclerView setup
-        rvAllWorks.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new EmployeeWorkAdapter(this);
-        rvAllWorks.setAdapter(adapter);
+        // ViewPager setup
+        pagerAdapter = new WorkReportPagerAdapter(this, new WorkReportPagerAdapter.OnWorkActionListener() {
+            @Override
+            public void onEditClick(WorkSummary work) {
+                openEditWork(work);
+            }
+
+            @Override
+            public void onDeleteSuccess() {
+                loadAllWorks();
+            }
+        });
+        viewPager.setAdapter(pagerAdapter);
+        viewPager.setOffscreenPageLimit(1);
+
+        // ViewPager page change listener
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                currentPosition = position;
+                updateNavigationButtons();
+                updatePageIndicator();
+            }
+        });
 
         // Navigation buttons
-        btnPrev.setOnClickListener(v -> prevPage());
-        btnNext.setOnClickListener(v -> nextPage());
+        // PREV = Older dates (swipe left behavior)
+        if (btnPrevDate != null) {
+            btnPrevDate.setOnClickListener(v -> navigateToPreviousDate());
+        }
+        // NEXT = Newer dates (swipe right behavior)
+        if (btnNextDate != null) {
+            btnNextDate.setOnClickListener(v -> navigateToNextDate());
+        }
+        if (btnDatePicker != null) {
+            btnDatePicker.setOnClickListener(v -> showDatePicker());
+        }
+
+        // FAB - Add Today's Work
+        if (fabAddWork != null) {
+            fabAddWork.setOnClickListener(v -> {
+                Intent intent = new Intent(this, EmployeeTodayWorkActivity.class);
+                startActivity(intent);
+            });
+        }
     }
 
     private void loadSession() {
+        PrefManager pref = new PrefManager(this);
         companyKey = pref.getCompanyKey();
         employeeMobile = pref.getEmployeeMobile();
 
         if (TextUtils.isEmpty(companyKey) || TextUtils.isEmpty(employeeMobile)) {
             Toast.makeText(this, "⚠️ Please login again", Toast.LENGTH_LONG).show();
+            startActivity(new Intent(this, LoginActivity.class));
             finish();
-            return;
         }
     }
 
     private void loadAllWorks() {
+        showLoading(true);
+
         DatabaseReference worksRef = FirebaseDatabase.getInstance()
                 .getReference("Companies")
                 .child(companyKey)
@@ -95,79 +167,242 @@ public class EmployeeAllWorksActivity extends AppCompatActivity {
         worksRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                allWorks.clear();
+                allWorksList.clear();
 
-                // Last 30 days only
+                if (!snapshot.exists()) {
+                    showLoading(false);
+                    showEmptyState(true, "No work records found.\nStart by adding today's work!");
+                    return;
+                }
+
+                // Get ALL available dates data
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-                Calendar cal = Calendar.getInstance();
-                cal.add(Calendar.DAY_OF_YEAR, -30);
-                Date thirtyDaysAgo = cal.getTime();
 
                 for (DataSnapshot dateSnapshot : snapshot.getChildren()) {
                     String date = dateSnapshot.getKey();
+
                     try {
                         Date workDate = sdf.parse(date);
-                        if (workDate != null && workDate.after(thirtyDaysAgo)) {
-                            for (DataSnapshot mobileSnapshot : dateSnapshot.getChildren()) {
-                                if (mobileSnapshot.getKey().equals(employeeMobile)) {
-                                    WorkSummary work = mobileSnapshot.getValue(WorkSummary.class);
-                                    if (work != null) {
-                                        work.setWorkDate(date); // Add date to model
-                                        allWorks.add(work);
-                                    }
-                                }
+                        if (workDate != null) {
+                            DataSnapshot empSnapshot = dateSnapshot.child(employeeMobile);
+                            if (empSnapshot.exists()) {
+                                WorkSummary work = new WorkSummary();
+                                work.workDate = date;
+                                work.employeeName = empSnapshot.child("employeeName").getValue(String.class);
+                                work.completedWork = empSnapshot.child("completedWork").getValue(String.class);
+                                work.ongoingWork = empSnapshot.child("ongoingWork").getValue(String.class);
+                                work.tomorrowWork = empSnapshot.child("tomorrowWork").getValue(String.class);
+
+                                Long timestamp = empSnapshot.child("submittedAt").getValue(Long.class);
+                                work.submittedAt = (timestamp != null) ? timestamp : 0L;
+
+                                allWorksList.add(work);
                             }
                         }
-                    } catch (Exception e) {}
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
                 }
 
-                Collections.reverse(allWorks); // Recent first
-                adapter.updateWorks(allWorks); // Show all works
-                updateNavigation();
+                // Sort by date (OLDEST FIRST for natural left-to-right navigation)
+                // Index 0 = oldest, Index max = newest (today)
+                Collections.sort(allWorksList, (w1, w2) -> w1.workDate.compareTo(w2.workDate));
+
+                showLoading(false);
+
+                if (allWorksList.isEmpty()) {
+                    showEmptyState(true, "No work records found.\nStart by adding today's work!");
+                } else {
+                    showEmptyState(false, null);
+                    pagerAdapter.updateWorks(allWorksList);
+
+                    // Auto navigate to today's report if exists
+                    navigateToTodayReport();
+                    updateNavigationButtons();
+                    updatePageIndicator();
+                }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(EmployeeAllWorksActivity.this, "Failed to load works", Toast.LENGTH_SHORT).show();
+                showLoading(false);
+                Toast.makeText(EmployeeAllWorksActivity.this,
+                        "❌ Failed to load: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void updateNavigation() {
-        int itemsPerPage = 5;
-        int totalPages = (int) Math.ceil(allWorks.size() * 1.0 / itemsPerPage);
+    private void navigateToTodayReport() {
+        if (viewPager == null) return;
 
-        btnPrev.setEnabled(currentPage > 0);
-        btnNext.setEnabled(currentPage < totalPages - 1);
-
-        toolbar.setSubtitle("Page " + (currentPage + 1) + "/" + totalPages + " (" + allWorks.size() + ")");
-    }
-
-    private void prevPage() {
-        if (currentPage > 0) {
-            currentPage--;
-            showCurrentPage();
+        for (int i = 0; i < allWorksList.size(); i++) {
+            if (allWorksList.get(i).workDate.equals(todayDate)) {
+                viewPager.setCurrentItem(i, false);
+                currentPosition = i;
+                break;
+            }
         }
     }
 
-    private void nextPage() {
-        int itemsPerPage = 5;
-        int totalPages = (int) Math.ceil(allWorks.size() * 1.0 / itemsPerPage);
-        if (currentPage < totalPages - 1) {
-            currentPage++;
-            showCurrentPage();
+    // PREV button = go to OLDER date (decrease index, swipe left)
+    private void navigateToPreviousDate() {
+        if (viewPager != null && currentPosition > 0) {
+            viewPager.setCurrentItem(currentPosition - 1, true);
         }
     }
 
-    private void showCurrentPage() {
-        int itemsPerPage = 5;
-        int start = currentPage * itemsPerPage;
-        int end = Math.min(start + itemsPerPage, allWorks.size());
+    // NEXT button = go to NEWER date (increase index, swipe right)
+    private void navigateToNextDate() {
+        if (viewPager != null && currentPosition < allWorksList.size() - 1) {
+            viewPager.setCurrentItem(currentPosition + 1, true);
+        }
+    }
 
-        List<WorkSummary> pageWorks = allWorks.subList(start, end);
-        adapter.updateWorks(new ArrayList<>(pageWorks));
-        updateNavigation();
-        rvAllWorks.scrollToPosition(0);
+    private void updateNavigationButtons() {
+        // PREV button enabled if we can go to older dates (index > 0)
+        if (btnPrevDate != null) {
+            btnPrevDate.setEnabled(currentPosition > 0);
+            btnPrevDate.setAlpha(btnPrevDate.isEnabled() ? 1.0f : 0.5f);
+        }
+
+        // NEXT button enabled if we can go to newer dates (index < max)
+        if (btnNextDate != null) {
+            btnNextDate.setEnabled(currentPosition < allWorksList.size() - 1);
+            btnNextDate.setAlpha(btnNextDate.isEnabled() ? 1.0f : 0.5f);
+        }
+    }
+
+    private void updatePageIndicator() {
+        if (tvPageIndicator == null) return;
+
+        if (!allWorksList.isEmpty() && currentPosition < allWorksList.size()) {
+            WorkSummary currentWork = allWorksList.get(currentPosition);
+            String dateStr = formatDate(currentWork.workDate);
+
+            String indicator = String.format(Locale.getDefault(),
+                    "%s (%d/%d)", dateStr, currentPosition + 1, allWorksList.size());
+
+            tvPageIndicator.setText(indicator);
+
+            // Show TODAY badge
+            if (currentWork.workDate.equals(todayDate)) {
+                tvPageIndicator.setText("📌 TODAY - " + indicator);
+            }
+        }
+    }
+
+    private void showDatePicker() {
+        if (allWorksList.isEmpty()) {
+            Toast.makeText(this, "No work records available", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Calendar calendar = Calendar.getInstance();
+
+        DatePickerDialog datePickerDialog = new DatePickerDialog(
+                this,
+                (view, year, month, dayOfMonth) -> {
+                    calendar.set(year, month, dayOfMonth);
+                    String selectedDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                            .format(calendar.getTime());
+
+                    // Find and navigate to selected date
+                    for (int i = 0; i < allWorksList.size(); i++) {
+                        if (allWorksList.get(i).workDate.equals(selectedDate)) {
+                            viewPager.setCurrentItem(i, true);
+                            return;
+                        }
+                    }
+
+                    Toast.makeText(this, "No work report found for " + formatDate(selectedDate),
+                            Toast.LENGTH_SHORT).show();
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+        );
+
+        // Set max date to today
+        datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+
+        // Set min date to earliest work date in database (now at index 0)
+        if (!allWorksList.isEmpty()) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                Date earliestDate = sdf.parse(allWorksList.get(0).workDate);
+                if (earliestDate != null) {
+                    datePickerDialog.getDatePicker().setMinDate(earliestDate.getTime());
+                }
+            } catch (Exception e) {
+                // If parsing fails, no min date restriction
+            }
+        }
+
+        datePickerDialog.show();
+    }
+
+    private String formatDate(String date) {
+        try {
+            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            SimpleDateFormat outputFormat = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
+            Date d = inputFormat.parse(date);
+            return outputFormat.format(d);
+        } catch (Exception e) {
+            return date;
+        }
+    }
+
+    private void openEditWork(WorkSummary work) {
+        if (work.workDate == null) {
+            Toast.makeText(this, "Invalid work date", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (!work.workDate.equals(todayDate)) {
+            Toast.makeText(this, "✏️ You can only edit today's work", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Intent intent = new Intent(this, EmployeeTodayWorkActivity.class);
+        intent.putExtra("editMode", true);
+        intent.putExtra("workData", work);
+        startActivity(intent);
+    }
+
+    private void showLoading(boolean show) {
+        if (progressBar != null) {
+            progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
+        if (viewPager != null) {
+            viewPager.setVisibility(show ? View.GONE : View.VISIBLE);
+        }
+        View navLayout = findViewById(R.id.navigationLayout);
+        if (navLayout != null) {
+            navLayout.setVisibility(show ? View.GONE : View.VISIBLE);
+        }
+    }
+
+    private void showEmptyState(boolean show, String message) {
+        if (emptyState != null) {
+            emptyState.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
+        if (viewPager != null) {
+            viewPager.setVisibility(show ? View.GONE : View.VISIBLE);
+        }
+        View navLayout = findViewById(R.id.navigationLayout);
+        if (navLayout != null) {
+            navLayout.setVisibility(show ? View.GONE : View.VISIBLE);
+        }
+
+        if (show && message != null && tvEmptyMessage != null) {
+            tvEmptyMessage.setText(message);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadAllWorks();
     }
 
     @Override
