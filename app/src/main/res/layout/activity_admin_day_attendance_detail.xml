@@ -27,9 +27,11 @@
     <!-- Main Content -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
+        android:background="@color/white"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        android:fillViewport="true">
+        android:fillViewport="true"
+        android:paddingBottom="70dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -219,6 +221,7 @@
                             android:layout_marginStart="5dp"/>
                     </LinearLayout>
 
+                    <!-- Header -->
                     <TextView
                         android:text=" LATE STATUS"
                         android:textSize="12sp"
@@ -227,8 +230,7 @@
                         android:letterSpacing="0.05"
                         android:layout_marginBottom="10dp"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-                    <LinearLayout
+                        android:layout_height="wrap_content"/>                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
@@ -271,7 +273,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="12dp"
-                android:layout_marginBottom="10dp"
+                android:layout_marginBottom="20dp"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="2dp"
                 app:strokeWidth="0dp">
@@ -510,50 +512,52 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Action Buttons -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingHorizontal="12dp"
-                android:layout_marginTop="30dp"
-                android:layout_gravity="bottom"
-                android:paddingTop="4dp"
-                android:weightSum="2">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnSave"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="48dp"
-                    android:text="Save Changes"
-                    android:textSize="14sp"
-                    android:textAllCaps="false"
-                    android:textStyle="bold"
-                    app:cornerRadius="10dp"
-                    app:iconGravity="textStart"
-                    android:backgroundTint="#1976D2"
-                    app:elevation="2dp"
-                    android:layout_marginEnd="5dp"/>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnDelete"
-                    android:layout_width="0dp"
-                    android:layout_weight="1"
-                    android:layout_height="48dp"
-                    android:text="Delete"
-                    android:textSize="14sp"
-                    android:textAllCaps="false"
-                    android:textStyle="bold"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
-                    app:cornerRadius="10dp"
-                    app:iconGravity="textStart"
-                    app:strokeColor="#E53935"
-                    app:strokeWidth="1dp"
-                    android:textColor="#E53935"
-                    app:iconTint="#E53935"
-                    android:layout_marginStart="5dp"/>
-            </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <!-- Action Buttons at Bottom -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:background="@color/white"
+        android:paddingVertical="12dp"
+        android:layout_gravity="bottom"
+        android:weightSum="2"
+        android:elevation="8dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSave"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="48dp"
+            android:text="Save Changes"
+            android:textSize="14sp"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            app:cornerRadius="10dp"
+            app:iconGravity="textStart"
+            android:backgroundTint="#1976D2"
+            app:elevation="2dp"
+            android:layout_marginEnd="5dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDelete"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="48dp"
+            android:text="Delete"
+            android:textSize="14sp"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            app:cornerRadius="10dp"
+            app:iconGravity="textStart"
+            app:strokeColor="#E53935"
+            app:strokeWidth="1dp"
+            android:textColor="#E53935"
+            app:iconTint="#E53935"
+            android:layout_marginStart="5dp"/>
+    </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
