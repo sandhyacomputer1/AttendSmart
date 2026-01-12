@@ -398,313 +398,419 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="📊 This Month Performance"
+                android:text=" This Month Performance"
                 android:textColor="#263238"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="10dp"
                 android:layout_marginBottom="14dp"
                 android:layout_marginStart="4dp" />
 
             <!-- Statistics Row 1: Present + Late -->
+            <!-- Statistics Row 1: Present + Late - COMPACT -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="10dp">
 
-                <!-- Present Days Card -->
+                <!-- Present Days Card - COMPACT -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginEnd="6dp"
-                    app:cardBackgroundColor="@color/stat_present_bg"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="0dp">
+                    android:layout_marginEnd="5dp"
+                    app:cardBackgroundColor="#D6F8D8"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#A4F4A7"
+                    app:strokeWidth="1dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="18dp">
+                        android:padding="14dp">
 
+                        <!-- Icon and Value Row -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:layout_marginBottom="10dp">
+                            android:layout_marginBottom="8dp">
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="✓"
-                                android:textSize="20sp"
-                                android:textColor="@color/stat_present_primary"
-                                android:textStyle="bold"
-                                android:layout_marginEnd="8dp" />
+                            <!-- Icon Container -->
+                            <LinearLayout
+                                android:layout_width="34dp"
+                                android:layout_height="34dp"
+                                android:gravity="center"
+                                android:layout_marginEnd="10dp">
 
-                            <TextView
-                                android:id="@+id/tvMonthPresent"
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="✓"
+                                    android:textSize="16sp"
+                                    android:textColor="#27AB2D"
+                                    android:textStyle="bold" />
+                            </LinearLayout>
+
+                            <!-- Value and Label -->
+                            <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="0"
-                                android:textSize="32sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/stat_present_primary" />
+                                android:orientation="vertical">
 
+                                <TextView
+                                    android:id="@+id/tvMonthPresent"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="0"
+                                    android:textSize="24sp"
+                                    android:textStyle="bold"
+                                    android:textColor="#263238" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Present Days"
+                                    android:textSize="11sp"
+                                    android:textColor="#90A4AE" />
+                            </LinearLayout>
+
+                            <!-- Days Indicator -->
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="days"
-                                android:textSize="11sp"
-                                android:textColor="#757575" />
+                                android:textSize="9sp"
+                                android:textColor="#ADB5BD"
+                                android:background="#F1F3F5"
+                                android:paddingHorizontal="6dp"
+                                android:paddingVertical="2dp"
+                                app:cornerRadius="10dp" />
                         </LinearLayout>
 
+                        <!-- Progress Bar -->
                         <ProgressBar
                             android:id="@+id/progressPresent"
                             style="?android:attr/progressBarStyleHorizontal"
                             android:layout_width="match_parent"
-                            android:layout_height="6dp"
-                            android:layout_marginBottom="8dp"
+                            android:layout_height="4dp"
+                            android:layout_marginTop="4dp"
                             android:progress="0"
                             android:max="31"
                             android:progressDrawable="@drawable/progress_rounded"
-                            android:progressTint="@color/stat_present_progress"
-                            android:progressBackgroundTint="@color/progress_track" />
+                            android:progressTint="#27AB2D"
+                            android:progressBackgroundTint="#E9ECEF" />
 
+                        <!-- Progress Percentage -->
                         <TextView
+                            android:id="@+id/tvPresentPercent"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Present Days"
-                            android:textSize="12sp"
-                            android:textColor="#616161"
-                            android:textStyle="bold" />
+                            android:text="0%"
+                            android:textSize="10sp"
+                            android:textColor="#27AB2D"
+                            android:layout_marginTop="6dp"
+                            android:visibility="gone" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Late Days Card -->
+                <!-- Late Days Card - COMPACT -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginStart="6dp"
-                    app:cardBackgroundColor="@color/stat_late_bg"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="0dp">
+                    android:layout_marginStart="5dp"
+                    app:cardBackgroundColor="#FBFBD1"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#F4DD9B"
+                    app:strokeWidth="1dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="18dp">
+                        android:padding="14dp">
 
+                        <!-- Icon and Value Row -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:layout_marginBottom="10dp">
+                            android:layout_marginBottom="8dp">
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="⏰"
-                                android:textSize="20sp"
-                                android:layout_marginEnd="8dp" />
+                            <!-- Icon Container -->
+                            <LinearLayout
+                                android:layout_width="34dp"
+                                android:layout_height="34dp"
+                                android:gravity="center"
+                                android:layout_marginEnd="10dp">
 
-                            <TextView
-                                android:id="@+id/tvMonthLate"
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="⏰"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
+
+                            <!-- Value and Label -->
+                            <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="0"
-                                android:textSize="32sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/stat_late_primary" />
+                                android:orientation="vertical">
 
+                                <TextView
+                                    android:id="@+id/tvMonthLate"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="0"
+                                    android:textSize="24sp"
+                                    android:textStyle="bold"
+                                    android:textColor="#263238" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Late Days"
+                                    android:textSize="11sp"
+                                    android:textColor="#90A4AE" />
+                            </LinearLayout>
+
+                            <!-- Days Indicator -->
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="days"
-                                android:textSize="11sp"
-                                android:textColor="#757575" />
+                                android:textSize="9sp"
+                                android:textColor="#ADB5BD"
+                                android:background="#F1F3F5"
+                                android:paddingHorizontal="6dp"
+                                android:paddingVertical="2dp"
+                                app:cornerRadius="10dp" />
                         </LinearLayout>
 
+                        <!-- Progress Bar -->
                         <ProgressBar
                             android:id="@+id/progressLate"
                             style="?android:attr/progressBarStyleHorizontal"
                             android:layout_width="match_parent"
-                            android:layout_height="6dp"
-                            android:layout_marginBottom="8dp"
+                            android:layout_height="4dp"
+                            android:layout_marginTop="4dp"
                             android:progress="0"
                             android:max="31"
                             android:progressDrawable="@drawable/progress_rounded"
-                            android:progressTint="@color/stat_late_progress"
-                            android:progressBackgroundTint="@color/progress_track" />
+                            android:progressTint="#FF9800"
+                            android:progressBackgroundTint="#E9ECEF" />
 
+                        <!-- Progress Percentage -->
                         <TextView
+                            android:id="@+id/tvLatePercent"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Late Days"
-                            android:textSize="12sp"
-                            android:textColor="#616161"
-                            android:textStyle="bold" />
+                            android:text="0%"
+                            android:textSize="10sp"
+                            android:textColor="#FF9800"
+                            android:layout_marginTop="6dp"
+                            android:visibility="gone" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
-
             <!-- Statistics Row 2: Avg Hours + On-time % -->
+            <!-- Statistics Row 2: Avg Hours + On-time % - COMPACT -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="20dp">
+                android:layout_marginBottom="16dp">
 
-                <!-- Average Hours Card -->
+                <!-- Average Hours Card - COMPACT -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginEnd="6dp"
-                    app:cardBackgroundColor="@color/stat_hours_bg"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="0dp">
+                    android:layout_marginEnd="5dp"
+                    app:cardBackgroundColor="#D4E5FB"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#ABCFF4"
+                    app:strokeWidth="1dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="18dp">
+                        android:padding="14dp">
 
+                        <!-- Icon and Value Row -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:layout_marginBottom="10dp">
+                            android:layout_marginBottom="8dp">
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="⏱"
-                                android:textSize="20sp"
-                                android:layout_marginEnd="8dp" />
+                            <!-- Icon Container -->
+                            <LinearLayout
+                                android:layout_width="34dp"
+                                android:layout_height="34dp"
+                                android:gravity="center"
+                                android:layout_marginEnd="10dp">
 
-                            <TextView
-                                android:id="@+id/tvAvgWorkHours"
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="⏱"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
+
+                            <!-- Value and Label -->
+                            <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="0.0"
-                                android:textSize="32sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/stat_hours_primary" />
+                                android:orientation="vertical">
 
+                                <TextView
+                                    android:id="@+id/tvAvgWorkHours"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="0.0"
+                                    android:textSize="24sp"
+                                    android:textStyle="bold"
+                                    android:textColor="#263238" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Avg Hours"
+                                    android:textSize="11sp"
+                                    android:textColor="#90A4AE" />
+                            </LinearLayout>
+
+                            <!-- Hours Indicator -->
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="hrs"
-                                android:textSize="11sp"
-                                android:textColor="#757575" />
+                                android:textSize="9sp"
+                                android:textColor="#ADB5BD"
+                                android:background="#F1F3F5"
+                                android:paddingHorizontal="6dp"
+                                android:paddingVertical="2dp"
+                                app:cornerRadius="10dp" />
                         </LinearLayout>
 
+                        <!-- Progress Bar -->
                         <ProgressBar
                             android:id="@+id/progressAvgHours"
                             style="?android:attr/progressBarStyleHorizontal"
                             android:layout_width="match_parent"
-                            android:layout_height="6dp"
-                            android:layout_marginBottom="8dp"
+                            android:layout_height="4dp"
+                            android:layout_marginTop="4dp"
                             android:progress="0"
                             android:max="9"
                             android:progressDrawable="@drawable/progress_rounded"
-                            android:progressTint="@color/stat_hours_progress"
-                            android:progressBackgroundTint="@color/progress_track" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Avg Work Hours"
-                            android:textSize="12sp"
-                            android:textColor="#616161"
-                            android:textStyle="bold" />
+                            android:progressTint="#2196F3"
+                            android:progressBackgroundTint="#E9ECEF" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- On-time Percentage Card -->
+                <!-- On-time Percentage Card - COMPACT -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginStart="6dp"
-                    app:cardBackgroundColor="@color/stat_percent_bg"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="0dp">
+                    android:layout_marginStart="5dp"
+                    app:cardBackgroundColor="#E4D9F6"
+                    app:cardCornerRadius="14dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="#CAB1F8"
+                    app:strokeWidth="1dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="18dp">
+                        android:padding="14dp">
 
+                        <!-- Icon and Value Row -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:layout_marginBottom="10dp">
+                            android:layout_marginBottom="8dp">
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="⭐"
-                                android:textSize="20sp"
-                                android:layout_marginEnd="8dp" />
+                            <!-- Icon Container -->
+                            <LinearLayout
+                                android:layout_width="34dp"
+                                android:layout_height="34dp"
+                                android:gravity="center"
+                                android:layout_marginEnd="10dp">
 
-                            <TextView
-                                android:id="@+id/tvOnTimePercent"
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="⭐"
+                                    android:textSize="16sp" />
+                            </LinearLayout>
+
+                            <!-- Value and Label -->
+                            <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="0"
-                                android:textSize="32sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/stat_percent_primary" />
+                                android:orientation="vertical">
 
+                                <TextView
+                                    android:id="@+id/tvOnTimePercent"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="0"
+                                    android:textSize="24sp"
+                                    android:textStyle="bold"
+                                    android:textColor="#263238" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="On-time Rate"
+                                    android:textSize="11sp"
+                                    android:textColor="#90A4AE" />
+                            </LinearLayout>
+
+                            <!-- Percent Indicator -->
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="%"
-                                android:textSize="18sp"
-                                android:textColor="@color/stat_percent_primary"
+                                android:textSize="13sp"
+                                android:textColor="#6C757D"
                                 android:textStyle="bold" />
                         </LinearLayout>
 
+                        <!-- Progress Bar -->
                         <ProgressBar
                             android:id="@+id/progressOnTime"
                             style="?android:attr/progressBarStyleHorizontal"
                             android:layout_width="match_parent"
-                            android:layout_height="6dp"
-                            android:layout_marginBottom="8dp"
+                            android:layout_height="4dp"
+                            android:layout_marginTop="4dp"
                             android:progress="0"
                             android:max="100"
                             android:progressDrawable="@drawable/progress_rounded"
-                            android:progressTint="@color/stat_percent_progress"
-                            android:progressBackgroundTint="@color/progress_track" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="On-time Rate"
-                            android:textSize="12sp"
-                            android:textColor="#616161"
-                            android:textStyle="bold" />
+                            android:progressTint="#9C27B0"
+                            android:progressBackgroundTint="#E9ECEF" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
-
             <!-- Quick Stats Row -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -913,6 +1019,8 @@
                         app:cardCornerRadius="16dp"
                         app:cardElevation="2dp"
                         app:cardBackgroundColor="#FBFBF1"
+                        app:strokeColor="#F2E2CB"
+                        app:strokeWidth="1dp"
                         android:clickable="true"
                         android:focusable="true"
                         android:foreground="?attr/selectableItemBackground">
@@ -968,6 +1076,8 @@
                         app:cardCornerRadius="16dp"
                         app:cardElevation="2dp"
                         android:clickable="true"
+                        app:strokeColor="#DBCBF8"
+                        app:strokeWidth="1dp"
                         android:focusable="true"
                         android:foreground="?attr/selectableItemBackground">
 
