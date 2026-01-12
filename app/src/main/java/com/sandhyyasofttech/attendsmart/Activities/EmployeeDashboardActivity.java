@@ -315,7 +315,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
     }
 
     private void loadMonthlyAttendance() {
-
         if (employeeMobile == null) {
             Log.e("STATS_ERROR", "employeeMobile is NULL!");
             return;
@@ -326,10 +325,9 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         String currentMonth = new SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(new Date());
         Log.d("STATS_DEBUG", "Current month: " + currentMonth);
 
-        if (employeeMobile == null) return;
-
         Calendar cal = Calendar.getInstance();
         int daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+        Log.d("STATS_DEBUG", "Days in month: " + daysInMonth);
 
         attendanceRef.orderByKey().startAt(currentMonth + "-01").endAt(currentMonth + "-31")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
@@ -340,84 +338,164 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                         int onTimeCount = 0;
                         long totalMinutes = 0;
                         int daysWithHours = 0;
+                        int totalWorkDays = 0;
+
+                        Log.d("STATS_DEBUG", "Total date snapshots: " + snapshot.getChildrenCount());
 
                         for (DataSnapshot dateSnapshot : snapshot.getChildren()) {
                             DataSnapshot empData = dateSnapshot.child(employeeMobile);
                             if (empData.exists()) {
-                                String status = empData.child("status").getValue(String.class);
+                                String finalStatus = empData.child("finalStatus").getValue(String.class);
                                 String lateStatus = empData.child("lateStatus").getValue(String.class);
+                                String checkInTime = empData.child("checkInTime").getValue(String.class);
+                                String status = empData.child("status").getValue(String.class);
                                 Long minutes = empData.child("totalMinutes").getValue(Long.class);
-                                // ✨ ADD THIS DEBUG LOG
-                                Log.d("STATS_DEBUG", "Date: " + dateSnapshot.getKey() +
-                                        ", Status: " + status +
-                                        ", LateStatus: " + lateStatus +
-                                        ", Minutes: " + minutes);
-                                // Count Present days
-                                // Count Present days
-                                if (status != null && (status.contains("Present") || status.contains("Late"))) {
-                                    presentCount++;
 
-                                    // ✨ FIXED: Check status field for (Late) suffix
-                                    // This works even if lateStatus is wrong in old data
-                                    if (status.contains("(Late)")) {
+                                Log.d("STATS_DEBUG", "Date: " + dateSnapshot.getKey() +
+                                        ", CheckInTime: " + checkInTime +
+                                        ", FinalStatus: " + finalStatus +
+                                        ", LateStatus: " + lateStatus +
+                                        ", Status: " + status +
+                                        ", Minutes: " + minutes);
+
+                                // Count Present days - use finalStatus as primary, fallback to status
+                                String effectiveStatus = (finalStatus != null) ? finalStatus : status;
+
+                                if (effectiveStatus != null &&
+                                        (effectiveStatus.equalsIgnoreCase("Present") ||
+                                                effectiveStatus.equalsIgnoreCase("Half Day"))) {
+
+                                    presentCount++;
+                                    totalWorkDays++;
+
+                                    // Determine if late - check both lateStatus and status suffix
+                                    boolean isLate = false;
+
+                                    // 1. Check lateStatus field first
+                                    if (lateStatus != null && lateStatus.equals("Late")) {
+                                        isLate = true;
+                                    }
+                                    // 2. Check if status field contains "(Late)" suffix
+                                    else if (status != null && status.contains("(Late)")) {
+                                        isLate = true;
+                                    }
+
+                                    if (isLate) {
                                         lateCount++;
                                     } else {
                                         onTimeCount++;
                                     }
+
+                                    Log.d("STATS_DEBUG", "Counted as: " + (isLate ? "Late" : "On-time"));
+                                } else {
+                                    Log.d("STATS_DEBUG", "Not counted as Present (effectiveStatus: " + effectiveStatus + ")");
                                 }
 
-                                // Sum work hours
+                                // Sum work hours - use totalMinutes if available, otherwise calculate
                                 if (minutes != null && minutes > 0) {
                                     totalMinutes += minutes;
                                     daysWithHours++;
+                                    Log.d("STATS_DEBUG", "Added minutes: " + minutes + ", Total now: " + totalMinutes);
+                                } else if (checkInTime != null && finalStatus != null &&
+                                        (finalStatus.equals("Present") || finalStatus.equals("Half Day"))) {
+                                    // Calculate minutes from shift if checkOutTime not available but marked present
+                                    // Estimate based on shift duration
+                                    if (finalStatus.equals("Present")) {
+                                        totalMinutes += shiftDurationMinutes;
+                                        daysWithHours++;
+                                        Log.d("STATS_DEBUG", "Estimated full shift minutes: " + shiftDurationMinutes);
+                                    } else if (finalStatus.equals("Half Day")) {
+                                        totalMinutes += (shiftDurationMinutes / 2); // Half of shift
+                                        daysWithHours++;
+                                        Log.d("STATS_DEBUG", "Estimated half shift minutes: " + (shiftDurationMinutes / 2));
+                                    }
                                 }
                             }
                         }
 
-                        // Update Present Days with animation
-                        tvMonthPresent.setText(String.valueOf(presentCount));
-                        animateProgress(progressPresent, presentCount, daysInMonth);
+                        Log.d("STATS_DEBUG", "Final counts - Present: " + presentCount +
+                                ", Late: " + lateCount +
+                                ", OnTime: " + onTimeCount +
+                                ", TotalMinutes: " + totalMinutes +
+                                ", DaysWithHours: " + daysWithHours);
 
-                        // Update Late Days with animation
-                        tvMonthLate.setText(String.valueOf(lateCount));
-                        animateProgress(progressLate, lateCount, daysInMonth);
+                        // Create final variables for use in runOnUiThread
+                        final int finalPresentCount = presentCount;
+                        final int finalLateCount = lateCount;
+                        final int finalOnTimeCount = onTimeCount;
+                        final long finalTotalMinutes = totalMinutes;
+                        final int finalDaysWithHours = daysWithHours;
+                        final int finalDaysInMonth = daysInMonth;
 
-                        // Update Average Hours
-                        if (daysWithHours > 0) {
-                            double avgHours = (double) totalMinutes / daysWithHours / 60.0;
-                            tvAvgWorkHours.setText(String.format(Locale.getDefault(), "%.1f", avgHours));
-                            animateProgress(progressAvgHours, (int) avgHours, 9); // Max 9 hours
-                        } else {
-                            tvAvgWorkHours.setText("0.0");
-                            progressAvgHours.setProgress(0);
-                        }
+                        // Update UI on main thread
+                        runOnUiThread(() -> {
+                            // Update Present Days
+                            tvMonthPresent.setText(String.valueOf(finalPresentCount));
+                            animateProgress(progressPresent, finalPresentCount, finalDaysInMonth);
 
-                        // Update On-time Percentage
-                        if (presentCount > 0) {
-                            int onTimePercent = (int) ((onTimeCount * 100.0) / presentCount);
-                            tvOnTimePercent.setText(String.valueOf(onTimePercent));
-                            animateProgress(progressOnTime, onTimePercent, 100);
-                        } else {
-                            tvOnTimePercent.setText("0");
-                            progressOnTime.setProgress(0);
-                        }
+                            // Update Late Days - max should be present count or 1 if no presents
+                            tvMonthLate.setText(String.valueOf(finalLateCount));
+                            int lateMax = finalPresentCount > 0 ? finalPresentCount : 1;
+                            animateProgress(progressLate, finalLateCount, lateMax);
+
+                            // Update Average Hours
+                            if (finalDaysWithHours > 0) {
+                                double avgHours = (double) finalTotalMinutes / finalDaysWithHours / 60.0;
+                                String avgText = String.format(Locale.getDefault(), "%.1f", avgHours);
+                                tvAvgWorkHours.setText(avgText);
+
+                                // Animate progress based on avg hours (max 9 hours)
+                                int progressValue = Math.min((int) (avgHours * 10), 90); // Convert to 0-90 scale
+                                animateProgress(progressAvgHours, progressValue, 90);
+                                Log.d("STATS_DEBUG", "Avg Hours: " + avgText + ", Progress: " + progressValue);
+                            } else {
+                                tvAvgWorkHours.setText("0.0");
+                                if (progressAvgHours != null) {
+                                    progressAvgHours.setProgress(0);
+                                }
+                            }
+
+                            // Update On-time Percentage
+                            if (finalPresentCount > 0) {
+                                int onTimePercent = (int) ((finalOnTimeCount * 100.0) / finalPresentCount);
+                                tvOnTimePercent.setText(String.valueOf(onTimePercent));
+                                animateProgress(progressOnTime, onTimePercent, 100);
+                                Log.d("STATS_DEBUG", "On-time %: " + onTimePercent + "% (" +
+                                        finalOnTimeCount + "/" + finalPresentCount + ")");
+                            } else {
+                                tvOnTimePercent.setText("0");
+                                if (progressOnTime != null) {
+                                    progressOnTime.setProgress(0);
+                                }
+                            }
+                        });
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-                        tvMonthPresent.setText("0");
-                        tvMonthLate.setText("0");
-                        tvAvgWorkHours.setText("0.0");
-                        tvOnTimePercent.setText("0");
+                        Log.e("STATS_ERROR", "Firebase error: " + error.getMessage());
+                        runOnUiThread(() -> {
+                            if (tvMonthPresent != null) tvMonthPresent.setText("0");
+                            if (tvMonthLate != null) tvMonthLate.setText("0");
+                            if (tvAvgWorkHours != null) tvAvgWorkHours.setText("0.0");
+                            if (tvOnTimePercent != null) tvOnTimePercent.setText("0");
+                            if (progressPresent != null) progressPresent.setProgress(0);
+                            if (progressLate != null) progressLate.setProgress(0);
+                            if (progressAvgHours != null) progressAvgHours.setProgress(0);
+                            if (progressOnTime != null) progressOnTime.setProgress(0);
+                        });
                     }
                 });
     }
-
-    /**
-     * Animate progress bar smoothly
-     */
     private void animateProgress(ProgressBar progressBar, int value, int max) {
+        if (progressBar == null) return;
+
         progressBar.setMax(max);
+
+        // Ensure value doesn't exceed max
+        if (value > max) {
+            value = max;
+        }
 
         android.animation.ObjectAnimator animation = android.animation.ObjectAnimator.ofInt(
                 progressBar, "progress", 0, value);
@@ -437,7 +515,8 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                         if (balance != null) {
                             tvLeaveBalance.setText(String.valueOf(balance));
                         } else {
-                            calculateLeaveBalance();
+                            // Fallback: calculate from attendance if leave balance not set
+                            calculateLeaveBalanceFromAttendance();
                         }
                     }
 
@@ -448,37 +527,40 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                 });
     }
 
-    private void calculateLeaveBalance() {
-        String currentYear = new SimpleDateFormat("yyyy", Locale.getDefault()).format(new Date());
+    private void calculateLeaveBalanceFromAttendance() {
+        String currentMonth = new SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(new Date());
 
-        DatabaseReference leavesRef = FirebaseDatabase.getInstance()
-                .getReference("Companies")
-                .child(companyKey)
-                .child("leaves");
-
-        leavesRef.orderByChild("employeeMobile").equalTo(employeeMobile)
+        attendanceRef.orderByKey().startAt(currentMonth + "-01").endAt(currentMonth + "-31")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        double totalLeavesTaken = 0;
+                        int absentCount = 0;
+                        int totalWorkingDays = 0;
+                        Calendar cal = Calendar.getInstance();
 
-                        for (DataSnapshot leaveSnap : snapshot.getChildren()) {
-                            String status = leaveSnap.child("status").getValue(String.class);
-                            String fromDate = leaveSnap.child("fromDate").getValue(String.class);
+                        // Count working days (excluding weekends - optional)
+                        // This is a simplified version, you might want to exclude holidays too
+                        for (DataSnapshot dateSnapshot : snapshot.getChildren()) {
+                            DataSnapshot empData = dateSnapshot.child(employeeMobile);
+                            if (empData.exists()) {
+                                String finalStatus = empData.child("finalStatus").getValue(String.class);
+                                String status = empData.child("status").getValue(String.class);
 
-                            if ("APPROVED".equals(status) && fromDate != null && fromDate.startsWith(currentYear)) {
-                                Double totalDays = leaveSnap.child("totalDays").getValue(Double.class);
-                                if (totalDays != null) {
-                                    totalLeavesTaken += totalDays;
-                                } else {
-                                    totalLeavesTaken += 1;
+                                String effectiveStatus = (finalStatus != null) ? finalStatus : status;
+
+                                if (effectiveStatus != null) {
+                                    totalWorkingDays++;
+                                    if (effectiveStatus.equalsIgnoreCase("Absent")) {
+                                        absentCount++;
+                                    }
                                 }
                             }
                         }
 
-                        int totalAnnualLeaves = 20;
-                        int remaining = Math.max(0, totalAnnualLeaves - (int) totalLeavesTaken);
-                        tvLeaveBalance.setText(String.valueOf(remaining));
+                        // Simple leave balance calculation: 1.75 days per month (21 days per year)
+                        int monthlyLeaveAllocation = 2; // Approximate
+                        int estimatedBalance = Math.max(0, monthlyLeaveAllocation - absentCount);
+                        tvLeaveBalance.setText(String.valueOf(estimatedBalance));
                     }
 
                     @Override
@@ -486,6 +568,14 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                         tvLeaveBalance.setText("0");
                     }
                 });
+    }
+
+    private void logAttendanceData(String date, DataSnapshot empData) {
+        Log.d("STATS_DEBUG", "=== Attendance Data for " + date + " ===");
+        for (DataSnapshot child : empData.getChildren()) {
+            Log.d("STATS_DEBUG", child.getKey() + " = " + child.getValue());
+        }
+        Log.d("STATS_DEBUG", "=================================");
     }
 
     private void getCurrentLocation() {
@@ -628,9 +718,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Calculate shift duration in minutes and set half-day threshold
-     */
     private void calculateShiftDuration(String startTime, String endTime) {
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("h:mm a", Locale.ENGLISH);
@@ -677,8 +764,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         } catch (Exception ignored) {}
         if (shiftStart == null) tvShift.setText("Not assigned");
     }
-
-    // 2. Update loadTodayAttendance() method
     private void loadTodayAttendance() {
         if (employeeMobile == null) return;
 
@@ -847,9 +932,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         openCamera("checkIn");
     }
 
-    /**
-     * Updated save attendance with proper status calculation
-     */    private void tryCheckOut() {
+    private void tryCheckOut() {
         if (!isInternetAvailable()) {
             toast("❌ No Internet");
             return;
@@ -1145,9 +1228,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
             }
         });
     }
-    /**
-     * Check if employee is late (more than 5 minutes after shift start)
-     */
+
     private boolean isLateCheckIn(String shiftStartTime, String checkInTime) {
         if (shiftStartTime == null || shiftStartTime.isEmpty()) {
             return false;
@@ -1173,12 +1254,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
             return false;
         }
     }
-    /**
-     * Calculate final status based on shift duration
-     * - Present: Worked at least half of shift
-     * - Half Day: Worked less than half of shift but more than 0
-     * - Absent: No work time (shouldn't happen in normal flow)
-     */
+
     private String calculateFinalStatus(long workedMinutes) {
         Log.d("STATUS_CALC", "========================================");
         Log.d("STATUS_CALC", "Worked Minutes: " + workedMinutes);
@@ -1209,9 +1285,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         return status;
     }
 
-    /**
-     * Calculate time difference in minutes between two times
-     */
     private long getDiffMinutes(String start, String end) {
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("h:mm a", Locale.ENGLISH);
