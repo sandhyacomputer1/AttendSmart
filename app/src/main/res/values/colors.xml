@@ -103,4 +103,22 @@
     <color name="chip_filter_bg_unchecked">#F5F5F5</color>
     <color name="chip_filter_bg" />
 
+    <color name="stat_present_bg">#E8F5E9</color>
+    <color name="stat_present_primary">#2E7D32</color>
+    <color name="stat_present_progress">#4CAF50</color>
+
+    <color name="stat_late_bg">#FFF3E0</color>
+    <color name="stat_late_primary">#E65100</color>
+    <color name="stat_late_progress">#FF9800</color>
+
+    <color name="stat_hours_bg">#E3F2FD</color>
+    <color name="stat_hours_primary">#1565C0</color>
+    <color name="stat_hours_progress">#2196F3</color>
+
+    <color name="stat_percent_bg">#F3E5F5</color>
+    <color name="stat_percent_primary">#6A1B9A</color>
+    <color name="stat_percent_progress">#9C27B0</color>
+
+    <color name="progress_track">#E0E0E0</color>
+
 </resources>

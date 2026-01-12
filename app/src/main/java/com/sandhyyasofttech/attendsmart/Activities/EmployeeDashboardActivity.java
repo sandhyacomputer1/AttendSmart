@@ -16,6 +16,7 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.net.ConnectivityManager;
@@ -98,6 +99,8 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
 
     private TextView tvMonthPresent, tvLeaveBalance;
     private ImageView btnMyLeaves;
+    private TextView tvMonthLate, tvAvgWorkHours, tvOnTimePercent;
+    private ProgressBar progressPresent, progressLate, progressAvgHours, progressOnTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -179,6 +182,14 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         cardCheckOut.setOnClickListener(v -> tryCheckOut());
         cardAttendanceReport.setOnClickListener(v -> openAttendanceReport());
         cardLogout.setOnClickListener(v -> showLogoutConfirmation());
+
+        tvMonthLate = findViewById(R.id.tvMonthLate);
+        tvAvgWorkHours = findViewById(R.id.tvAvgWorkHours);
+        tvOnTimePercent = findViewById(R.id.tvOnTimePercent);
+        progressPresent = findViewById(R.id.progressPresent);
+        progressLate = findViewById(R.id.progressLate);
+        progressAvgHours = findViewById(R.id.progressAvgHours);
+        progressOnTime = findViewById(R.id.progressOnTime);
 
         View btnMenu = findViewById(R.id.btnMenu);
         btnMenu.setOnClickListener(v -> {
@@ -304,34 +315,115 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
     }
 
     private void loadMonthlyAttendance() {
-        if (employeeMobile == null) return;
+
+        if (employeeMobile == null) {
+            Log.e("STATS_ERROR", "employeeMobile is NULL!");
+            return;
+        }
+
+        Log.d("STATS_DEBUG", "Loading stats for: " + employeeMobile);
 
         String currentMonth = new SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(new Date());
+        Log.d("STATS_DEBUG", "Current month: " + currentMonth);
+
+        if (employeeMobile == null) return;
+
+        Calendar cal = Calendar.getInstance();
+        int daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
 
         attendanceRef.orderByKey().startAt(currentMonth + "-01").endAt(currentMonth + "-31")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         int presentCount = 0;
+                        int lateCount = 0;
+                        int onTimeCount = 0;
+                        long totalMinutes = 0;
+                        int daysWithHours = 0;
 
                         for (DataSnapshot dateSnapshot : snapshot.getChildren()) {
                             DataSnapshot empData = dateSnapshot.child(employeeMobile);
                             if (empData.exists()) {
                                 String status = empData.child("status").getValue(String.class);
+                                String lateStatus = empData.child("lateStatus").getValue(String.class);
+                                Long minutes = empData.child("totalMinutes").getValue(Long.class);
+                                // ✨ ADD THIS DEBUG LOG
+                                Log.d("STATS_DEBUG", "Date: " + dateSnapshot.getKey() +
+                                        ", Status: " + status +
+                                        ", LateStatus: " + lateStatus +
+                                        ", Minutes: " + minutes);
+                                // Count Present days
+                                // Count Present days
                                 if (status != null && (status.contains("Present") || status.contains("Late"))) {
                                     presentCount++;
+
+                                    // ✨ FIXED: Check status field for (Late) suffix
+                                    // This works even if lateStatus is wrong in old data
+                                    if (status.contains("(Late)")) {
+                                        lateCount++;
+                                    } else {
+                                        onTimeCount++;
+                                    }
+                                }
+
+                                // Sum work hours
+                                if (minutes != null && minutes > 0) {
+                                    totalMinutes += minutes;
+                                    daysWithHours++;
                                 }
                             }
                         }
 
+                        // Update Present Days with animation
                         tvMonthPresent.setText(String.valueOf(presentCount));
+                        animateProgress(progressPresent, presentCount, daysInMonth);
+
+                        // Update Late Days with animation
+                        tvMonthLate.setText(String.valueOf(lateCount));
+                        animateProgress(progressLate, lateCount, daysInMonth);
+
+                        // Update Average Hours
+                        if (daysWithHours > 0) {
+                            double avgHours = (double) totalMinutes / daysWithHours / 60.0;
+                            tvAvgWorkHours.setText(String.format(Locale.getDefault(), "%.1f", avgHours));
+                            animateProgress(progressAvgHours, (int) avgHours, 9); // Max 9 hours
+                        } else {
+                            tvAvgWorkHours.setText("0.0");
+                            progressAvgHours.setProgress(0);
+                        }
+
+                        // Update On-time Percentage
+                        if (presentCount > 0) {
+                            int onTimePercent = (int) ((onTimeCount * 100.0) / presentCount);
+                            tvOnTimePercent.setText(String.valueOf(onTimePercent));
+                            animateProgress(progressOnTime, onTimePercent, 100);
+                        } else {
+                            tvOnTimePercent.setText("0");
+                            progressOnTime.setProgress(0);
+                        }
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
                         tvMonthPresent.setText("0");
+                        tvMonthLate.setText("0");
+                        tvAvgWorkHours.setText("0.0");
+                        tvOnTimePercent.setText("0");
                     }
                 });
+    }
+
+    /**
+     * Animate progress bar smoothly
+     */
+    private void animateProgress(ProgressBar progressBar, int value, int max) {
+        progressBar.setMax(max);
+
+        android.animation.ObjectAnimator animation = android.animation.ObjectAnimator.ofInt(
+                progressBar, "progress", 0, value);
+        animation.setDuration(1000); // 1 second animation
+        animation.setInterpolator(new android.view.animation.DecelerateInterpolator());
+        animation.start();
     }
 
     private void loadLeaveBalance() {
@@ -464,6 +556,8 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                         tvRole.setText(info.child("employeeRole").getValue(String.class));
 
                         loadCompanyName();
+                        loadMonthlyAttendance();
+
                         loadShiftFromEmployeeData(emp);
                         break;
                     }
@@ -966,6 +1060,8 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
 
                     node.child("checkInTime").setValue(time);
                     node.child("checkInPhoto").setValue(photoUrl);
+                    node.child("lateStatus").setValue(lateStatus);  // ← This line saves it correctly
+
                     node.child("lateStatus").setValue(lateStatus);
                     node.child("status").setValue(isLate ? "Present (Late)" : "Present");
                     node.child("finalStatus").setValue("Present");
