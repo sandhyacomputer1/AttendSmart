@@ -54,7 +54,7 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:background="@color/white"
-                    android:padding="14dp">
+                    android:padding="15dp">
 
                     <!-- Date Header -->
                     <LinearLayout
@@ -64,22 +64,21 @@
                         android:gravity="center_vertical">
 
                         <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
                             android:src="@drawable/ic_calendar"
                             app:tint="#1976D2"
                             android:contentDescription="Date"/>
 
                         <TextView
                             android:id="@+id/tvDate"
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
+                            android:layout_width="190dp"
                             android:layout_height="wrap_content"
                             android:text="January 3, 2026"
-                            android:textSize="16sp"
+                            android:textSize="14sp"
                             android:textStyle="bold"
                             android:textColor="#212121"
-                            android:layout_marginStart="8dp"/>
+                            android:layout_marginStart="5dp"/>
 
                         <!-- Shift Timing Badge -->
                         <LinearLayout
@@ -87,16 +86,11 @@
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
                             android:gravity="center_vertical"
-                            android:background="@drawable/bg_status_badge"
+                            android:background="@drawable/stats_bg_white"
                             android:paddingHorizontal="10dp"
                             android:paddingVertical="4dp">
 
-                            <ImageView
-                                android:layout_width="12dp"
-                                android:layout_height="12dp"
-                                android:src="@drawable/ic_time"
-                                app:tint="#FF9800"
-                                android:contentDescription="Shift"/>
+
 
                             <TextView
                                 android:id="@+id/tvShiftTiming"
@@ -116,15 +110,16 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:gravity="center_vertical"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="10dp"
                         android:background="@drawable/bg_status_badge"
-                        android:padding="10dp">
+                        android:padding="5dp">
 
                         <TextView
                             android:text="Total Working Hours"
                             android:textSize="12sp"
                             android:textColor="#757575"
                             android:layout_width="0dp"
+                            android:layout_marginStart="5dp"
                             android:layout_weight="1"
                             android:layout_height="wrap_content"/>
 
@@ -132,6 +127,8 @@
                             android:id="@+id/tvTotalHours"
                             android:text="0h 0m"
                             android:textSize="18sp"
+                            android:layout_marginStart="5dp"
+                            android:layout_marginEnd="5dp"
                             android:textStyle="bold"
                             android:textColor="#1976D2"
                             android:layout_width="wrap_content"

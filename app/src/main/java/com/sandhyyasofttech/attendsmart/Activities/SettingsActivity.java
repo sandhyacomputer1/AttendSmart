@@ -306,7 +306,7 @@ public class SettingsActivity extends AppCompatActivity {
                             AttendanceReminderHelper.scheduleCheckinReminder(SettingsActivity.this, startTime);
                             AttendanceReminderHelper.scheduleCheckoutReminder(SettingsActivity.this, endTime);
                             pref.setNotificationsEnabled(true);
-                            toast("✅ Check-in & Check-out reminders enabled");
+                            toast("Check-in & Check-out reminders enabled");
                         } else {
                             toast("Invalid shift times");
                             if (switchNotifications != null) {
@@ -443,7 +443,7 @@ public class SettingsActivity extends AppCompatActivity {
         // Cancel any scheduled notifications
         AttendanceReminderHelper.cancel(this);
 
-        toast("✅ Logged out successfully");
+        toast(" Logged out successfully");
 
         // Navigate to login screen
         Intent intent = new Intent(this, LoginActivity.class);
@@ -496,7 +496,7 @@ public class SettingsActivity extends AppCompatActivity {
                             prefs.edit().putString("profileImage", downloadUrl).apply();
                             saveProfileImageUrlToDatabase(downloadUrl);
                             progressDialog.dismiss();
-                            toast("✅ Profile updated!");
+                            toast(" Profile updated!");
                         }).addOnFailureListener(e -> {
                             progressDialog.dismiss();
                             toast("Image uploaded but URL failed");
