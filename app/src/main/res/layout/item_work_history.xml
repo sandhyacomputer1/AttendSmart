@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardView"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="6dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="@android:color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Date Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="#F8FAFC"
+            android:padding="10dp"
+            android:layout_marginBottom="14dp">
+
+            <TextView
+                android:id="@+id/tvDate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="📅 13 Jan 2026, Monday"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#1E293B" />
+
+            <TextView
+                android:id="@+id/tvSubmissionTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⏰ 10:30 AM"
+                android:textSize="12sp"
+                android:textColor="#64748B" />
+        </LinearLayout>
+
+        <!-- Completed Work Section -->
+        <LinearLayout
+            android:id="@+id/layoutCompleted"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✅ Completed Work"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#15803D"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:background="#F0FDF4" />
+
+            <TextView
+                android:id="@+id/tvCompletedWork"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Work description here"
+                android:textSize="13sp"
+                android:textColor="#475569"
+                android:layout_marginTop="8dp"
+                android:padding="10dp"
+                android:lineSpacingExtra="2dp" />
+        </LinearLayout>
+
+        <!-- Ongoing Work Section -->
+        <LinearLayout
+            android:id="@+id/layoutOngoing"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="12dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="🔄 Ongoing Work"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#B45309"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:background="#FEF3C7" />
+
+            <TextView
+                android:id="@+id/tvOngoingWork"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Work description here"
+                android:textSize="13sp"
+                android:textColor="#475569"
+                android:layout_marginTop="8dp"
+                android:padding="10dp"
+                android:lineSpacingExtra="2dp" />
+        </LinearLayout>
+
+        <!-- Tomorrow Work Section -->
+        <LinearLayout
+            android:id="@+id/layoutTomorrow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="📅 Tomorrow's Plan"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#1E40AF"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="4dp"
+                android:paddingBottom="4dp"
+                android:background="#DBEAFE" />
+
+            <TextView
+                android:id="@+id/tvTomorrowWork"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Work description here"
+                android:textSize="13sp"
+                android:textColor="#475569"
+                android:layout_marginTop="8dp"
+                android:padding="10dp"
+                android:lineSpacingExtra="2dp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

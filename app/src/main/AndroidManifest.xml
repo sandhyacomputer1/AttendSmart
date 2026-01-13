@@ -32,6 +32,9 @@
         android:theme="@style/Theme.AttendSmart"
         tools:targetApi="31">
         <activity
+            android:name=".Activities.EmployeeWorkHistoryActivity"
+            android:exported="false" />
+        <activity
             android:name=".Activities.WorkDetailActivity"
             android:exported="false" />
         <activity
@@ -41,7 +44,7 @@
             android:name=".Activities.EmployeeAllWorksActivity"
             android:exported="false" />
         <activity
-            android:name=".Activities.EmployeeMyWorksActivity"
+            android:name=".Activities.EmployeeWorkDetailActivity"
             android:exported="false" />
         <activity
             android:name=".Activities.AdminTodayWorkActivity"

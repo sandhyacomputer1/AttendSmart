@@ -1,147 +1,123 @@
 package com.sandhyyasofttech.attendsmart.Adapters;
 
-import android.content.Context;
-import android.content.Intent;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
+
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
-import com.google.android.material.button.MaterialButton;
-import com.sandhyyasofttech.attendsmart.Activities.EmployeeTodayWorkActivity;
-import com.sandhyyasofttech.attendsmart.Models.WorkSummary;
+
+import com.sandhyyasofttech.attendsmart.Models.WorkHistoryModel;
 import com.sandhyyasofttech.attendsmart.R;
-import com.sandhyyasofttech.attendsmart.Utils.PrefManager;
+
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 public class WorkHistoryAdapter extends RecyclerView.Adapter<WorkHistoryAdapter.ViewHolder> {
-    private List<WorkSummary> works = new ArrayList<>();
-    private Context context;
-    private String todayDate;
 
-    public WorkHistoryAdapter(Context context) {
-        this.context = context;
-        this.todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
-    }
+    private List<WorkHistoryModel> workList;
 
-    public void updateWorks(List<WorkSummary> works) {
-        this.works.clear();
-        if (works != null) {
-            this.works.addAll(works);
-        }
-        notifyDataSetChanged();
+    public WorkHistoryAdapter(List<WorkHistoryModel> workList) {
+        this.workList = workList;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_employee_work, parent, false);
+                .inflate(R.layout.item_work_history, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        WorkSummary work = works.get(position);
-        holder.bind(work);
+        WorkHistoryModel work = workList.get(position);
+
+        // Format and display date
+        try {
+            SimpleDateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            SimpleDateFormat outputFormat = new SimpleDateFormat("dd MMM yyyy, EEEE", Locale.getDefault());
+            Date date = inputFormat.parse(work.getWorkDate());
+            holder.tvDate.setText(" " + outputFormat.format(date));
+        } catch (Exception e) {
+            holder.tvDate.setText(" " + work.getWorkDate());
+        }
+
+        // Display submission time
+        if (work.getSubmittedAt() > 0) {
+            String time = new SimpleDateFormat("hh:mm a", Locale.getDefault())
+                    .format(new Date(work.getSubmittedAt()));
+            holder.tvSubmissionTime.setText("Submitted at: " + time);
+            holder.tvSubmissionTime.setVisibility(View.VISIBLE);
+        } else {
+            holder.tvSubmissionTime.setVisibility(View.GONE);
+        }
+
+        // Display completed work
+        if (!TextUtils.isEmpty(work.getCompletedWork())) {
+            holder.tvCompletedWork.setText(work.getCompletedWork());
+            holder.layoutCompleted.setVisibility(View.VISIBLE);
+        } else {
+            holder.layoutCompleted.setVisibility(View.GONE);
+        }
+
+        // Display ongoing work
+        if (!TextUtils.isEmpty(work.getOngoingWork())) {
+            holder.tvOngoingWork.setText(work.getOngoingWork());
+            holder.layoutOngoing.setVisibility(View.VISIBLE);
+        } else {
+            holder.layoutOngoing.setVisibility(View.GONE);
+        }
+
+        // Display tomorrow's work
+        if (!TextUtils.isEmpty(work.getTomorrowWork())) {
+            holder.tvTomorrowWork.setText(work.getTomorrowWork());
+            holder.layoutTomorrow.setVisibility(View.VISIBLE);
+        } else {
+            holder.layoutTomorrow.setVisibility(View.GONE);
+        }
+
+        // Check if this is today's date
+        String todayDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+        if (work.getWorkDate().equals(todayDate)) {
+            holder.tvDate.append(" • TODAY");
+            holder.cardView.setCardBackgroundColor(holder.itemView.getContext()
+                    .getResources().getColor(R.color.light_blue));
+        } else {
+            holder.cardView.setCardBackgroundColor(holder.itemView.getContext()
+                    .getResources().getColor(android.R.color.white));
+        }
     }
 
     @Override
     public int getItemCount() {
-        return works.size();
+        return workList.size();
     }
 
-    class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvDate, tvSummary, tvTime, tvEmployeeName, tvTasks, tvIssues;
-        MaterialButton btnEdit, btnDelete;
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        CardView cardView;
+        TextView tvDate, tvSubmissionTime;
+        View layoutCompleted, layoutOngoing, layoutTomorrow;
+        TextView tvCompletedWork, tvOngoingWork, tvTomorrowWork;
 
-        ViewHolder(@NonNull View itemView) {
+        public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            // 🔥 ALL VIEWS INITIALIZE केले
+            cardView = (CardView) itemView;
             tvDate = itemView.findViewById(R.id.tvDate);
-            tvSummary = itemView.findViewById(R.id.tvWorkSummary);
-            tvTime = itemView.findViewById(R.id.tvSubmittedTime);
-            tvEmployeeName = itemView.findViewById(R.id.tvEmployeeName);
-            tvTasks = itemView.findViewById(R.id.tvTasks);
-            tvIssues = itemView.findViewById(R.id.tvIssues);
-            btnEdit = itemView.findViewById(R.id.btnEdit);
-            btnDelete = itemView.findViewById(R.id.btnDelete);
-
-            // 🔥 CLICK LISTENERS
-            btnEdit.setOnClickListener(v -> {
-                int position = getAdapterPosition();
-                if (position != RecyclerView.NO_POSITION) {
-                    WorkSummary work = works.get(position);
-                    if (work.workDate != null && work.workDate.equals(todayDate)) {
-                        openEdit(work);
-                    } else {
-                        Toast.makeText(itemView.getContext(), "✏️ फक्त आजचाच edit होऊ शकतो", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            });
-
-            btnDelete.setOnClickListener(v -> {
-                int position = getAdapterPosition();
-                if (position != RecyclerView.NO_POSITION) {
-                    WorkSummary work = works.get(position);
-                    if (work.workDate != null && work.workDate.equals(todayDate)) {
-                        deleteWork(work);
-                    } else {
-                        Toast.makeText(itemView.getContext(), "🗑️ फक्त आजचाच delete होऊ शकतो", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            });
-        }
-
-        void bind(WorkSummary work) {
-            tvDate.setText(work.workDate);
-            tvSummary.setText(work.workSummary);
-            tvEmployeeName.setText(work.employeeName);
-            tvTasks.setText("Tasks: " + (work.tasks.isEmpty() ? "None" : work.tasks));
-            tvIssues.setText("Issues: " + (work.issues.isEmpty() ? "None" : work.issues));
-            tvTime.setText("Submitted: " + formatTime(work.submittedAt));
-
-            // Today highlight
-            if (work.workDate != null && work.workDate.equals(todayDate)) {
-                itemView.setBackgroundColor(context.getResources().getColor(android.R.color.holo_orange_light));
-            }
-        }
-
-        private void openEdit(WorkSummary work) {
-            Intent intent = new Intent(context, EmployeeTodayWorkActivity.class);
-            intent.putExtra("editMode", true);
-            intent.putExtra("workData", work);
-            context.startActivity(intent);
-        }
-
-        private void deleteWork(WorkSummary work) {
-            PrefManager pref = new PrefManager(context);
-            String companyKey = pref.getCompanyKey();
-            String employeeMobile = pref.getEmployeeMobile();
-
-            // Firebase delete
-            com.google.firebase.database.FirebaseDatabase.getInstance()
-                    .getReference("Companies")
-                    .child(companyKey)
-                    .child("dailyWork")
-                    .child(work.workDate)
-                    .child(employeeMobile)
-                    .removeValue()
-                    .addOnSuccessListener(aVoid -> {
-                        works.remove(work);
-                        notifyDataSetChanged();
-                        Toast.makeText(context, "✅ Work deleted!", Toast.LENGTH_SHORT).show();
-                    });
-        }
-
-        private String formatTime(long timestamp) {
-            return new SimpleDateFormat("hh:mm a", Locale.getDefault()).format(new Date(timestamp));
+            tvSubmissionTime = itemView.findViewById(R.id.tvSubmissionTime);
+            
+            layoutCompleted = itemView.findViewById(R.id.layoutCompleted);
+            layoutOngoing = itemView.findViewById(R.id.layoutOngoing);
+            layoutTomorrow = itemView.findViewById(R.id.layoutTomorrow);
+            
+            tvCompletedWork = itemView.findViewById(R.id.tvCompletedWork);
+            tvOngoingWork = itemView.findViewById(R.id.tvOngoingWork);
+            tvTomorrowWork = itemView.findViewById(R.id.tvTomorrowWork);
         }
     }
 }

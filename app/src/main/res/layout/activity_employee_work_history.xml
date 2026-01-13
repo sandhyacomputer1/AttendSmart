@@ -4,86 +4,68 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F7FA">
+    android:background="@color/background_color">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@drawable/gradient_header"
+        android:background="@color/colorPrimary"
         android:elevation="4dp"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
-    <!-- Stats Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="16dp"
         android:background="@android:color/white"
-        android:elevation="3dp">
+        android:elevation="2dp">
+
+        <TextView
+            android:id="@+id/tvEmployeeName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=" Employee's Work History"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/colorPrimary" />
 
         <TextView
             android:id="@+id/tvStats"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Total: 0 | Pending: 0 | Approved: 0 | Rejected: 0"
-            android:textSize="13sp"
-            android:textColor="#64748B"
-            android:textStyle="bold" />
+            android:layout_marginTop="8dp"
+            android:text="Total Reports: 0"
+            android:textSize="14sp"
+            android:textColor="@color/textSecondary"
+            android:visibility="gone" />
     </LinearLayout>
 
-    <!-- Tabs -->
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tabLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@android:color/white"
-        android:elevation="2dp"
-        app:tabMode="fixed"
-        app:tabGravity="fill"
-        app:tabIndicatorColor="#3B82F6"
-        app:tabIndicatorHeight="3dp"
-        app:tabSelectedTextColor="#3B82F6"
-        app:tabTextColor="#64748B" />
-
-    <!-- RecyclerView -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvLeaves"
+            android:id="@+id/rvHistory"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:padding="12dp"
+            android:padding="8dp"
             android:clipToPadding="false" />
 
-        <LinearLayout
+        <TextView
             android:id="@+id/tvEmpty"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:visibility="gone">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="📋"
-                android:textSize="64sp"
-                android:alpha="0.3" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="No leaves found"
-                android:textSize="16sp"
-                android:textColor="#94A3B8"
-                android:layout_marginTop="12dp" />
-        </LinearLayout>
+            android:text="No work history found"
+            android:textSize="16sp"
+            android:textColor="@color/textSecondary"
+            android:visibility="gone"
+            android:drawableTop="@drawable/ic_empty_state"
+            android:drawablePadding="16dp"
+            android:gravity="center" />
 
         <ProgressBar
             android:id="@+id/progressBar"

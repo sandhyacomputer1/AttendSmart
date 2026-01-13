@@ -49,10 +49,11 @@
                         android:layout_width="100dp"
                         android:layout_height="100dp"
                         android:src="@drawable/salarylogo"
+                        android:padding="4dp"
                         android:scaleType="centerCrop"
                         app:shapeAppearanceOverlay="@style/CircleImage"
-                        app:strokeColor="@color/colorPrimary"
-                        app:strokeWidth="2dp"/>
+                        app:strokeColor="@color/black"
+                        app:strokeWidth="0.5dp"/>
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -282,6 +283,7 @@
                 android:layout_height="wrap_content"
                 android:text="Security"
                 android:textSize="16sp"
+                android:visibility="gone"
                 android:textStyle="bold"
                 android:textColor="@color/colorPrimary"
                 android:layout_marginTop="16dp"
@@ -291,6 +293,7 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:visibility="gone"
                 android:layout_marginBottom="8dp"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 app:endIconMode="password_toggle"
@@ -300,6 +303,7 @@
                     android:id="@+id/etPassword"
                     android:inputType="textPassword"
                     android:layout_width="match_parent"
+                    android:visibility="gone"
                     android:layout_height="wrap_content"/>
             </com.google.android.material.textfield.TextInputLayout>
 

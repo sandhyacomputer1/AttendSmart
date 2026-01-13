@@ -121,4 +121,14 @@
 
     <color name="progress_track">#E0E0E0</color>
 
+
+    <!-- Background colors -->
+    <color name="background_color">#F5F5F5</color>
+    <color name="light_green">#E8F5E9</color>
+    <color name="light_orange">#FFF3E0</color>
+    <color name="light_blue">#E3F2FD</color>
+    <color name="light_red">#FFEBEE</color>
+
+
+
 </resources>

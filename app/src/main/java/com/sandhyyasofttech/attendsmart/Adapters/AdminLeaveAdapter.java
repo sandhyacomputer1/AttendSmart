@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -52,26 +53,40 @@ public class AdminLeaveAdapter extends RecyclerView.Adapter<AdminLeaveAdapter.VH
     public void onBindViewHolder(@NonNull VH h, int i) {
         LeaveModel m = list.get(i);
 
-        // ✅ NULL SAFE BINDING - NO CRASH!
+        // ✅ NULL SAFE BINDING
         safeSetText(h.tvName, m.employeeName);
         safeSetText(h.tvDates, m.fromDate + " → " + m.toDate);
         safeSetText(h.tvReason, m.reason);
         safeSetText(h.tvStatus, m.status);
 
-        boolean pending = "PENDING".equals(getSafeString(m.status));
-        h.btnApprove.setEnabled(pending);
-        h.btnReject.setEnabled(pending);
+        // ✅ HIDE BUTTONS FOR NON-PENDING LEAVES
+        boolean isPending = "PENDING".equals(getSafeString(m.status));
 
+        if (isPending) {
+            // Show buttons for pending leaves
+            h.btnApprove.setVisibility(View.VISIBLE);
+            h.btnReject.setVisibility(View.VISIBLE);
+            h.btnApprove.setEnabled(true);
+            h.btnReject.setEnabled(true);
+
+            // Green color for approve button
+            h.btnApprove.setBackgroundColor(context.getResources().getColor(android.R.color.holo_green_dark));
+        } else {
+            // ✅ HIDE BUTTONS for approved/rejected leaves
+            h.btnApprove.setVisibility(View.GONE);
+            h.btnReject.setVisibility(View.GONE);
+        }
+
+        // Set click listeners (only work when buttons are visible)
         h.btnApprove.setOnClickListener(v -> showApproveDialog(m));
         h.btnReject.setOnClickListener(v -> showRejectDialog(m.leaveId));
     }
 
-    // ✅ ADD THESE HELPER METHODS (Add after onBindViewHolder)
+    // ✅ HELPER METHODS
     private void safeSetText(TextView tv, String text) {
-        // 🔥 100% CRASH-PROOF - FIRST CHECK TV NULL
         if (tv == null) {
             android.util.Log.e("AdminLeaveAdapter", "⚠️ TextView is NULL - Skipping!");
-            return;  // EXIT IMMEDIATELY - NO CRASH
+            return;
         }
 
         if (text == null || text.trim().isEmpty()) {
@@ -81,13 +96,12 @@ public class AdminLeaveAdapter extends RecyclerView.Adapter<AdminLeaveAdapter.VH
         }
     }
 
-
     private String getSafeString(String value) {
         return value != null ? value : "";
     }
 
+    // ✅ APPROVE LOGIC
     private void showApproveDialog(LeaveModel m) {
-
         String companyKey = new PrefManager(context).getCompanyKey();
 
         DatabaseReference salaryRef = FirebaseDatabase.getInstance()
@@ -101,7 +115,6 @@ public class AdminLeaveAdapter extends RecyclerView.Adapter<AdminLeaveAdapter.VH
         salaryRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snap) {
-
                 int allowedPaidLeaves = 0;
 
                 if (snap.exists()) {
@@ -113,145 +126,117 @@ public class AdminLeaveAdapter extends RecyclerView.Adapter<AdminLeaveAdapter.VH
                     }
                 }
 
-
                 countUsedPaidLeaves(m, allowedPaidLeaves);
             }
 
-            @Override public void onCancelled(@NonNull DatabaseError e) {}
+            @Override
+            public void onCancelled(@NonNull DatabaseError e) {
+                Toast.makeText(context, "Error loading leave data", Toast.LENGTH_SHORT).show();
+            }
         });
     }
-//    private void countUsedPaidLeaves(LeaveModel m, int allowedPaidLeaves) {
-//
-//        Query q = leavesRef.orderByChild("employeeMobile")
-//                .equalTo(m.employeeMobile);
-//
-//        q.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snap) {
-//
-////                int usedPaidLeaves = 0;
-//                double usedPaidLeaves = 0;
-//
-//
-//                for (DataSnapshot d : snap.getChildren()) {
-//                    LeaveModel lm = d.getValue(LeaveModel.class);
-//
-//                    if (lm == null) continue;
-//
-//                    if ("APPROVED".equals(lm.status)
-//                            && Boolean.TRUE.equals(lm.isPaid)) {
-//
-//                        // TODO: month check later (can add)
-////                    usedPaidLeaves += lm.leaveType.equals("HALF_DAY") ? 0.5 : 1;
-//                          usedPaidLeaves += "HALF_DAY".equals(lm.leaveType) ? 0.5 : 1.0;
-//
-//                    }
-//                }
-//
-//                showDecisionDialog(m, allowedPaidLeaves, usedPaidLeaves);
-//            }
-//
-//            @Override public void onCancelled(@NonNull DatabaseError e) {}
-//        });
-//    }
-private void countUsedPaidLeaves(LeaveModel m, int allowedPaidLeaves) {
 
-    Query q = leavesRef.orderByChild("employeeMobile")
-            .equalTo(m.employeeMobile);
+    // ✅ COUNT USED PAID LEAVES (CURRENT MONTH ONLY)
+    private void countUsedPaidLeaves(LeaveModel m, int allowedPaidLeaves) {
+        Query q = leavesRef.orderByChild("employeeMobile")
+                .equalTo(m.employeeMobile);
 
-    q.addListenerForSingleValueEvent(new ValueEventListener() {
-        @Override
-        public void onDataChange(@NonNull DataSnapshot snap) {
+        q.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snap) {
+                double usedPaidLeaves = 0;
+                Calendar now = Calendar.getInstance();
 
-            double usedPaidLeaves = 0;
-            Calendar now = Calendar.getInstance();
+                for (DataSnapshot d : snap.getChildren()) {
+                    LeaveModel lm = d.getValue(LeaveModel.class);
+                    if (lm == null) continue;
 
-            for (DataSnapshot d : snap.getChildren()) {
+                    // Skip current leave being approved
+                    if (lm.leaveId != null && lm.leaveId.equals(m.leaveId)) continue;
 
-                LeaveModel lm = d.getValue(LeaveModel.class);
-                if (lm == null) continue;
+                    if (!"APPROVED".equals(lm.status)) continue;
+                    if (!Boolean.TRUE.equals(lm.isPaid)) continue;
+                    if (lm.approvedAt == null) continue;
 
-                // current approving leave skip
-                if (lm.leaveId != null && lm.leaveId.equals(m.leaveId)) continue;
+                    // ✅ Check if leave is in current month
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTimeInMillis(lm.approvedAt);
 
-                if (!"APPROVED".equals(lm.status)) continue;
-                if (!Boolean.TRUE.equals(lm.isPaid)) continue;
-                if (lm.approvedAt == null) continue;
+                    boolean sameMonth =
+                            cal.get(Calendar.MONTH) == now.get(Calendar.MONTH) &&
+                                    cal.get(Calendar.YEAR) == now.get(Calendar.YEAR);
 
-                Calendar cal = Calendar.getInstance();
-                cal.setTimeInMillis(lm.approvedAt);
-
-                boolean sameMonth =
-                        cal.get(Calendar.MONTH) == now.get(Calendar.MONTH) &&
-                                cal.get(Calendar.YEAR) == now.get(Calendar.YEAR);
-
-                if (sameMonth) {
-                    usedPaidLeaves +=
-                            "HALF_DAY".equals(lm.leaveType) ? 0.5 : 1.0;
+                    if (sameMonth) {
+                        usedPaidLeaves += "HALF_DAY".equals(lm.leaveType) ? 0.5 : 1.0;
+                    }
                 }
+
+                showDecisionDialog(m, allowedPaidLeaves, usedPaidLeaves);
             }
 
-            showDecisionDialog(m, allowedPaidLeaves, usedPaidLeaves);
-        }
+            @Override
+            public void onCancelled(@NonNull DatabaseError e) {
+                Toast.makeText(context, "Error counting leaves", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
-        @Override public void onCancelled(@NonNull DatabaseError e) {}
-    });
-}
+    // ✅ SHOW DECISION DIALOG
+    private void showDecisionDialog(LeaveModel m, int allowed, double used) {
+        double remaining = allowed - used;
 
-//    private void showDecisionDialog(
-//            LeaveModel m,
-//            int allowed,
-//            int used) {
-private void showDecisionDialog(
-        LeaveModel m,
-        int allowed,
-        double used) {
+        // ✅ Calculate days for current leave
+        double currentLeaveDays = "HALF_DAY".equals(m.leaveType) ? 0.5 : 1.0;
 
-    double remaining = allowed - used;
+        String msg = "📊 Leave Balance Information\n\n" +
+                "Paid Leaves Allowed: " + allowed + "\n" +
+                "Already Used: " + used + "\n" +
+                "Remaining: " + remaining + "\n\n" +
+                "Current Request: " + currentLeaveDays + " day(s)\n" +
+                "Employee: " + m.employeeName;
 
-    String msg =
-            "Paid Leaves Allowed: " + allowed +
-                    "\nPaid Leaves Used: " + used +
-                    "\nRemaining Paid Leaves: " + remaining;
+        new AlertDialog.Builder(context)
+                .setTitle("Approve Leave Request")
+                .setMessage(msg)
+                .setPositiveButton("✅ Approve as PAID", (d, w) -> {
+                    if (remaining < currentLeaveDays) {
+                        Toast.makeText(context,
+                                "⚠️ Not enough paid leaves remaining! Only " + remaining + " available.",
+                                Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    approveLeave(m, true);
+                })
+                .setNegativeButton("🔴 Approve as UNPAID", (d, w) -> {
+                    approveLeave(m, false);
+                })
+                .setNeutralButton("Cancel", null)
+                .show();
+    }
 
-    new AlertDialog.Builder(context)
-            .setTitle("Approve Leave")
-            .setMessage(msg)
-            .setPositiveButton("Approve as PAID", (d,w)-> {
-
-                if (remaining <= 0) {
-                    Toast.makeText(context,
-                            "No paid leaves remaining",
-                            Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                approveLeave(m, true);
-            })
-            .setNegativeButton("Approve as UNPAID", (d,w)-> {
-                approveLeave(m, false);
-            })
-            .setNeutralButton("Cancel", null)
-            .show();
-}
-
+    // ✅ APPROVE LEAVE
     private void approveLeave(LeaveModel m, boolean isPaid) {
-
         Map<String, Object> map = new HashMap<>();
         map.put("status", "APPROVED");
         map.put("isPaid", isPaid);
         map.put("approvedAt", System.currentTimeMillis());
+
         String adminName = new PrefManager(context).getUserName();
         map.put("approvedBy", adminName);
 
         leavesRef.child(m.leaveId).updateChildren(map)
-                .addOnSuccessListener(a ->
-                        Toast.makeText(context,
-                                isPaid ? "Paid Leave Approved" : "Unpaid Leave Approved",
-                                Toast.LENGTH_SHORT).show()
-                );
+                .addOnSuccessListener(a -> {
+                    String msg = isPaid ? "✅ Paid Leave Approved" : "⚠️ Unpaid Leave Approved";
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+
+                    // ✅ AUTO-HIDE: Firebase listener in Activity will refresh list → buttons auto-hide
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(context, "❌ Failed to approve leave", Toast.LENGTH_SHORT).show();
+                });
     }
 
+    // ✅ REJECT LEAVE
     private void showRejectDialog(String leaveId) {
         View view = LayoutInflater.from(context)
                 .inflate(R.layout.dialog_reject_leave, null);
@@ -259,24 +244,40 @@ private void showDecisionDialog(
         EditText et = view.findViewById(R.id.etReason);
 
         new AlertDialog.Builder(context)
-                .setTitle("Reject Leave")
+                .setTitle("Reject Leave Request")
                 .setView(view)
-                .setPositiveButton("Reject", (d,w)->{
+                .setPositiveButton("Reject", (d, w) -> {
                     String r = et.getText().toString().trim();
                     if (r.isEmpty()) {
-                        Toast.makeText(context,"Reason required",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, "⚠️ Reason required", Toast.LENGTH_SHORT).show();
                         return;
                     }
-                    leavesRef.child(leaveId).child("status").setValue("REJECTED");
-                    leavesRef.child(leaveId).child("adminReason").setValue(r);
-                    leavesRef.child(leaveId).child("actionAt")
-                            .setValue(System.currentTimeMillis());
+
+                    Map<String, Object> updates = new HashMap<>();
+                    updates.put("status", "REJECTED");
+                    updates.put("adminReason", r);
+                    updates.put("actionAt", System.currentTimeMillis());
+
+                    String adminName = new PrefManager(context).getUserName();
+                    updates.put("rejectedBy", adminName);
+
+                    leavesRef.child(leaveId).updateChildren(updates)
+                            .addOnSuccessListener(a -> {
+                                Toast.makeText(context, "❌ Leave Rejected", Toast.LENGTH_SHORT).show();
+                                // ✅ AUTO-HIDE: Firebase listener will refresh → buttons auto-hide
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(context, "❌ Failed to reject leave", Toast.LENGTH_SHORT).show();
+                            });
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
     }
 
-    @Override public int getItemCount() { return list.size(); }
+    @Override
+    public int getItemCount() {
+        return list.size();
+    }
 
     static class VH extends RecyclerView.ViewHolder {
         TextView tvName, tvDates, tvReason, tvStatus;
@@ -285,7 +286,6 @@ private void showDecisionDialog(
         VH(View v) {
             super(v);
 
-            // ✅ NULL-SAFE findViewById with LOGGING
             tvName = v.findViewById(R.id.tvName);
             tvDates = v.findViewById(R.id.tvDates);
             tvReason = v.findViewById(R.id.tvReason);
@@ -293,7 +293,7 @@ private void showDecisionDialog(
             btnApprove = v.findViewById(R.id.btnApprove);
             btnReject = v.findViewById(R.id.btnReject);
 
-            // ✅ DEBUG: Log if ANY view is missing
+            // ✅ DEBUG: Log missing views
             if (tvName == null) android.util.Log.e("AdminLeaveAdapter", "❌ tvName is NULL!");
             if (tvDates == null) android.util.Log.e("AdminLeaveAdapter", "❌ tvDates is NULL!");
             if (tvReason == null) android.util.Log.e("AdminLeaveAdapter", "❌ tvReason is NULL!");

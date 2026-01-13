@@ -1,80 +1,122 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="3dp">
+    android:layout_marginHorizontal="5dp"
+    android:layout_marginVertical="5dp"
+    app:cardCornerRadius="10dp"
+    app:cardElevation="2dp"
+    app:cardUseCompatPadding="true"
+    app:cardBackgroundColor="@color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:padding="10dp">
 
-        <!-- Dates -->
-        <TextView
-            android:id="@+id/tvDates"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="2026-01-07"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:textColor="#212121" />
-
-        <!-- Type -->
-        <TextView
-            android:id="@+id/tvType"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Full Day"
-            android:textSize="14sp"
-            android:textColor="#616161"
-            android:layout_marginTop="4dp" />
-
-        <!-- Reason -->
-        <TextView
-            android:id="@+id/tvReason"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Family function"
-            android:textSize="16sp"
-            android:textColor="#424242"
-            android:layout_marginTop="8dp"
-            android:maxLines="2"
-            android:ellipsize="end" />
-
-        <!-- Status Chip -->
-        <!-- Status Badge नंतर add करा -->
+        <!-- Header Section -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="end"
-            android:layout_marginTop="12dp">
+            android:gravity="center_vertical">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnApprove"
-                style="@style/Widget.Material3.Button.OutlinedButton"
+            <!-- Status Badge -->
+            <TextView
+                android:id="@+id/tvStatus"
                 android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:text="Approve"
-                app:backgroundTint="#4CAF50"
-                android:textColor="@android:color/white"
-                android:layout_marginEnd="8dp" />
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="4dp"
+                android:text="PENDING"
+                android:textAllCaps="true"
+                android:textColor="#FF9800"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <!-- Spacer -->
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <!-- Date Range -->
+            <TextView
+                android:id="@+id/tvDates"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Jan 4 - Jan 4, 2026"
+                android:textColor="#666666"
+                android:textSize="13sp"
+                android:drawablePadding="4dp" />
+
+        </LinearLayout>
+
+        <!-- Employee Name -->
+        <TextView
+            android:id="@+id/tvName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Employee Name"
+            android:textColor="#1A1A1A"
+            android:textSize="16sp"
+            />
+
+        <!-- Reason Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Reason:"
+            android:textColor="#666666"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvReason"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:lineSpacingExtra="2dp"
+            android:text="Sick leave with medical certificate"
+            android:textColor="#333333"
+            android:textSize="14sp" />
+
+
+        <!-- Action Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnReject"
                 style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="wrap_content"
-                android:layout_height="40dp"
+                android:layout_height="wrap_content"
                 android:text="Reject"
-                app:backgroundTint="#F44336"
-                android:textColor="@android:color/white" />
+                app:strokeColor="#F44336"
+                app:strokeWidth="1dp"
+                android:textColor="#F44336"
+                app:cornerRadius="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnApprove"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="Approve"
+                app:cornerRadius="8dp"
+                android:backgroundTint="#4CAF50" />
 
         </LinearLayout>
 
-
     </LinearLayout>
-</com.google.android.material.card.MaterialCardView>
+
+</androidx.cardview.widget.CardView>
