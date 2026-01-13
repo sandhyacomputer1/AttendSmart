@@ -49,6 +49,7 @@ dependencies {
     implementation libs.navigation.ui
     implementation libs.firebase.messaging
     implementation libs.material
+    implementation libs.core.animation
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'

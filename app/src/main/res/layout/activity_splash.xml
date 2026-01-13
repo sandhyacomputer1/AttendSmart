@@ -110,28 +110,46 @@
                 android:fontFamily="sans-serif-light"
                 android:letterSpacing="0.1" />
 
-            <!-- Modern Loading Indicator -->
-            <RelativeLayout
+            <!-- ✅ DOTS LOADING ANIMATION (Replaced ProgressBar) -->
+            <LinearLayout
+                android:id="@+id/dot_loader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="40dp">
+                android:layout_marginTop="40dp"
+                android:orientation="horizontal"
+                android:gravity="center">
 
-                <!-- Outer Ring -->
-                <ProgressBar
-                    android:id="@+id/progress_outer"
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:indeterminateTint="#FFFFFF"
-                    android:alpha="0.3" />
+                <!-- Dot 1 -->
+                <View
+                    android:id="@+id/dot1"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginEnd="6dp"
+                    android:background="@drawable/dot_animation_1"
+                    android:scaleX="0.0"
+                    android:scaleY="0.0" />
 
-                <!-- Inner Ring -->
-                <ProgressBar
-                    android:id="@+id/progress_bar"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_centerInParent="true"
-                    android:indeterminateTint="#FFFFFF" />
-            </RelativeLayout>
+                <!-- Dot 2 -->
+                <View
+                    android:id="@+id/dot2"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginHorizontal="6dp"
+                    android:background="@drawable/dot_animation_2"
+                    android:scaleX="0.0"
+                    android:scaleY="0.0" />
+
+                <!-- Dot 3 -->
+                <View
+                    android:id="@+id/dot3"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/dot_animation_3"
+                    android:scaleX="0.0"
+                    android:scaleY="0.0" />
+
+            </LinearLayout>
 
             <!-- Loading Text -->
             <TextView

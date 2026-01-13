@@ -20,13 +20,19 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.sandhyyasofttech.attendsmart.Activities.EmployeeDashboardActivity;
 import com.sandhyyasofttech.attendsmart.Activities.NoInternetActivity;
-import com.sandhyyasofttech.attendsmart.R;
 import com.sandhyyasofttech.attendsmart.Utils.PrefManager;
+import com.sandhyyasofttech.attendsmart.R;
+import androidx.core.animation.Animator;
+import androidx.core.animation.AnimatorListenerAdapter;
+import androidx.core.animation.ObjectAnimator;
+
 
 public class SplashActivity extends AppCompatActivity {
 
     // UI Elements for animations
     private RelativeLayout logoContainer;
+    private View dot1, dot2, dot3;
+
     private ImageView appLogo;
     private View shine, circle1, circle2, circle3;
     private TextView appName, subtitle, loadingText;
@@ -46,7 +52,7 @@ public class SplashActivity extends AppCompatActivity {
         startAnimations();
 
         // Start login status check after animations (3.5 seconds total)
-        new Handler().postDelayed(this::checkLoginStatus, 1000);
+        new Handler().postDelayed(this::checkLoginStatus, 2000); // Changed from 1000
     }
 
     private void initViews() {
@@ -60,6 +66,9 @@ public class SplashActivity extends AppCompatActivity {
         subtitle = findViewById(R.id.subtitle);
         loadingText = findViewById(R.id.loadingText);
         bottomBranding = findViewById(R.id.bottomBranding);
+        dot1 = findViewById(R.id.dot1);
+        dot2 = findViewById(R.id.dot2);
+        dot3 = findViewById(R.id.dot3);
     }
 
     private void initFirebase() {
@@ -107,7 +116,10 @@ public class SplashActivity extends AppCompatActivity {
         // Shine pulse effect
         Animation pulseAnim = AnimationUtils.loadAnimation(this, R.anim.pulse);
         shine.startAnimation(pulseAnim);
+        animateDots(); // Add this line
+
     }
+
 
     private void checkLoginStatus() {
         if (!isConnected()) {
@@ -170,6 +182,35 @@ public class SplashActivity extends AppCompatActivity {
             navigateToLogin();
         }
     }
+
+    private void animateDots() {
+        // Reset dots
+        dot1.animate().scaleX(0.3f).scaleY(0.3f).alpha(0.3f).setDuration(0);
+        dot2.animate().scaleX(0.3f).scaleY(0.3f).alpha(0.3f).setDuration(0);
+        dot3.animate().scaleX(0.3f).scaleY(0.3f).alpha(0.3f).setDuration(0);
+
+        // Animate dot1
+        dot1.animate()
+                .scaleX(1f).scaleY(1f).alpha(1f)
+                .setDuration(400)
+                .setStartDelay(0)
+                .withEndAction(() -> {
+                    // Animate dot2
+                    dot2.animate()
+                            .scaleX(1f).scaleY(1f).alpha(1f)
+                            .setDuration(400)
+                            .setStartDelay(200)
+                            .withEndAction(() -> {
+                                // Animate dot3
+                                dot3.animate()
+                                        .scaleX(1f).scaleY(1f).alpha(1f)
+                                        .setDuration(400)
+                                        .setStartDelay(200)
+                                        .withEndAction(this::animateDots); // Loop
+                            });
+                });
+    }
+
 
     private void navigateToLogin() {
         startActivity(new Intent(this, LoginActivity.class));
