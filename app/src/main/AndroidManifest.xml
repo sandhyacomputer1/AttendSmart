@@ -13,24 +13,32 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
     <uses-feature
         android:name="android.hardware.camera"
         android:required="true" />
 
     <application
-        android:usesCleartextTraffic="true"
-        android:networkSecurityConfig="@xml/network_security_config"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@drawable/salarylogo"
         android:label="S Salary"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@drawable/salarylogo"
         android:supportsRtl="true"
         android:theme="@style/Theme.AttendSmart"
+        android:usesCleartextTraffic="true"
         tools:targetApi="31">
+        <activity
+            android:name=".Security.BiometricAuthActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activities.BiometricAuthActivity"
+            android:exported="false" />
         <activity
             android:name=".Activities.EmployeeWorkHistoryActivity"
             android:exported="false" />
@@ -84,7 +92,6 @@
         <activity
             android:name=".Activities.FrontCameraActivity"
             android:theme="@style/Theme.AttendSmart" />
-
         <activity
             android:name=".Activities.CurrentEmploymentActivity"
             android:theme="@style/Theme.AttendSmart" />

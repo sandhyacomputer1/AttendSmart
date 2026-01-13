@@ -2,6 +2,7 @@ package com.sandhyyasofttech.attendsmart.Registration;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -19,6 +20,15 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.BarData;
+import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.formatter.ValueFormatter;
+
+import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
@@ -52,19 +62,20 @@ import com.sandhyyasofttech.attendsmart.Utils.PrefManager;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import com.bumptech.glide.Glide;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.DatabaseReference;
-
 
 public class AdminDashboardActivity extends AppCompatActivity {
 
     // UI Views
     private MaterialToolbar topAppBar;
     private TextView tvTotalEmployees, tvPresent, tvAbsent, tvLate;
+    private TextView tvAvgCheckIn, tvTotalHours, tvOnTimePercent;  // NEW
+    private BarChart weeklyChart;
     private RecyclerView rvEmployees;
     private TextInputEditText etSearch;
     private EmployeeAdapter adapter;
@@ -73,10 +84,11 @@ public class AdminDashboardActivity extends AppCompatActivity {
     private ExtendedFloatingActionButton fabAddEmployee;
     private Menu navMenu;
     private MenuItem navLeavesItem;
+
     // Firebase
     private DatabaseReference employeesRef, attendanceRef;
     private String companyKey;
-    private TextView tvToolbarTitle;  // 👈 Add field declaration with other TextViews
+    private TextView tvToolbarTitle;
 
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
@@ -88,24 +100,31 @@ public class AdminDashboardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_admin_dashboard);
 
         initializeViews();
-        setupDrawer();
+
+        if (!setupCompanySession()) return;   // ðŸ”¥ FIRST
+
+        initializeFirebaseReferences();       // ðŸ”¥ SECOND
+
         setupToolbar();
+        setupDrawer();
         fetchCompanyNameForTitle();
 
-        if (!setupCompanySession()) return;
-
-        initializeFirebaseReferences();
         saveAdminFcmToken();
         ensureNotificationSetting();
         setupClickListeners();
         setupSearchView();
         requestNotificationPermission();
         setupRealTimeLeaveListener();
-        fetchAllData();
-        fetchPendingNotifications();
-    }
-    private void fetchPendingNotifications() {
 
+        fetchAllData();
+
+        setupWeeklyChart();
+        fetchWeeklyData();
+        fetchPendingNotifications();
+
+    }
+
+    private void fetchPendingNotifications() {
         FirebaseDatabase.getInstance()
                 .getReference("Companies")
                 .child(companyKey)
@@ -115,24 +134,21 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-
                         if (!snapshot.exists()) return;
 
                         StringBuilder messageBuilder = new StringBuilder();
 
                         for (DataSnapshot notifSnap : snapshot.getChildren()) {
-
                             String title = notifSnap.child("title").getValue(String.class);
                             String body  = notifSnap.child("body").getValue(String.class);
 
                             messageBuilder
-                                    .append("• ")
+                                    .append("â€¢ ")
                                     .append(title)
                                     .append("\n")
                                     .append(body)
                                     .append("\n\n");
 
-                            // ✅ Mark delivered
                             notifSnap.getRef().child("delivered").setValue(true);
                         }
 
@@ -143,8 +159,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
                     public void onCancelled(@NonNull DatabaseError error) {}
                 });
     }
-    private void showNotificationDialog(String message) {
 
+    private void showNotificationDialog(String message) {
         View dialogView = getLayoutInflater()
                 .inflate(R.layout.dialog_pending_notifications, null);
 
@@ -174,6 +190,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
                     @Override public void onCancelled(@NonNull DatabaseError error) {}
                 });
     }
+
     private void fetchCompanyNameForTitle() {
         PrefManager prefManager = new PrefManager(this);
         String email = prefManager.getUserEmail();
@@ -191,24 +208,30 @@ public class AdminDashboardActivity extends AppCompatActivity {
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         String companyName = snapshot.getValue(String.class);
                         if (companyName != null && !companyName.trim().isEmpty()) {
-                            tvToolbarTitle.setText(companyName);  // ✅ ONLY "Sandhyaaaa"
+                            tvToolbarTitle.setText(companyName);
                         } else {
-                            tvToolbarTitle.setText("Admin");  // Fallback
+                            tvToolbarTitle.setText("Admin");
                         }
                     }
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {}
                 });
     }
+
     private void initializeViews() {
         topAppBar = findViewById(R.id.topAppBar);
         tvTotalEmployees = findViewById(R.id.tvTotalEmployees);
         tvPresent = findViewById(R.id.tvPresent);
         tvAbsent = findViewById(R.id.tvAbsent);
         tvLate = findViewById(R.id.tvLate);
-        tvToolbarTitle = findViewById(R.id.tvToolbarTitle);  // 👈 Add this line
+        tvToolbarTitle = findViewById(R.id.tvToolbarTitle);
 
-        // 👈 UPDATED - TextInputEditText instead of SearchView
+        // NEW: Quick stats
+        tvAvgCheckIn = findViewById(R.id.tvAvgCheckIn);
+        tvTotalHours = findViewById(R.id.tvTotalHours);
+        tvOnTimePercent = findViewById(R.id.tvOnTimePercent);
+        weeklyChart = findViewById(R.id.weeklyChart);
+
         etSearch = findViewById(R.id.etSearch);
 
         rvEmployees = findViewById(R.id.rvEmployees);
@@ -223,12 +246,231 @@ public class AdminDashboardActivity extends AppCompatActivity {
         fabAddEmployee = findViewById(R.id.fabAddEmployee);
     }
 
+    // ==================== NEW: WEEKLY CHART SETUP ====================
+
+    private void setupWeeklyChart() {
+        weeklyChart.getDescription().setEnabled(false);
+        weeklyChart.setTouchEnabled(true);
+        weeklyChart.setDragEnabled(true);
+        weeklyChart.setScaleEnabled(false);
+        weeklyChart.setPinchZoom(false);
+        weeklyChart.setDrawGridBackground(false);
+        weeklyChart.setExtraOffsets(5, 10, 5, 10);
+
+        // X-Axis (same as before, but adjust for bars)
+        XAxis xAxis = weeklyChart.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setGranularity(1f);
+        xAxis.setDrawGridLines(false);
+        xAxis.setTextColor(Color.parseColor("#757575"));
+        xAxis.setValueFormatter(new ValueFormatter() {
+            private final String[] days = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
+            @Override
+            public String getFormattedValue(float value) {
+                int index = (int) value;
+                return (index >= 0 && index < days.length) ? days[index] : "";
+            }
+        });
+
+        // Left Y-Axis
+        YAxis leftAxis = weeklyChart.getAxisLeft();
+        leftAxis.setDrawGridLines(true);
+        leftAxis.setGridColor(Color.parseColor("#E0E0E0"));
+        leftAxis.setTextColor(Color.parseColor("#757575"));
+        leftAxis.setAxisMinimum(0f);
+
+        // Right Y-Axis (disabled)
+        weeklyChart.getAxisRight().setEnabled(false);
+
+        // Legend
+        weeklyChart.getLegend().setEnabled(true);
+        weeklyChart.getLegend().setTextColor(Color.parseColor("#424242"));
+
+        // Bar-specific: Make bars grouped or stacked
+        weeklyChart.setFitBars(true);  // NEW: Fits bars to the chart
+    }
+    private void fetchWeeklyData() {
+        Calendar cal = Calendar.getInstance();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+
+        // Get last 7 days
+        List<String> dates = new ArrayList<>();
+        for (int i = 6; i >= 0; i--) {
+            cal.setTime(new Date());
+            cal.add(Calendar.DAY_OF_YEAR, -i);
+            dates.add(sdf.format(cal.getTime()));
+        }
+
+        DatabaseReference attRef = FirebaseDatabase.getInstance()
+                .getReference("Companies")
+                .child(companyKey)
+                .child("attendance");
+
+        List<BarEntry> presentEntries = new ArrayList<>();
+        List<BarEntry> absentEntries = new ArrayList<>();
+
+        final int[] processedDays = {0};
+        final int totalDays = dates.size();
+
+        for (int i = 0; i < dates.size(); i++) {
+            final int dayIndex = i;
+            String date = dates.get(i);
+
+            employeesRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot empSnapshot) {
+                    int totalEmp = (int) empSnapshot.getChildrenCount();
+
+                    attRef.child(date).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot attSnapshot) {
+                            int present = 0;
+                            for (DataSnapshot att : attSnapshot.getChildren()) {
+                                if (att.hasChild("checkInTime")) {
+                                    present++;
+                                }
+                            }
+                            int absent = Math.max(0, totalEmp - present);
+
+                            presentEntries.add(new BarEntry(dayIndex, present));  // Change Entry to BarEntry
+                            absentEntries.add(new BarEntry(dayIndex, absent));   // Change Entry to BarEntry
+
+                            processedDays[0]++;
+                            if (processedDays[0] == totalDays) {
+                                updateWeeklyChart(presentEntries, absentEntries);
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {}
+                    });
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {}
+            });
+        }
+    }
+
+    private void updateWeeklyChart(List<BarEntry> presentEntries, List<BarEntry> absentEntries) {
+        // Present bars (Green)
+        BarDataSet presentDataSet = new BarDataSet(presentEntries, "Present");
+        presentDataSet.setColor(Color.parseColor("#4CAF50"));
+        presentDataSet.setValueTextSize(10f);
+
+        // Absent bars (Red)
+        BarDataSet absentDataSet = new BarDataSet(absentEntries, "Absent");
+        absentDataSet.setColor(Color.parseColor("#F44336"));
+        absentDataSet.setValueTextSize(10f);
+
+        // Combine into BarData (group bars side-by-side)
+        BarData barData = new BarData(presentDataSet, absentDataSet);
+        barData.setBarWidth(0.4f);  // NEW: Set bar width
+        weeklyChart.setData(barData);
+
+        // Group bars with space between days
+        weeklyChart.groupBars(0f, 0.1f, 0.02f);  // NEW: Groups Present/Absent bars per day
+
+        weeklyChart.animateY(1000);  // Change to Y animation for bars
+        weeklyChart.invalidate();
+    }
+    // ==================== NEW: QUICK STATS ====================
+
+    private void calculateQuickStats() {
+        String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+
+        attendanceRef.child(today).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (!snapshot.exists()) {
+                    tvAvgCheckIn.setText("--:--");
+                    tvTotalHours.setText("0h");
+                    tvOnTimePercent.setText("0%");
+                    return;
+                }
+
+                int totalCheckIns = 0;
+                int totalMinutes = 0;
+                float totalHours = 0f;
+                int onTimeCount = 0;
+
+                for (DataSnapshot att : snapshot.getChildren()) {
+                    String checkInTime = att.child("checkInTime").getValue(String.class);
+                    String totalHoursStr = att.child("totalHours").getValue(String.class);
+                    String lateStatus = att.child("lateStatus").getValue(String.class);
+
+                    if (checkInTime != null && !checkInTime.isEmpty()) {
+                        totalCheckIns++;
+
+                        // Calculate average check-in time
+                        try {
+                            // checkInTime example: "09:39 AM"
+                            SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.getDefault());
+                            Date date = sdf.parse(checkInTime);
+
+                            if (date != null) {
+                                Calendar calendar = Calendar.getInstance();
+                                calendar.setTime(date);
+
+                                int hours = calendar.get(Calendar.HOUR_OF_DAY); // 0â€“23
+                                int minutes = calendar.get(Calendar.MINUTE);
+
+                                totalMinutes += (hours * 60 + minutes);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+
+                        // Calculate total hours
+                        if (totalHoursStr != null && totalHoursStr.contains("h")) {
+                            try {
+                                totalHoursStr = totalHoursStr.replace("h", "").trim();
+                                totalHours += Float.parseFloat(totalHoursStr);
+                            } catch (Exception ignored) {}
+                        }
+
+
+
+                        // Count on-time arrivals
+                        if ("On Time".equalsIgnoreCase(lateStatus)
+                                || lateStatus == null
+                                || lateStatus.isEmpty()) {
+                            onTimeCount++;
+                        }
+
+                    }
+                }
+
+                // Update UI
+                if (totalCheckIns > 0) {
+                    int avgMinutes = totalMinutes / totalCheckIns;
+                    int avgHours = avgMinutes / 60;
+                    int avgMins = avgMinutes % 60;
+                    tvAvgCheckIn.setText(String.format(Locale.getDefault(), "%02d:%02d", avgHours, avgMins));
+
+                    tvTotalHours.setText(String.format(Locale.getDefault(), "%.1fh", totalHours));
+
+                    int onTimePercent = (onTimeCount * 100) / totalCheckIns;
+                    tvOnTimePercent.setText(onTimePercent + "%");
+                } else {
+                    tvAvgCheckIn.setText("--:--");
+                    tvTotalHours.setText("0h");
+                    tvOnTimePercent.setText("0%");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    // ==================== EXISTING CODE ====================
+
     private void setupSearchView() {
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                // Not needed
-            }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -236,9 +478,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {
-                // Not needed
-            }
+            public void afterTextChanged(Editable s) {}
         });
     }
 
@@ -260,23 +500,18 @@ public class AdminDashboardActivity extends AppCompatActivity {
     }
 
     private void setupDrawer() {
-
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.nav_view);
-        // ✅ Get menu reference for badge
         navMenu = navigationView.getMenu();
+
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this,
-                drawerLayout,
-                topAppBar,
-                R.string.nav_open,
-                R.string.nav_close
+                this, drawerLayout, topAppBar,
+                R.string.nav_open, R.string.nav_close
         );
         drawerLayout.addDrawerListener(toggle);
         toggle.syncState();
 
         navigationView.setNavigationItemSelectedListener(item -> {
-
             int id = item.getItemId();
             Intent intent = null;
 
@@ -284,41 +519,17 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 drawerLayout.closeDrawer(GravityCompat.START);
                 return true;
             }
-            else if (id == R.id.nav_employees) {
-                intent = new Intent(this, EmployeeListActivity.class);
-            }
-            else if (id == R.id.nav_departments) {
-                intent = new Intent(this, DepartmentActivity.class);
-            }
-            else if (id == R.id.nav_shifts) {
-                intent = new Intent(this, ShiftActivity.class);
-            }
-            else if (id == R.id.nav_attendance) {
-                intent = new Intent(this, AllAttendanceActivity.class);
-            }
-            else if (id == R.id.nav_leaves) {
-                intent = new Intent(this, AdminLeaveListActivity.class);
-            }
-
-            else if (id == R.id.nav_reports) {
-                intent = new Intent(this, ReportsActivity.class);
-            }
-            else if (id == R.id.nav_work_report) {
-                intent = new Intent(this, AdminTodayWorkActivity.class);
-            }
-
-            else if (id == R.id.nav_view_salary) {
-                intent = new Intent(this, SalaryListActivity.class);
-            }
-            else if (id == R.id.nav_generate_salary) {
-                intent = new Intent(this, GenerateSalaryActivity.class);
-            }
-            else if (id == R.id.nav_profile) {
-                intent = new Intent(this, ProfileActivity.class);
-            }
-            else if (id == R.id.nav_settings) {
-                intent = new Intent(this, SettingsActivity.class);
-            }
+            else if (id == R.id.nav_employees) intent = new Intent(this, EmployeeListActivity.class);
+            else if (id == R.id.nav_departments) intent = new Intent(this, DepartmentActivity.class);
+            else if (id == R.id.nav_shifts) intent = new Intent(this, ShiftActivity.class);
+            else if (id == R.id.nav_attendance) intent = new Intent(this, AllAttendanceActivity.class);
+            else if (id == R.id.nav_leaves) intent = new Intent(this, AdminLeaveListActivity.class);
+            else if (id == R.id.nav_reports) intent = new Intent(this, ReportsActivity.class);
+            else if (id == R.id.nav_work_report) intent = new Intent(this, AdminTodayWorkActivity.class);
+            else if (id == R.id.nav_view_salary) intent = new Intent(this, SalaryListActivity.class);
+            else if (id == R.id.nav_generate_salary) intent = new Intent(this, GenerateSalaryActivity.class);
+            else if (id == R.id.nav_profile) intent = new Intent(this, ProfileActivity.class);
+            else if (id == R.id.nav_settings) intent = new Intent(this, SettingsActivity.class);
             else if (id == R.id.nav_logout) {
                 showLogoutConfirmation();
                 drawerLayout.closeDrawer(GravityCompat.START);
@@ -326,23 +537,24 @@ public class AdminDashboardActivity extends AppCompatActivity {
             }
 
             if (intent != null) startActivity(intent);
-
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         });
+
         drawerLayout.addDrawerListener(new DrawerLayout.DrawerListener() {
             @Override
             public void onDrawerOpened(View drawerView) {
-                checkLeaveRequests();  // Update badge
+                checkLeaveRequests();
             }
-            // ... other methods empty
             @Override public void onDrawerClosed(View drawerView) {}
             @Override public void onDrawerSlide(View drawerView, float slideOffset) {}
             @Override public void onDrawerStateChanged(int newState) {}
         });
+
         navigationView.setCheckedItem(R.id.nav_dashboard);
         updateNavHeader();
     }
+
     private void checkLeaveRequests() {
         FirebaseDatabase.getInstance()
                 .getReference("Companies")
@@ -352,15 +564,13 @@ public class AdminDashboardActivity extends AppCompatActivity {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         int pendingCount = 0;
-
                         for (DataSnapshot leave : snapshot.getChildren()) {
                             String status = leave.child("status").getValue(String.class);
-                            if ("PENDING".equalsIgnoreCase(status)) {  // New requests
+                            if ("PENDING".equalsIgnoreCase(status)) {
                                 pendingCount++;
                             }
                         }
 
-                        // ✅ Update badge
                         navLeavesItem = navMenu.findItem(R.id.nav_leaves);
                         if (pendingCount > 0) {
                             navLeavesItem.setTitle("Leave Requests (" + pendingCount + ")");
@@ -375,7 +585,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
     }
 
     private void updateNavHeader() {
-
         try {
             View headerView = navigationView.getHeaderView(0);
 
@@ -399,7 +608,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
             companyInfoRef.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-
                     if (!snapshot.exists()) return;
 
                     String companyName = snapshot.child("companyName").getValue(String.class);
@@ -420,13 +628,9 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 public void onCancelled(@NonNull DatabaseError error) {}
             });
 
-            // ✅ CLICK ANYWHERE ON HEADER → OPEN PROFILE
             headerView.setOnClickListener(v -> {
                 drawerLayout.closeDrawer(GravityCompat.START);
-                startActivity(new Intent(
-                        AdminDashboardActivity.this,
-                        ProfileActivity.class
-                ));
+                startActivity(new Intent(AdminDashboardActivity.this, ProfileActivity.class));
             });
 
         } catch (Exception e) {
@@ -434,13 +638,8 @@ public class AdminDashboardActivity extends AppCompatActivity {
         }
     }
 
-
-
     private void setupToolbar() {
-
-        // Force WHITE menu icon
         topAppBar.setNavigationIcon(R.drawable.ic_menu);
-
         topAppBar.setNavigationOnClickListener(v -> {
             if (drawerLayout.isDrawerVisible(GravityCompat.START)) {
                 drawerLayout.closeDrawer(GravityCompat.START);
@@ -472,7 +671,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
     private void setupClickListeners() {
         fabAddEmployee.setOnClickListener(v ->
                 startActivity(new Intent(this, AddEmployeeActivity.class)));
-        // ✅ Total Employees text click → open EmployeeListActivity
 
         MaterialCardView totalEmployeesCard = findViewById(R.id.cardTotalEmployees);
         if (totalEmployeesCard != null) {
@@ -527,12 +725,17 @@ public class AdminDashboardActivity extends AppCompatActivity {
     private void fetchAllData() {
         fetchEmployeeList();
         fetchDashboardData();
+
+        if (attendanceRef != null) {
+            calculateQuickStats();
+        }
     }
+
 
     private void fetchEmployeeList() {
         String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         FirebaseDatabase.getInstance().getReference("Companies").child(companyKey)
-                .addValueEventListener(new ValueEventListener() {
+                .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         fullEmployeeList.clear();
@@ -552,41 +755,28 @@ public class AdminDashboardActivity extends AppCompatActivity {
                                         DataSnapshot attRecord = todayAttSnap.child(phone);
 
                                         if (attRecord.exists() && attRecord.hasChild("checkInTime")) {
-                                            // Fetch status and lateStatus
                                             String status = safeToString(attRecord.child("status"));
                                             String lateStatus = safeToString(attRecord.child("lateStatus"));
 
-                                            // Priority order for status determination:
-                                            // 1. Half Day (highest priority)
                                             if ("Half Day".equalsIgnoreCase(status)) {
                                                 model.setTodayStatus("Half Day");
-                                            }
-                                            // 2. Late (check lateStatus field)
-                                            else if ("Late".equalsIgnoreCase(lateStatus)) {
+                                            } else if ("Late".equalsIgnoreCase(lateStatus)) {
                                                 model.setTodayStatus("Late");
-                                            }
-                                            // 3. Present or Full Day
-                                            else if ("Present".equalsIgnoreCase(status) ||
+                                            } else if ("Present".equalsIgnoreCase(status) ||
                                                     "Full Day".equalsIgnoreCase(status)) {
                                                 model.setTodayStatus("Present");
-                                            }
-                                            // 4. Default to Present if has check-in
-                                            else {
+                                            } else {
                                                 model.setTodayStatus("Present");
                                             }
 
-                                            // Fetch check-in and check-out times
                                             model.setCheckInTime(safeToString(attRecord.child("checkInTime")));
                                             model.setCheckOutTime(safeToString(attRecord.child("checkOutTime")));
-
-                                            // Fetch other attendance data
                                             model.setTotalHours(safeToString(attRecord.child("totalHours")));
                                             model.setCheckInPhoto(safeToString(attRecord.child("checkInPhoto")));
                                             model.setCheckOutPhoto(safeToString(attRecord.child("checkOutPhoto")));
 
                                             presentList.add(model);
                                         } else {
-                                            // No attendance record
                                             model.setTodayStatus("Absent");
                                             model.setCheckInTime(null);
                                             model.setCheckOutTime(null);
@@ -600,7 +790,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
                             }
                         }
 
-                        // Present employees first, then absent
                         employeeList.clear();
                         employeeList.addAll(presentList);
                         employeeList.addAll(absentList);
@@ -648,23 +837,17 @@ public class AdminDashboardActivity extends AppCompatActivity {
         employeesRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot empSnapshot) {
-
                 int totalEmployees = (int) empSnapshot.getChildrenCount();
 
                 attendanceRef.child(today).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot attSnapshot) {
-
                         int presentCount = 0;
                         int lateCount = 0;
 
                         for (DataSnapshot att : attSnapshot.getChildren()) {
-
-                            // ✅ Any check-in = Present
                             if (att.hasChild("checkInTime")) {
                                 presentCount++;
-
-                                // ✅ Late is SUBSET of Present
                                 String lateStatus = att.child("lateStatus").getValue(String.class);
                                 if ("Late".equalsIgnoreCase(lateStatus)) {
                                     lateCount++;
@@ -674,12 +857,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
                         int absentCount = Math.max(0, totalEmployees - presentCount);
 
-                        updateDashboardUI(
-                                totalEmployees,
-                                presentCount,   // includes Late + Half Day
-                                absentCount,
-                                lateCount       // shown separately
-                        );
+                        updateDashboardUI(totalEmployees, presentCount, absentCount, lateCount);
                     }
 
                     @Override
@@ -691,7 +869,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
-
 
     private void updateDashboardUI(int total, int present, int absent, int late) {
         tvTotalEmployees.setText(String.valueOf(total));
@@ -726,5 +903,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         fetchAllData();
+        fetchWeeklyData();  // NEW
     }
 }

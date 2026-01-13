@@ -1,4 +1,322 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--<androidx.drawerlayout.widget.DrawerLayout-->
+<!--    xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--    xmlns:app="http://schemas.android.com/apk/res-auto"-->
+<!--    xmlns:tools="http://schemas.android.com/tools"-->
+<!--    android:id="@+id/drawer_layout"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="match_parent">-->
+
+<!--    &lt;!&ndash; Main Content &ndash;&gt;-->
+<!--    <androidx.coordinatorlayout.widget.CoordinatorLayout-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:fitsSystemWindows="true">-->
+
+<!--        &lt;!&ndash; App Bar &ndash;&gt;-->
+<!--        <com.google.android.material.appbar.AppBarLayout-->
+<!--            android:id="@+id/appBarLayout"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            app:elevation="2dp">-->
+
+<!--            <com.google.android.material.appbar.MaterialToolbar-->
+<!--                android:id="@+id/topAppBar"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="?attr/actionBarSize"-->
+<!--                android:background="#FF5722"-->
+<!--                app:title=""-->
+<!--                app:titleTextColor="@android:color/white"-->
+<!--                app:titleCentered="false"-->
+<!--                app:navigationIcon="@drawable/ic_menu"-->
+<!--                app:navigationIconTint="@android:color/white" >-->
+
+
+<!--            &lt;!&ndash; ✅ MOVED INSIDE Toolbar - Now findViewById works! &ndash;&gt;-->
+<!--                <TextView-->
+<!--                    android:id="@+id/tvToolbarTitle"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_gravity="center"-->
+<!--                    android:text="Admin Dashboard"-->
+<!--                    android:textSize="18sp"-->
+<!--                    android:textStyle="bold"-->
+<!--                    android:textColor="@android:color/white" />-->
+
+<!--            </com.google.android.material.appbar.MaterialToolbar>-->
+<!--        </com.google.android.material.appbar.AppBarLayout>-->
+
+
+<!--        &lt;!&ndash; Content &ndash;&gt;-->
+<!--        <androidx.core.widget.NestedScrollView-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:fillViewport="true"-->
+<!--            app:layout_behavior="@string/appbar_scrolling_view_behavior">-->
+
+<!--            <LinearLayout-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:background="@color/white"-->
+<!--                android:orientation="vertical"-->
+<!--                android:padding="12dp">-->
+
+<!--                &lt;!&ndash; Today's Overview Section &ndash;&gt;-->
+<!--                <TextView-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="Today's Overview"-->
+<!--                    android:textSize="16sp"-->
+<!--                    android:textStyle="bold"-->
+<!--                    android:textColor="@color/text_primary"-->
+<!--                    android:layout_marginBottom="8dp"/>-->
+
+<!--                &lt;!&ndash; Stats Row 1 &ndash;&gt;-->
+<!--                <LinearLayout-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:orientation="horizontal"-->
+<!--                    android:weightSum="2"-->
+<!--                    android:layout_marginBottom="8dp">-->
+
+<!--                    &lt;!&ndash; Total Employees - Light Gray &ndash;&gt;-->
+<!--                    <com.google.android.material.card.MaterialCardView-->
+<!--                        android:id="@+id/cardTotalEmployees"-->
+
+<!--                    android:layout_width="0dp"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_weight="1"-->
+<!--                        android:layout_marginEnd="4dp"-->
+<!--                        app:cardCornerRadius="10dp"-->
+<!--                        app:cardElevation="1dp">-->
+
+<!--                        <LinearLayout-->
+<!--                            android:layout_width="match_parent"-->
+<!--                            android:layout_height="wrap_content"-->
+<!--                            android:orientation="vertical"-->
+<!--                            android:background="#F5F5F5"-->
+<!--                            android:padding="12dp">-->
+
+<!--                            <TextView-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:text="Total Employees"-->
+<!--                                android:textSize="11sp"-->
+<!--                                android:textColor="#616161"/>-->
+
+<!--                            <TextView-->
+<!--                                android:id="@+id/tvTotalEmployees"-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:text="0"-->
+<!--                                android:textSize="20sp"-->
+<!--                                android:textStyle="bold"-->
+<!--                                android:textColor="#090909"-->
+<!--                                android:layout_marginTop="2dp"/>-->
+<!--                        </LinearLayout>-->
+<!--                    </com.google.android.material.card.MaterialCardView>-->
+
+<!--                    &lt;!&ndash; Present Today - Light Green &ndash;&gt;-->
+<!--                    <com.google.android.material.card.MaterialCardView-->
+<!--                        android:id="@+id/cardPresent"-->
+<!--                        android:layout_width="0dp"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_weight="1"-->
+<!--                        android:layout_marginStart="4dp"-->
+<!--                        app:cardCornerRadius="10dp"-->
+<!--                        app:cardElevation="1dp">-->
+
+<!--                        <LinearLayout-->
+<!--                            android:layout_width="match_parent"-->
+<!--                            android:layout_height="wrap_content"-->
+<!--                            android:orientation="vertical"-->
+<!--                            android:background="#E8F5E9"-->
+<!--                            android:padding="12dp">-->
+
+<!--                            <TextView-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:text="Present Today"-->
+<!--                                android:textSize="11sp"-->
+<!--                                android:textColor="#388E3C"/>-->
+
+<!--                            <TextView-->
+<!--                                android:id="@+id/tvPresent"-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:text="0"-->
+<!--                                android:textSize="20sp"-->
+<!--                                android:textStyle="bold"-->
+<!--                                android:textColor="#07BA10"-->
+<!--                                android:layout_marginTop="2dp"/>-->
+<!--                        </LinearLayout>-->
+<!--                    </com.google.android.material.card.MaterialCardView>-->
+<!--                </LinearLayout>-->
+
+<!--                &lt;!&ndash; Stats Row 2 &ndash;&gt;-->
+<!--                <LinearLayout-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:orientation="horizontal"-->
+<!--                    android:weightSum="2"-->
+<!--                    android:layout_marginBottom="16dp">-->
+
+<!--                    &lt;!&ndash; Absent - Light Red &ndash;&gt;-->
+<!--                    <com.google.android.material.card.MaterialCardView-->
+<!--                        android:id="@+id/cardAbsent"-->
+<!--                        android:layout_width="0dp"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_weight="1"-->
+<!--                        android:layout_marginEnd="4dp"-->
+<!--                        app:cardCornerRadius="10dp"-->
+<!--                        app:cardElevation="1dp">-->
+
+<!--                        <LinearLayout-->
+<!--                            android:layout_width="match_parent"-->
+<!--                            android:layout_height="wrap_content"-->
+<!--                            android:background="#FFEBEE"-->
+<!--                            android:orientation="vertical"-->
+<!--                            android:padding="12dp">-->
+
+<!--                            <TextView-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:text="Absent"-->
+<!--                                android:textColor="#C62828"-->
+<!--                                android:textSize="11sp" />-->
+
+<!--                            <TextView-->
+<!--                                android:id="@+id/tvAbsent"-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:layout_marginTop="2dp"-->
+<!--                                android:text="0"-->
+<!--                                android:textColor="#F20606"-->
+<!--                                android:textSize="20sp"-->
+<!--                                android:textStyle="bold" />-->
+<!--                        </LinearLayout>-->
+<!--                    </com.google.android.material.card.MaterialCardView>-->
+
+<!--                    &lt;!&ndash; Late Today - Light Orange &ndash;&gt;-->
+<!--                    <com.google.android.material.card.MaterialCardView-->
+<!--                        android:id="@+id/cardLate"-->
+<!--                        android:layout_width="0dp"-->
+<!--                        android:layout_height="wrap_content"-->
+<!--                        android:layout_weight="1"-->
+<!--                        android:layout_marginStart="4dp"-->
+<!--                        app:cardCornerRadius="10dp"-->
+<!--                        app:cardElevation="1dp">-->
+
+<!--                        <LinearLayout-->
+<!--                            android:layout_width="match_parent"-->
+<!--                            android:layout_height="wrap_content"-->
+<!--                            android:background="#FFF3E0"-->
+<!--                            android:orientation="vertical"-->
+<!--                            android:padding="12dp">-->
+
+<!--                            <TextView-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:text="Late Today"-->
+<!--                                android:textSize="11sp"-->
+<!--                                android:textColor="#EF6C00"/>-->
+
+<!--                            <TextView-->
+<!--                                android:id="@+id/tvLate"-->
+<!--                                android:layout_width="wrap_content"-->
+<!--                                android:layout_height="wrap_content"-->
+<!--                                android:text="0"-->
+<!--                                android:textSize="20sp"-->
+<!--                                android:textStyle="bold"-->
+<!--                                android:textColor="#FB8611"-->
+<!--                                android:layout_marginTop="2dp"/>-->
+<!--                        </LinearLayout>-->
+<!--                    </com.google.android.material.card.MaterialCardView>-->
+<!--                </LinearLayout>-->
+
+<!--                &lt;!&ndash; Employees Section &ndash;&gt;-->
+<!--                <TextView-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="Employees"-->
+<!--                    android:textStyle="bold"-->
+<!--                    android:textSize="16sp"-->
+<!--                    android:textColor="@color/text_primary"-->
+<!--                    android:layout_marginBottom="8dp"/>-->
+
+<!--                &lt;!&ndash; Professional Search Input &ndash;&gt;-->
+<!--                <com.google.android.material.textfield.TextInputLayout-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:layout_marginBottom="12dp"-->
+<!--                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"-->
+<!--                    app:boxCornerRadiusTopStart="12dp"-->
+<!--                    app:boxCornerRadiusTopEnd="12dp"-->
+<!--                    app:boxCornerRadiusBottomStart="12dp"-->
+<!--                    app:boxCornerRadiusBottomEnd="12dp"-->
+<!--                    app:boxStrokeWidth="1dp"-->
+<!--                    app:boxStrokeColor="#E0E0E0"-->
+<!--                    app:startIconDrawable="@drawable/search"-->
+<!--                    app:startIconTint="#757575"-->
+<!--                    app:endIconMode="clear_text"-->
+<!--                    app:endIconTint="#757575"-->
+<!--                    app:hintTextColor="#757575">-->
+
+<!--                    <com.google.android.material.textfield.TextInputEditText-->
+<!--                        android:id="@+id/etSearch"-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="40dp"-->
+<!--                        android:hint="Search by name, mobile or department"-->
+<!--                        android:inputType="text"-->
+<!--                        android:textSize="14sp"-->
+<!--                        android:maxLines="1"-->
+<!--                        android:padding="10dp"/>-->
+
+<!--                </com.google.android.material.textfield.TextInputLayout>-->
+
+<!--                &lt;!&ndash; Employees RecyclerView &ndash;&gt;-->
+<!--                <androidx.recyclerview.widget.RecyclerView-->
+<!--                    android:id="@+id/rvEmployees"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:clipToPadding="false"-->
+<!--                    android:backgroundTint="@color/white"-->
+<!--                    android:paddingBottom="80dp"-->
+<!--                    tools:listitem="@layout/item_employee"/>-->
+
+<!--            </LinearLayout>-->
+<!--        </androidx.core.widget.NestedScrollView>-->
+
+<!--        &lt;!&ndash; Add Employee FAB &ndash;&gt;-->
+<!--        <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton-->
+<!--            android:id="@+id/fabAddEmployee"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_gravity="bottom|end"-->
+<!--            android:layout_margin="16dp"-->
+<!--            android:text="Add Employee"-->
+<!--            android:textColor="@android:color/white"-->
+<!--            app:iconTint="@android:color/white"-->
+<!--            app:backgroundTint="#FF5722"-->
+<!--            app:elevation="6dp"/>-->
+
+<!--    </androidx.coordinatorlayout.widget.CoordinatorLayout>-->
+
+<!--    &lt;!&ndash; Navigation Drawer &ndash;&gt;-->
+<!--    <com.google.android.material.navigation.NavigationView-->
+<!--        android:id="@+id/nav_view"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="match_parent"-->
+<!--        android:layout_gravity="start"-->
+<!--        app:headerLayout="@layout/nav_header"-->
+<!--        app:menu="@menu/admin_nav_menu"/>-->
+
+<!--</androidx.drawerlayout.widget.DrawerLayout>-->
+
+
+
+<!--varil code properly working krtoy khalil code graphs add kelet -->
+<!--<?xml version="1.0" encoding="utf-8"?>-->
 <androidx.drawerlayout.widget.DrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -31,8 +349,6 @@
                 app:navigationIcon="@drawable/ic_menu"
                 app:navigationIconTint="@android:color/white" >
 
-
-            <!-- ✅ MOVED INSIDE Toolbar - Now findViewById works! -->
                 <TextView
                     android:id="@+id/tvToolbarTitle"
                     android:layout_width="wrap_content"
@@ -45,7 +361,6 @@
 
             </com.google.android.material.appbar.MaterialToolbar>
         </com.google.android.material.appbar.AppBarLayout>
-
 
         <!-- Content -->
         <androidx.core.widget.NestedScrollView
@@ -79,11 +394,9 @@
                     android:weightSum="2"
                     android:layout_marginBottom="8dp">
 
-                    <!-- Total Employees - Light Gray -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardTotalEmployees"
-
-                    android:layout_width="0dp"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="4dp"
@@ -116,7 +429,6 @@
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 
-                    <!-- Present Today - Light Green -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardPresent"
                         android:layout_width="0dp"
@@ -161,7 +473,6 @@
                     android:weightSum="2"
                     android:layout_marginBottom="16dp">
 
-                    <!-- Absent - Light Red -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardAbsent"
                         android:layout_width="0dp"
@@ -197,7 +508,6 @@
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 
-                    <!-- Late Today - Light Orange -->
                     <com.google.android.material.card.MaterialCardView
                         android:id="@+id/cardLate"
                         android:layout_width="0dp"
@@ -234,6 +544,158 @@
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
 
+                <!-- 📊 NEW: Weekly Attendance Graph Card -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="📊 This Week Attendance"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:layout_marginBottom="12dp"/>
+
+                        <!-- Graph Container -->
+                        <com.github.mikephil.charting.charts.BarChart                            android:id="@+id/weeklyChart"
+                            android:layout_width="match_parent"
+                            android:layout_height="200dp"/>
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- 📈 NEW: Quick Stats Row -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="3"
+                    android:visibility="gone"
+                    android:layout_marginBottom="16dp">
+
+                    <!-- Average Check-in -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="4dp"
+                        app:cardCornerRadius="10dp"
+                        app:cardElevation="1dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:background="#E3F2FD"
+                            android:padding="10dp"
+                            android:gravity="center">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="⏰ Avg Check-in"
+                                android:textSize="10sp"
+                                android:textColor="#1565C0"/>
+
+                            <TextView
+                                android:id="@+id/tvAvgCheckIn"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="--:--"
+                                android:textSize="14sp"
+                                android:textStyle="bold"
+                                android:textColor="#0D47A1"
+                                android:layout_marginTop="2dp"/>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Total Hours Today -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="2dp"
+                        android:layout_marginEnd="2dp"
+                        app:cardCornerRadius="10dp"
+                        app:cardElevation="1dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:background="#F3E5F5"
+                            android:padding="10dp"
+                            android:gravity="center">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="⏱️ Total Hours"
+                                android:textSize="10sp"
+                                android:textColor="#6A1B9A"/>
+
+                            <TextView
+                                android:id="@+id/tvTotalHours"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0h"
+                                android:textSize="14sp"
+                                android:textStyle="bold"
+                                android:textColor="#4A148C"
+                                android:layout_marginTop="2dp"/>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- On Time % -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="4dp"
+                        app:cardCornerRadius="10dp"
+                        app:cardElevation="1dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:background="#FFF9C4"
+                            android:padding="10dp"
+                            android:gravity="center">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="✅ On Time"
+                                android:textSize="10sp"
+                                android:textColor="#F57F17"/>
+
+                            <TextView
+                                android:id="@+id/tvOnTimePercent"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="0%"
+                                android:textSize="14sp"
+                                android:textStyle="bold"
+                                android:textColor="#F57F17"
+                                android:layout_marginTop="2dp"/>
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                </LinearLayout>
+
                 <!-- Employees Section -->
                 <TextView
                     android:layout_width="wrap_content"
@@ -244,7 +706,7 @@
                     android:textColor="@color/text_primary"
                     android:layout_marginBottom="8dp"/>
 
-                <!-- Professional Search Input -->
+                <!-- Search Input -->
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
