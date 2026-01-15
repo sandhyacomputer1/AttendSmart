@@ -93,6 +93,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
     private static final int NOTIF_PERMISSION = 201;
+    private boolean isChartAnimated = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -249,6 +250,10 @@ public class AdminDashboardActivity extends AppCompatActivity {
     // ==================== NEW: WEEKLY CHART SETUP ====================
 
     private void setupWeeklyChart() {
+
+        weeklyChart.setHighlightPerTapEnabled(false);
+        weeklyChart.setHighlightPerDragEnabled(false);
+
         weeklyChart.getDescription().setEnabled(false);
         weeklyChart.setTouchEnabled(true);
         weeklyChart.setDragEnabled(true);
@@ -256,6 +261,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
         weeklyChart.setPinchZoom(false);
         weeklyChart.setDrawGridBackground(false);
         weeklyChart.setExtraOffsets(5, 10, 5, 10);
+
 
         // X-Axis (same as before, but adjust for bars)
         XAxis xAxis = weeklyChart.getXAxis();
@@ -293,12 +299,15 @@ public class AdminDashboardActivity extends AppCompatActivity {
         Calendar cal = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
-        // Get last 7 days
+        // 🔥 STEP 1: Move calendar to Monday of current week
+        cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+
         List<String> dates = new ArrayList<>();
-        for (int i = 6; i >= 0; i--) {
-            cal.setTime(new Date());
-            cal.add(Calendar.DAY_OF_YEAR, -i);
+
+        // 🔥 STEP 2: Generate Monday → Sunday
+        for (int i = 0; i < 7; i++) {
             dates.add(sdf.format(cal.getTime()));
+            cal.add(Calendar.DAY_OF_YEAR, 1);
         }
 
         DatabaseReference attRef = FirebaseDatabase.getInstance()
@@ -310,7 +319,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
         List<BarEntry> absentEntries = new ArrayList<>();
 
         final int[] processedDays = {0};
-        final int totalDays = dates.size();
 
         for (int i = 0; i < dates.size(); i++) {
             final int dayIndex = i;
@@ -325,29 +333,29 @@ public class AdminDashboardActivity extends AppCompatActivity {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot attSnapshot) {
                             int present = 0;
+
                             for (DataSnapshot att : attSnapshot.getChildren()) {
                                 if (att.hasChild("checkInTime")) {
                                     present++;
                                 }
                             }
+
                             int absent = Math.max(0, totalEmp - present);
 
-                            presentEntries.add(new BarEntry(dayIndex, present));  // Change Entry to BarEntry
-                            absentEntries.add(new BarEntry(dayIndex, absent));   // Change Entry to BarEntry
+                            presentEntries.add(new BarEntry(dayIndex, present));
+                            absentEntries.add(new BarEntry(dayIndex, absent));
 
                             processedDays[0]++;
-                            if (processedDays[0] == totalDays) {
+                            if (processedDays[0] == 7) {
                                 updateWeeklyChart(presentEntries, absentEntries);
                             }
                         }
 
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {}
+                        @Override public void onCancelled(@NonNull DatabaseError error) {}
                     });
                 }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {}
+                @Override public void onCancelled(@NonNull DatabaseError error) {}
             });
         }
     }
@@ -365,14 +373,26 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         // Combine into BarData (group bars side-by-side)
         BarData barData = new BarData(presentDataSet, absentDataSet);
-        barData.setBarWidth(0.4f);  // NEW: Set bar width
+//        barData.setBarWidth(0.4f);  // NEW: Set bar width
+        barData.setBarWidth(0.38f);
+
         weeklyChart.setData(barData);
 
         // Group bars with space between days
-        weeklyChart.groupBars(0f, 0.1f, 0.02f);  // NEW: Groups Present/Absent bars per day
+//        weeklyChart.groupBars(0f, 0.1f, 0.02f);  // NEW: Groups Present/Absent bars per day
+        weeklyChart.groupBars(0f, 0.12f, 0.04f);
 
-        weeklyChart.animateY(1000);  // Change to Y animation for bars
+//        weeklyChart.animateY(1000);  // Change to Y animation for bars
+        weeklyChart.animateXY(
+                700,   // X axis
+                1200   // Y axis (bars grow up)
+        );
+
         weeklyChart.invalidate();
+        if (!isChartAnimated) {
+            weeklyChart.animateY(1200);
+            isChartAnimated = true;
+        }
     }
     // ==================== NEW: QUICK STATS ====================
 
