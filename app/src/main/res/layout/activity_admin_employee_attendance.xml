@@ -4,9 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-
-    >
+    android:fitsSystemWindows="true">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -20,6 +18,7 @@
             android:background="@drawable/gradient_header"
             app:navigationIcon="@drawable/ic_arrow_back"
             app:title="Employee Attendance"
+            android:fontFamily="sans-serif-medium"
             app:titleTextColor="@color/white" />
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -27,7 +26,6 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:background="@color/white"
-
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
@@ -45,8 +43,9 @@
                 android:layout_marginBottom="12dp"
                 android:text="Employee Details"
                 android:textColor="@color/primary"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/lato_bold" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -69,34 +68,37 @@
                         android:text="John Doe"
                         android:textColor="@android:color/black"
                         android:textSize="18sp"
-                        android:textStyle="bold" />
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:background="@color/white"
-                    android:padding="10dp">
+                        android:textStyle="bold"
+                        android:fontFamily="@font/lato_bold" />
 
-
-                    <TextView
-                        android:id="@+id/tvEmployeeRole"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Software Engineer"
-                        android:textColor="@color/black"
-                        android:textSize="14sp" />
+                        android:orientation="horizontal"
+                        android:background="@color/white"
+                        android:padding="10dp">
 
-                    <TextView
-                        android:id="@+id/tvEmployeeMobile"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="+91 9876543210"
-                        android:layout_marginStart="20dp"
-                        android:textColor="@color/black"
-                        android:textSize="14sp"
-                        android:layout_marginTop="4dp"/>
-                </LinearLayout>
+                        <TextView
+                            android:id="@+id/tvEmployeeRole"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:text="Software Engineer"
+                            android:textColor="@color/black"
+                            android:textSize="14sp"
+                            android:fontFamily="@font/poppins_regular" />
+
+                        <TextView
+                            android:id="@+id/tvEmployeeMobile"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="+91 9876543210"
+                            android:layout_marginStart="20dp"
+                            android:textColor="@color/black"
+                            android:textSize="14sp"
+                            android:layout_marginTop="4dp"
+                            android:fontFamily="@font/poppins_regular" />
+                    </LinearLayout>
 
                 </LinearLayout>
 
@@ -109,8 +111,9 @@
                 android:layout_marginBottom="12dp"
                 android:text="Monthly Statistics"
                 android:textColor="@color/primary"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/lato_bold" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -147,14 +150,16 @@
                                 android:text="0"
                                 android:textColor="@color/success"
                                 android:textSize="24sp"
-                                android:textStyle="bold" />
+                                android:textStyle="bold"
+                                android:fontFamily="@font/lato_bold" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Present"
                                 android:textColor="@color/success"
-                                android:textSize="12sp" />
+                                android:textSize="12sp"
+                                android:fontFamily="@font/poppins_regular" />
                         </LinearLayout>
 
                         <!-- Late -->
@@ -172,14 +177,16 @@
                                 android:text="0"
                                 android:textColor="@color/warning"
                                 android:textSize="24sp"
-                                android:textStyle="bold" />
+                                android:textStyle="bold"
+                                android:fontFamily="@font/lato_bold" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Late"
                                 android:textColor="@color/warning"
-                                android:textSize="12sp" />
+                                android:textSize="12sp"
+                                android:fontFamily="@font/poppins_regular" />
                         </LinearLayout>
 
                         <!-- Half Day -->
@@ -197,14 +204,16 @@
                                 android:text="0"
                                 android:textColor="#236497"
                                 android:textSize="24sp"
-                                android:textStyle="bold" />
+                                android:textStyle="bold"
+                                android:fontFamily="@font/lato_bold" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Half Day"
                                 android:textColor="#236497"
-                                android:textSize="12sp" />
+                                android:textSize="12sp"
+                                android:fontFamily="@font/poppins_regular" />
                         </LinearLayout>
 
                         <!-- Absent -->
@@ -222,14 +231,16 @@
                                 android:text="0"
                                 android:textColor="@color/error"
                                 android:textSize="24sp"
-                                android:textStyle="bold" />
+                                android:textStyle="bold"
+                                android:fontFamily="@font/lato_bold" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Absent"
                                 android:textColor="@color/error"
-                                android:textSize="12sp" />
+                                android:textSize="12sp"
+                                android:fontFamily="@font/poppins_regular" />
                         </LinearLayout>
 
                     </LinearLayout>
@@ -250,8 +261,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:background="@color/white"
-                   >
+                    android:background="@color/white">
 
                     <!-- Month Navigation -->
                     <LinearLayout
@@ -280,7 +290,8 @@
                             android:text="January 2026"
                             android:textColor="@android:color/white"
                             android:textSize="18sp"
-                            android:textStyle="bold" />
+                            android:textStyle="bold"
+                            android:fontFamily="@font/lato_bold" />
 
                         <ImageView
                             android:id="@+id/ivNextMonth"

@@ -5,14 +5,15 @@ import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Typeface;
 import android.graphics.pdf.PdfDocument;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,7 +36,6 @@ import com.sandhyyasofttech.attendsmart.Utils.PrefManager;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -44,14 +44,15 @@ import java.util.Locale;
 public class SalaryDetailActivity extends AppCompatActivity {
 
     private TextView tvEmployeeName, tvEmployeeMobile, tvMonth;
-    private TextView tvPresent, tvHalf, tvAbsent, tvLate, tvPaidLeaves, tvUnpaidLeaves;
-    private TextView tvPerDay, tvGross, tvNet, tvDeductions;
-    private Button btnPdf;
+    private EditText etPresent, etHalf, etAbsent, etLate;
+    private EditText etPerDay, etGross, etNet, etDeductions;
+    private Button btnPdf, btnSave, btnEdit;
     private ImageButton btnBack;
 
     private String companyKey, month, employeeMobile;
     private SalarySnapshot cachedSnapshot;
     private String employeeName = "";
+    private boolean isEditMode = false;
 
     // PDF Colors
     private static final int HEADER_COLOR = Color.parseColor("#2C3E50");
@@ -68,33 +69,9 @@ public class SalaryDetailActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_salary_detail);
 
-        // ================= BACK BUTTON =================
-        btnBack = findViewById(R.id.btnBack);
-        btnBack.setOnClickListener(v -> {
-            finish();
-            // Optional animation: overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
-        });
+        initializeViews();
+        setupListeners();
 
-        // ================= BIND VIEWS =================
-        tvEmployeeName = findViewById(R.id.tvEmployeeName);
-        tvEmployeeMobile = findViewById(R.id.tvEmployeeMobile);
-        tvMonth = findViewById(R.id.tvMonth);
-
-        tvPresent = findViewById(R.id.tvPresentDays);
-        tvHalf = findViewById(R.id.tvHalfDays);
-        tvAbsent = findViewById(R.id.tvAbsentDays);
-        tvLate = findViewById(R.id.tvLateDays);
-        tvPaidLeaves = findViewById(R.id.tvPaidLeaves);
-        tvUnpaidLeaves = findViewById(R.id.tvUnpaidLeaves);
-
-        tvPerDay = findViewById(R.id.tvPerDaySalary);
-        tvGross = findViewById(R.id.tvGrossSalary);
-        tvNet = findViewById(R.id.tvNetSalary);
-        tvDeductions = findViewById(R.id.tvTotalDeductions);
-
-        btnPdf = findViewById(R.id.btnGeneratePdf);
-
-        // ================= INTENT DATA =================
         month = getIntent().getStringExtra("month");
         employeeMobile = getIntent().getStringExtra("employeeMobile");
 
@@ -107,8 +84,39 @@ public class SalaryDetailActivity extends AppCompatActivity {
         PrefManager pref = new PrefManager(this);
         companyKey = pref.getUserEmail().replace(".", ",");
 
-        // First fetch employee name, then salary details
         fetchEmployeeName();
+    }
+
+    private void initializeViews() {
+        btnBack = findViewById(R.id.btnBack);
+
+        tvEmployeeName = findViewById(R.id.tvEmployeeName);
+        tvEmployeeMobile = findViewById(R.id.tvEmployeeMobile);
+        tvMonth = findViewById(R.id.tvMonth);
+
+        etPresent = findViewById(R.id.etPresentDays);
+        etHalf = findViewById(R.id.etHalfDays);
+        etAbsent = findViewById(R.id.etAbsentDays);
+        etLate = findViewById(R.id.etLateDays);
+
+        etPerDay = findViewById(R.id.etPerDaySalary);
+        etGross = findViewById(R.id.etGrossSalary);
+        etNet = findViewById(R.id.etNetSalary);
+        etDeductions = findViewById(R.id.etTotalDeductions);
+
+        btnPdf = findViewById(R.id.btnGeneratePdf);
+        btnSave = findViewById(R.id.btnSave);
+        btnEdit = findViewById(R.id.btnEdit);
+
+        setEditableMode(false);
+    }
+
+    private void setupListeners() {
+        btnBack.setOnClickListener(v -> finish());
+
+        btnEdit.setOnClickListener(v -> toggleEditMode());
+
+        btnSave.setOnClickListener(v -> saveChanges());
 
         btnPdf.setOnClickListener(v -> {
             if (cachedSnapshot != null) {
@@ -117,15 +125,125 @@ public class SalaryDetailActivity extends AppCompatActivity {
                 Toast.makeText(this, "Salary not loaded yet", Toast.LENGTH_SHORT).show();
             }
         });
+
+        // Auto-calculate when fields change
+        TextWatcher calculationWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (isEditMode) {
+                    recalculateSalary();
+                }
+            }
+        };
+
+        etPresent.addTextChangedListener(calculationWatcher);
+        etHalf.addTextChangedListener(calculationWatcher);
+        etAbsent.addTextChangedListener(calculationWatcher);
+        etPerDay.addTextChangedListener(calculationWatcher);
+        etDeductions.addTextChangedListener(calculationWatcher);
     }
 
-    @Override
-    public void onBackPressed() {
-        super.onBackPressed();
-        // Optional animation: overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+    private void toggleEditMode() {
+        isEditMode = !isEditMode;
+        setEditableMode(isEditMode);
+
+        if (isEditMode) {
+            btnEdit.setText("Cancel");
+            btnEdit.setBackgroundColor(Color.parseColor("#FF5722"));
+            btnSave.setVisibility(View.VISIBLE);
+        } else {
+            btnEdit.setText("Edit");
+            btnEdit.setBackgroundColor(Color.parseColor("#2196F3"));
+            btnSave.setVisibility(View.GONE);
+            // Reload original data
+            if (cachedSnapshot != null) {
+                bindData(cachedSnapshot);
+            }
+        }
     }
 
-    // ================= FETCH EMPLOYEE NAME =================
+    private void setEditableMode(boolean editable) {
+        etPresent.setEnabled(editable);
+        etHalf.setEnabled(editable);
+        etAbsent.setEnabled(editable);
+        etLate.setEnabled(editable);
+        etPerDay.setEnabled(editable);
+        etDeductions.setEnabled(editable);
+
+        // Net and Gross are always calculated
+        etGross.setEnabled(false);
+        etNet.setEnabled(false);
+    }
+
+    private void recalculateSalary() {
+        try {
+            int present = parseIntValue(etPresent.getText().toString());
+            double halfDays = parseIntValue(etHalf.getText().toString()) * 0.5;
+            double perDay = parseDoubleValue(etPerDay.getText().toString());
+            double deductions = parseDoubleValue(etDeductions.getText().toString());
+
+            double workingDays = present + halfDays;
+            double gross = workingDays * perDay;
+            double net = gross - deductions;
+
+            NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
+            etGross.setText(formatter.format(gross));
+            etNet.setText(formatter.format(net));
+
+        } catch (Exception e) {
+            // Silent calculation error
+        }
+    }
+
+    private void saveChanges() {
+        if (cachedSnapshot == null) return;
+
+        try {
+            // Update attendance summary
+            cachedSnapshot.attendanceSummary.presentDays = parseIntValue(etPresent.getText().toString());
+            cachedSnapshot.attendanceSummary.halfDays = parseIntValue(etHalf.getText().toString());
+            cachedSnapshot.attendanceSummary.absentDays = parseIntValue(etAbsent.getText().toString());
+            cachedSnapshot.attendanceSummary.lateCount = parseIntValue(etLate.getText().toString());
+
+            // Update salary calculation
+            double perDay = parseDoubleValue(etPerDay.getText().toString());
+            double gross = parseDoubleValue(etGross.getText().toString());
+            double net = parseDoubleValue(etNet.getText().toString());
+            double deductions = parseDoubleValue(etDeductions.getText().toString());
+
+            cachedSnapshot.calculationResult.perDaySalary = perDay;
+            cachedSnapshot.calculationResult.grossSalary = gross;
+            cachedSnapshot.calculationResult.netSalary = net;
+            cachedSnapshot.calculationResult.totalDeduction = deductions;
+
+            // Save to Firebase
+            DatabaseReference salaryRef = FirebaseDatabase.getInstance()
+                    .getReference("Companies")
+                    .child(companyKey)
+                    .child("salary")
+                    .child(month)
+                    .child(employeeMobile);
+
+            salaryRef.setValue(cachedSnapshot)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "Salary updated successfully", Toast.LENGTH_SHORT).show();
+                        toggleEditMode();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Failed to save: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+
+        } catch (Exception e) {
+            Toast.makeText(this, "Invalid data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void fetchEmployeeName() {
         DatabaseReference employeeRef = FirebaseDatabase.getInstance()
                 .getReference("Companies")
@@ -139,31 +257,23 @@ public class SalaryDetailActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     employeeName = snapshot.child("employeeName").getValue(String.class);
-                    if (employeeName != null) {
-                        tvEmployeeName.setText(employeeName);
-                    } else {
-                        tvEmployeeName.setText("N/A");
-                    }
+                    tvEmployeeName.setText(employeeName != null ? employeeName : "N/A");
                 } else {
                     tvEmployeeName.setText("Employee not found");
                 }
-
-                // Now fetch salary details after getting employee name
                 fetchSalaryDetails();
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(SalaryDetailActivity.this,
-                        "Error loading employee data: " + error.getMessage(),
+                        "Error loading employee: " + error.getMessage(),
                         Toast.LENGTH_SHORT).show();
-                tvEmployeeName.setText("Error loading");
-                fetchSalaryDetails(); // Still try to fetch salary
+                fetchSalaryDetails();
             }
         });
     }
 
-    // ================= FETCH SALARY DETAILS =================
     private void fetchSalaryDetails() {
         DatabaseReference salaryRef = FirebaseDatabase.getInstance()
                 .getReference("Companies")
@@ -183,7 +293,6 @@ public class SalaryDetailActivity extends AppCompatActivity {
                 }
 
                 SalarySnapshot data = snapshot.getValue(SalarySnapshot.class);
-
                 if (data == null) {
                     Toast.makeText(SalaryDetailActivity.this,
                             "Failed to load salary",
@@ -198,378 +307,90 @@ public class SalaryDetailActivity extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(SalaryDetailActivity.this,
-                        "Error loading salary: " + error.getMessage(),
+                        "Error: " + error.getMessage(),
                         Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    // ================= BIND DATA =================
     private void bindData(SalarySnapshot s) {
-        // Set basic info
         tvEmployeeMobile.setText(s.employeeMobile);
         tvMonth.setText(s.month);
 
-        // Set attendance summary with proper null checks
+        NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
+
         if (s.attendanceSummary != null) {
-            tvPresent.setText("Present: " + s.attendanceSummary.presentDays);
-            tvHalf.setText("Half Day: " + s.attendanceSummary.halfDays);
-            tvAbsent.setText("Absent: " + s.attendanceSummary.absentDays);
-            tvLate.setText("Late: " + s.attendanceSummary.lateCount);
-            tvPaidLeaves.setText("Paid Leaves: " + s.attendanceSummary.paidLeavesUsed);
-            tvUnpaidLeaves.setText("Unpaid Leaves: " + s.attendanceSummary.unpaidLeaves);
-        } else {
-            tvPresent.setText("Present: 0");
-            tvHalf.setText("Half Day: 0");
-            tvAbsent.setText("Absent: 0");
-            tvLate.setText("Late: 0");
-            tvPaidLeaves.setText("Paid Leaves: 0");
-            tvUnpaidLeaves.setText("Unpaid Leaves: 0");
+            etPresent.setText(String.valueOf(s.attendanceSummary.presentDays));
+            etHalf.setText(String.valueOf(s.attendanceSummary.halfDays));
+            etAbsent.setText(String.valueOf(s.attendanceSummary.absentDays));
+            etLate.setText(String.valueOf(s.attendanceSummary.lateCount));
         }
 
-        // Set salary calculation with proper parsing
         if (s.calculationResult != null) {
-            NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
+            double perDay = parseSalaryValue(s.calculationResult.perDaySalary);
+            double gross = parseSalaryValue(s.calculationResult.grossSalary);
+            double net = parseSalaryValue(s.calculationResult.netSalary);
+            double deductions = parseSalaryValue(s.calculationResult.totalDeduction);
 
-            // Parse per day salary
-            double perDaySalary = parseSalaryValue(s.calculationResult.perDaySalary);
-            tvPerDay.setText("Per Day: " + formatter.format(perDaySalary));
-
-            // Parse gross salary
-            double grossSalary = parseSalaryValue(s.calculationResult.grossSalary);
-            tvGross.setText("Gross: " + formatter.format(grossSalary));
-
-            // Parse net salary
-            double netSalary = parseSalaryValue(s.calculationResult.netSalary);
-            tvNet.setText("Net: " + formatter.format(netSalary));
-
-            // Parse total deduction
-            double totalDeduction = parseSalaryValue(s.calculationResult.totalDeduction);
-            tvDeductions.setText("Deductions: " + formatter.format(totalDeduction));
-
-            // If deduction is 0, calculate it from gross - net
-            if (totalDeduction == 0 && grossSalary > 0 && netSalary > 0) {
-                totalDeduction = grossSalary - netSalary;
-                tvDeductions.setText("Deductions: " + formatter.format(totalDeduction));
+            if (deductions == 0 && gross > 0 && net > 0) {
+                deductions = gross - net;
             }
-        } else {
-            tvPerDay.setText("Per Day: ₹0");
-            tvGross.setText("Gross: ₹0");
-            tvNet.setText("Net: ₹0");
-            tvDeductions.setText("Deductions: ₹0");
+
+            etPerDay.setText(formatter.format(perDay));
+            etGross.setText(formatter.format(gross));
+            etNet.setText(formatter.format(net));
+            etDeductions.setText(formatter.format(deductions));
         }
     }
 
-    // ================= PARSE SALARY VALUE =================
-    private double parseSalaryValue(Object salaryValue) {
-        if (salaryValue == null) {
-            return 0.0;
-        }
-
+    private double parseSalaryValue(Object value) {
+        if (value == null) return 0.0;
         try {
-            if (salaryValue instanceof String) {
-                String strValue = (String) salaryValue;
-                String cleanStr = strValue.replaceAll("[₹$,]", "").trim();
-                if (cleanStr.isEmpty()) {
-                    return 0.0;
-                }
-                return Double.parseDouble(cleanStr);
-            } else if (salaryValue instanceof Number) {
-                return ((Number) salaryValue).doubleValue();
-            } else if (salaryValue instanceof Double) {
-                return (Double) salaryValue;
-            } else if (salaryValue instanceof Integer) {
-                return ((Integer) salaryValue).doubleValue();
-            } else if (salaryValue instanceof Long) {
-                return ((Long) salaryValue).doubleValue();
+            if (value instanceof String) {
+                String str = ((String) value).replaceAll("[₹$,]", "").trim();
+                return str.isEmpty() ? 0.0 : Double.parseDouble(str);
+            } else if (value instanceof Number) {
+                return ((Number) value).doubleValue();
             }
         } catch (Exception e) {
-            // Return 0 if parsing fails
+            // Return 0 on error
         }
         return 0.0;
+    }
+
+    private int parseIntValue(String value) {
+        try {
+            return Integer.parseInt(value.replaceAll("[^0-9]", ""));
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private double parseDoubleValue(String value) {
+        try {
+            return Double.parseDouble(value.replaceAll("[₹$,]", "").trim());
+        } catch (Exception e) {
+            return 0.0;
+        }
     }
 
     private void generateAndOpenPdf(SalarySnapshot s) {
         try {
             PdfDocument pdf = new PdfDocument();
-            Paint paint = new Paint();
-            Paint linePaint = new Paint();
-
-            // A4 size: 595 x 842 points (72 DPI)
             PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(595, 842, 1).create();
             PdfDocument.Page page = pdf.startPage(pageInfo);
             Canvas canvas = page.getCanvas();
 
-            // Set white background
             canvas.drawColor(Color.WHITE);
-
-            // Layout parameters
-            int leftMargin = 40;
-            int rightMargin = 40;
-            int contentWidth = 595 - leftMargin - rightMargin;
-            int y = 60;
-            int centerX = leftMargin + contentWidth / 2;
-
-            // ================= HEADER SECTION =================
-            // Company logo/header background
-            paint.setColor(HEADER_COLOR);
-            paint.setStyle(Paint.Style.FILL);
-            canvas.drawRect(leftMargin, y - 20, leftMargin + contentWidth, y + 100, paint);
-
-            // Company name
-            paint.setColor(Color.WHITE);
-            paint.setTextSize(28);
-            paint.setFakeBoldText(true);
-            paint.setTextAlign(Paint.Align.CENTER);
-            canvas.drawText("ATTEND SMART", centerX, y + 30, paint);
-
-            // Subtitle
-            paint.setTextSize(16);
-            canvas.drawText("Employee Salary Slip", centerX, y + 60, paint);
-
-            // Header line
-            paint.setColor(PRIMARY_COLOR);
-            paint.setStrokeWidth(3);
-            canvas.drawLine(leftMargin + 100, y + 70, leftMargin + contentWidth - 100, y + 70, paint);
-
-            y += 120;
-            paint.setTextAlign(Paint.Align.LEFT);
-
-            // ================= EMPLOYEE & PERIOD INFO =================
-            // Section title
-            paint.setColor(TEXT_DARK);
-            paint.setTextSize(14);
-            paint.setFakeBoldText(true);
-            canvas.drawText("EMPLOYEE DETAILS", leftMargin, y, paint);
-            paint.setFakeBoldText(false);
-
-            y += 25;
-
-            // Info box
-            drawRoundedRect(canvas, leftMargin, y, leftMargin + contentWidth, y + 70, 5, Color.WHITE);
-
-            // Left column
-            paint.setColor(TEXT_DARK);
-            paint.setTextSize(12);
-            paint.setFakeBoldText(true);
-            canvas.drawText("Employee ID:", leftMargin + 20, y + 25, paint);
-            canvas.drawText("Month/Year:", leftMargin + 20, y + 50, paint);
-
-            paint.setFakeBoldText(false);
-            paint.setColor(TEXT_LIGHT);
-            canvas.drawText(s.employeeMobile, leftMargin + 120, y + 25, paint);
-            canvas.drawText(s.month, leftMargin + 120, y + 50, paint);
-
-            // Right column
-            paint.setFakeBoldText(true);
-            paint.setColor(TEXT_DARK);
-            canvas.drawText("Generated On:", leftMargin + 300, y + 25, paint);
-            canvas.drawText("Status:", leftMargin + 300, y + 50, paint);
-
-            paint.setFakeBoldText(false);
-            paint.setColor(TEXT_LIGHT);
-            String currentDate = new SimpleDateFormat("dd-MMM-yyyy", Locale.getDefault()).format(new Date());
-            canvas.drawText(currentDate, leftMargin + 400, y + 25, paint);
-            canvas.drawText("PAID", leftMargin + 400, y + 50, paint);
-
-            y += 90;
-
-            // ================= ATTENDANCE SUMMARY =================
-            paint.setFakeBoldText(true);
-            paint.setTextSize(14);
-            paint.setColor(TEXT_DARK);
-            canvas.drawText("ATTENDANCE SUMMARY", leftMargin, y, paint);
-            paint.setFakeBoldText(false);
-
-            y += 25;
-
-            if (s.attendanceSummary != null) {
-                int boxWidth = (contentWidth - 30) / 2;
-                int boxHeight = 90;
-
-                // Row 1
-                drawMetricBox(canvas, leftMargin, y, boxWidth, boxHeight,
-                        "PRESENT DAYS", String.valueOf(s.attendanceSummary.presentDays), SUCCESS_COLOR);
-
-                drawMetricBox(canvas, leftMargin + boxWidth + 30, y, boxWidth, boxHeight,
-                        "HALF DAYS", String.valueOf(s.attendanceSummary.halfDays), Color.parseColor("#F39C12"));
-
-                y += boxHeight + 20;
-
-                // Row 2
-                drawMetricBox(canvas, leftMargin, y, boxWidth, boxHeight,
-                        "ABSENT DAYS", String.valueOf(s.attendanceSummary.absentDays), ACCENT_COLOR);
-
-                drawMetricBox(canvas, leftMargin + boxWidth + 30, y, boxWidth, boxHeight,
-                        "LATE DAYS", String.valueOf(s.attendanceSummary.lateCount), Color.parseColor("#8E44AD"));
-
-                y += boxHeight + 40;
-            }
-
-            // ================= SALARY BREAKDOWN =================
-            paint.setFakeBoldText(true);
-            paint.setTextSize(14);
-            paint.setColor(TEXT_DARK);
-            canvas.drawText("SALARY BREAKDOWN", leftMargin, y, paint);
-            paint.setFakeBoldText(false);
-
-            y += 25;
-
-            // Table header
-            int tableTop = y;
-            int rowHeight = 35;
-
-            // Header background
-            paint.setColor(HEADER_COLOR);
-            paint.setStyle(Paint.Style.FILL);
-            canvas.drawRect(leftMargin, tableTop, leftMargin + contentWidth, tableTop + rowHeight, paint);
-
-            // Header text
-            paint.setColor(Color.WHITE);
-            paint.setTextSize(12);
-            paint.setFakeBoldText(true);
-            canvas.drawText("Description", leftMargin + 15, tableTop + 23, paint);
-            canvas.drawText("Amount (₹)", leftMargin + contentWidth - 100, tableTop + 23, paint);
-
-            // Draw divider line in header
-            paint.setColor(Color.WHITE);
-            paint.setStrokeWidth(1);
-            canvas.drawLine(leftMargin + contentWidth - 120, tableTop + 5,
-                    leftMargin + contentWidth - 120, tableTop + rowHeight - 5, paint);
-
-            // Table rows
-            String[] descriptions = {
-                    "Basic Salary",
-                    "Overtime Allowance",
-                    "HRA Allowance",
-                    "Other Allowances",
-                    "Total Earnings",
-                    "PF Deduction",
-                    "TDS Deduction",
-                    "Late Penalty",
-                    "Other Deductions",
-                    "TOTAL DEDUCTIONS",
-                    "NET SALARY PAYABLE"
-            };
-
-            // Format currency
-            NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
-            double basicSalary = s.calculationResult.perDaySalary * 30; // Approximate monthly
-            double totalEarnings = s.calculationResult.grossSalary;
-            double deductions = s.calculationResult.grossSalary - s.calculationResult.netSalary;
-            double netSalary = s.calculationResult.netSalary;
-
-            // Calculate other values
-            double[] amounts = {
-                    basicSalary * 0.5,                    // Basic (50% of total)
-                    basicSalary * 0.1,                    // Overtime (10%)
-                    basicSalary * 0.2,                    // HRA (20%)
-                    basicSalary * 0.2,                    // Other (20%)
-                    totalEarnings,                        // Total Earnings
-                    deductions * 0.4,                     // PF (40% of deductions)
-                    deductions * 0.3,                     // TDS (30%)
-                    deductions * 0.2,                     // Late penalty (20%)
-                    deductions * 0.1,                     // Other (10%)
-                    deductions,                           // Total deductions
-                    netSalary                             // Net salary
-            };
-
-            for (int i = 0; i < descriptions.length; i++) {
-                int rowY = tableTop + rowHeight + (i * rowHeight);
-
-                // Alternate row colors
-                paint.setStyle(Paint.Style.FILL);
-                if (i % 2 == 0) {
-                    paint.setColor(LIGHT_GRAY);
-                } else {
-                    paint.setColor(Color.WHITE);
-                }
-                canvas.drawRect(leftMargin, rowY, leftMargin + contentWidth, rowY + rowHeight, paint);
-
-                // Draw borders
-                paint.setColor(BORDER_COLOR);
-                paint.setStyle(Paint.Style.STROKE);
-                paint.setStrokeWidth(0.5f);
-                canvas.drawRect(leftMargin, rowY, leftMargin + contentWidth, rowY + rowHeight, paint);
-
-                // Draw text
-                paint.setStyle(Paint.Style.FILL);
-                paint.setColor(TEXT_DARK);
-
-                // Bold for important rows
-                boolean isBoldRow = i == 4 || i == 9 || i == 10;
-                paint.setFakeBoldText(isBoldRow);
-
-                // Draw description
-                paint.setTextSize(isBoldRow ? 12 : 11);
-                canvas.drawText(descriptions[i], leftMargin + 15, rowY + 23, paint);
-
-                // Draw amount
-                paint.setTextAlign(Paint.Align.RIGHT);
-                canvas.drawText(formatter.format(amounts[i]), leftMargin + contentWidth - 15, rowY + 23, paint);
-                paint.setTextAlign(Paint.Align.LEFT);
-
-                // Reset bold
-                paint.setFakeBoldText(false);
-            }
-
-            y = tableTop + rowHeight * (descriptions.length + 1) + 30;
-
-            // ================= IN WORDS =================
-            paint.setFakeBoldText(true);
-            paint.setTextSize(12);
-            paint.setColor(TEXT_DARK);
-            canvas.drawText("In Words:", leftMargin, y, paint);
-            paint.setFakeBoldText(false);
-
-            paint.setTextSize(11);
-            paint.setColor(TEXT_LIGHT);
-            String amountInWords = convertToWords(netSalary);
-            canvas.drawText(amountInWords, leftMargin + 80, y, paint);
-
-            y += 30;
-
-            // ================= FOOTER =================
-            paint.setColor(BORDER_COLOR);
-            paint.setStrokeWidth(1);
-            canvas.drawLine(leftMargin, y, leftMargin + contentWidth, y, paint);
-
-            y += 20;
-
-            // Company info
-            paint.setColor(TEXT_LIGHT);
-            paint.setTextSize(9);
-            paint.setTextAlign(Paint.Align.CENTER);
-            canvas.drawText("Attend Smart Technologies Pvt. Ltd.", centerX, y, paint);
-            y += 12;
-            canvas.drawText("123 Business Street, City - 123456, State, Country", centerX, y, paint);
-            y += 12;
-            canvas.drawText("Email: hr@attendsmart.com | Phone: +91-1234567890", centerX, y, paint);
-
-            y += 20;
-
-            // Disclaimer
-            paint.setTextSize(8);
-            canvas.drawText("This is a system generated salary slip and does not require signature.", centerX, y, paint);
-            y += 10;
-            canvas.drawText("For any discrepancies, please contact HR within 7 days of receipt.", centerX, y, paint);
-
-            y += 15;
-            paint.setTextSize(7);
-            canvas.drawText("Generated on: " + new SimpleDateFormat("dd-MMM-yyyy hh:mm a").format(new Date()),
-                    centerX, y, paint);
-
+            drawPdfContent(canvas, s);
             pdf.finishPage(page);
 
-            // ================= SAVE AND OPEN PDF =================
             String fileName = "SalarySlip_" + s.employeeMobile + "_" +
-                    s.month.replace("/", "_") + "_" +
-                    System.currentTimeMillis() + ".pdf";
+                    s.month.replace("/", "_") + "_" + System.currentTimeMillis() + ".pdf";
 
-            // Save to app's documents directory (works without permissions)
             File appDocumentsDir = getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
             if (appDocumentsDir == null) {
-                appDocumentsDir = getFilesDir(); // Fallback to internal storage
+                appDocumentsDir = getFilesDir();
             }
 
             File salaryDir = new File(appDocumentsDir, "SalarySlips");
@@ -578,250 +399,190 @@ public class SalaryDetailActivity extends AppCompatActivity {
             }
 
             File pdfFile = new File(salaryDir, fileName);
-
-            // Write PDF to file
             FileOutputStream fos = new FileOutputStream(pdfFile);
             pdf.writeTo(fos);
             fos.close();
             pdf.close();
 
-            Toast.makeText(this, "Salary slip generated successfully!", Toast.LENGTH_SHORT).show();
-
-            // Open the PDF
+            Toast.makeText(this, "Salary slip generated!", Toast.LENGTH_SHORT).show();
             openPdfWithOptions(pdfFile);
 
         } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this,
-                    "Error generating PDF: " + e.getMessage(),
-                    Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
-    // ================= HELPER METHOD: DRAW METRIC BOX =================
-    private void drawMetricBox(Canvas canvas, float left, float top, float width, float height,
-                               String title, String value, int color) {
+    private void drawPdfContent(Canvas canvas, SalarySnapshot s) {
         Paint paint = new Paint();
-
-        // Draw background with shadow effect
-        paint.setColor(LIGHT_GRAY);
-        paint.setStyle(Paint.Style.FILL);
         paint.setAntiAlias(true);
-        canvas.drawRoundRect(left, top, left + width, top + height, 8, 8, paint);
 
-        // Draw left accent bar
-        paint.setColor(color);
-        canvas.drawRect(left, top, left + 5, top + height, paint);
+        int leftMargin = 40;
+        int rightMargin = 40;
+        int contentWidth = 595 - leftMargin - rightMargin;
+        int y = 60;
+        int centerX = leftMargin + contentWidth / 2;
 
-        // Draw icon/circle (optional)
-        paint.setColor(color);
-        paint.setAlpha(30);
-        canvas.drawCircle(left + width - 30, top + height / 2, 25, paint);
+        // Header
+        paint.setColor(HEADER_COLOR);
+        paint.setStyle(Paint.Style.FILL);
+        canvas.drawRect(leftMargin, y - 20, leftMargin + contentWidth, y + 100, paint);
 
-        paint.setAlpha(255);
-        paint.setColor(color);
-        canvas.drawCircle(left + width - 30, top + height / 2, 15, paint);
-
-        // Draw value in circle
         paint.setColor(Color.WHITE);
-        paint.setTextSize(12);
+        paint.setTextSize(28);
         paint.setFakeBoldText(true);
         paint.setTextAlign(Paint.Align.CENTER);
-        canvas.drawText(value, left + width - 30, top + height / 2 + 4, paint);
+        canvas.drawText("ATTEND SMART", centerX, y + 30, paint);
 
-        // Draw title
-        paint.setColor(TEXT_DARK);
-        paint.setTextSize(10);
-        paint.setFakeBoldText(true);
+        paint.setTextSize(16);
+        canvas.drawText("Employee Salary Slip", centerX, y + 60, paint);
+
+        y += 120;
         paint.setTextAlign(Paint.Align.LEFT);
-        canvas.drawText(title, left + 15, top + 25, paint);
+        paint.setFakeBoldText(false);
 
-        // Draw value below title
+        // Employee Details
+        paint.setColor(TEXT_DARK);
         paint.setTextSize(14);
-        paint.setColor(color);
-        canvas.drawText(value, left + 15, top + 45, paint);
+        paint.setFakeBoldText(true);
+        canvas.drawText("EMPLOYEE DETAILS", leftMargin, y, paint);
+        y += 30;
 
-        // Draw label
-        paint.setTextSize(8);
+        paint.setTextSize(12);
+        canvas.drawText("Name:", leftMargin + 20, y, paint);
+        paint.setFakeBoldText(false);
         paint.setColor(TEXT_LIGHT);
-        canvas.drawText("Days", left + 15, top + 60, paint);
+        canvas.drawText(employeeName, leftMargin + 100, y, paint);
+        y += 25;
 
-        // Draw border
-        paint.setColor(BORDER_COLOR);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(1);
-        canvas.drawRoundRect(left, top, left + width, top + height, 8, 8, paint);
-    }
+        paint.setFakeBoldText(true);
+        paint.setColor(TEXT_DARK);
+        canvas.drawText("Mobile:", leftMargin + 20, y, paint);
+        paint.setFakeBoldText(false);
+        paint.setColor(TEXT_LIGHT);
+        canvas.drawText(s.employeeMobile, leftMargin + 100, y, paint);
+        y += 25;
 
-    // ================= HELPER METHOD: CONVERT TO WORDS =================
-    private String convertToWords(double amount) {
-        try {
-            String[] units = {"", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine"};
-            String[] teens = {"Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"};
-            String[] tens = {"", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"};
+        paint.setFakeBoldText(true);
+        paint.setColor(TEXT_DARK);
+        canvas.drawText("Month:", leftMargin + 20, y, paint);
+        paint.setFakeBoldText(false);
+        paint.setColor(TEXT_LIGHT);
+        canvas.drawText(s.month, leftMargin + 100, y, paint);
 
-            long rupees = (long) amount;
-            long paise = Math.round((amount - rupees) * 100);
+        y += 50;
 
-            if (rupees == 0) {
-                return "Zero Rupees Only";
-            }
+        // Attendance Summary
+        paint.setFakeBoldText(true);
+        paint.setTextSize(14);
+        paint.setColor(TEXT_DARK);
+        canvas.drawText("ATTENDANCE SUMMARY", leftMargin, y, paint);
+        y += 30;
 
-            StringBuilder words = new StringBuilder();
-
-            // Crores
-            if (rupees >= 10000000) {
-                words.append(convertToWords(rupees / 10000000)).append(" Crore ");
-                rupees %= 10000000;
-            }
-
-            // Lakhs
-            if (rupees >= 100000) {
-                words.append(convertToWords(rupees / 100000)).append(" Lakh ");
-                rupees %= 100000;
-            }
-
-            // Thousands
-            if (rupees >= 1000) {
-                words.append(convertToWords(rupees / 1000)).append(" Thousand ");
-                rupees %= 1000;
-            }
-
-            // Hundreds
-            if (rupees >= 100) {
-                words.append(convertToWords(rupees / 100)).append(" Hundred ");
-                rupees %= 100;
-            }
-
-            // Tens and Units
-            if (rupees > 0) {
-                if (rupees < 10) {
-                    words.append(units[(int) rupees]);
-                } else if (rupees < 20) {
-                    words.append(teens[(int) rupees - 10]);
-                } else {
-                    words.append(tens[(int) (rupees / 10)]);
-                    if (rupees % 10 > 0) {
-                        words.append(" ").append(units[(int) (rupees % 10)]);
-                    }
-                }
-            }
-
-            // Add "Rupees"
-            if (words.length() > 0) {
-                words.append(" Rupees");
-            }
-
-            // Add paise if any
-            if (paise > 0) {
-                if (words.length() > 0) {
-                    words.append(" and ");
-                }
-                words.append(convertToWords(paise)).append(" Paise");
-            }
-
-            return words.append(" Only").toString();
-
-        } catch (Exception e) {
-            return "Amount in Rupees";
+        if (s.attendanceSummary != null) {
+            drawAttendanceRow(canvas, leftMargin, y, "Present Days:", String.valueOf(s.attendanceSummary.presentDays), SUCCESS_COLOR);
+            y += 25;
+            drawAttendanceRow(canvas, leftMargin, y, "Half Days:", String.valueOf(s.attendanceSummary.halfDays), Color.parseColor("#F39C12"));
+            y += 25;
+            drawAttendanceRow(canvas, leftMargin, y, "Absent Days:", String.valueOf(s.attendanceSummary.absentDays), ACCENT_COLOR);
+            y += 25;
+            drawAttendanceRow(canvas, leftMargin, y, "Late Days:", String.valueOf(s.attendanceSummary.lateCount), Color.parseColor("#8E44AD"));
         }
+
+        y += 50;
+
+        // Salary Details
+        paint.setFakeBoldText(true);
+        paint.setTextSize(14);
+        paint.setColor(TEXT_DARK);
+        canvas.drawText("SALARY BREAKDOWN", leftMargin, y, paint);
+        y += 30;
+
+        NumberFormat formatter = NumberFormat.getCurrencyInstance(new Locale("en", "IN"));
+        double perDay = parseSalaryValue(s.calculationResult.perDaySalary);
+        double gross = parseSalaryValue(s.calculationResult.grossSalary);
+        double net = parseSalaryValue(s.calculationResult.netSalary);
+        double deductions = parseSalaryValue(s.calculationResult.totalDeduction);
+
+        drawSalaryRow(canvas, leftMargin, y, "Per Day Salary:", formatter.format(perDay));
+        y += 25;
+        drawSalaryRow(canvas, leftMargin, y, "Gross Salary:", formatter.format(gross));
+        y += 25;
+        drawSalaryRow(canvas, leftMargin, y, "Total Deductions:", formatter.format(deductions));
+        y += 25;
+
+        paint.setFakeBoldText(true);
+        paint.setTextSize(16);
+        paint.setColor(SUCCESS_COLOR);
+        paint.setTextAlign(Paint.Align.LEFT);
+        canvas.drawText("Net Salary:", leftMargin + 20, y, paint);
+        paint.setTextAlign(Paint.Align.RIGHT);
+        canvas.drawText(formatter.format(net), leftMargin + contentWidth - 20, y, paint);
+
+        y += 50;
+
+        // Footer
+        paint.setTextAlign(Paint.Align.CENTER);
+        paint.setColor(TEXT_LIGHT);
+        paint.setTextSize(9);
+        paint.setFakeBoldText(false);
+        canvas.drawText("This is a system generated salary slip", centerX, y, paint);
+        y += 15;
+        canvas.drawText("Generated on: " + new SimpleDateFormat("dd-MMM-yyyy hh:mm a").format(new Date()), centerX, y, paint);
     }
 
-    // ================= HELPER METHOD: DRAW ROUNDED RECT =================
-    private void drawRoundedRect(Canvas canvas, float left, float top, float right, float bottom, float radius, int color) {
+    private void drawAttendanceRow(Canvas canvas, float left, float y, String label, String value, int color) {
         Paint paint = new Paint();
-        paint.setColor(color);
-        paint.setStyle(Paint.Style.FILL);
         paint.setAntiAlias(true);
+        paint.setTextSize(12);
+        paint.setFakeBoldText(true);
+        paint.setColor(TEXT_DARK);
+        canvas.drawText(label, left + 20, y, paint);
 
-        // Draw rounded rectangle
-        canvas.drawRoundRect(left, top, right, bottom, radius, radius, paint);
-
-        // Draw border
-        paint.setColor(BORDER_COLOR);
-        paint.setStyle(Paint.Style.STROKE);
-        paint.setStrokeWidth(1);
-        canvas.drawRoundRect(left, top, right, bottom, radius, radius, paint);
+        paint.setColor(color);
+        canvas.drawText(value, left + 200, y, paint);
     }
 
-    // ================= OPEN PDF WITH OPTIONS =================
-    private void openPdfWithOptions(File pdfFile) {
-        Uri uri = FileProvider.getUriForFile(
-                this,
-                getPackageName() + ".provider",
-                pdfFile
-        );
+    private void drawSalaryRow(Canvas canvas, float left, float y, String label, String value) {
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
+        paint.setTextSize(12);
+        paint.setFakeBoldText(true);
+        paint.setColor(TEXT_DARK);
+        canvas.drawText(label, left + 20, y, paint);
 
-        // Create intent for PDF viewer
+        paint.setTextAlign(Paint.Align.RIGHT);
+        canvas.drawText(value, left + 515, y, paint);
+        paint.setTextAlign(Paint.Align.LEFT);
+    }
+
+    private void openPdfWithOptions(File pdfFile) {
+        Uri uri = FileProvider.getUriForFile(this, getPackageName() + ".provider", pdfFile);
         Intent pdfIntent = new Intent(Intent.ACTION_VIEW);
         pdfIntent.setDataAndType(uri, "application/pdf");
         pdfIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        pdfIntent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
 
         try {
-            // Try to open with PDF viewer
             startActivity(pdfIntent);
         } catch (ActivityNotFoundException e) {
-            // If no PDF viewer, show options
             showPdfOptionsDialog(pdfFile, uri);
         }
     }
 
-    // ================= SHOW PDF OPTIONS DIALOG =================
     private void showPdfOptionsDialog(File pdfFile, Uri uri) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("No PDF Viewer Found");
-        builder.setMessage("No PDF viewer app is installed. What would you like to do?");
-
-        builder.setPositiveButton("Share PDF", (dialog, which) -> {
-            sharePdfFile(pdfFile, uri);
-        });
-
-        builder.setNeutralButton("Save Location", (dialog, which) -> {
-            showSavedLocation(pdfFile);
-        });
-
-        builder.setNegativeButton("Cancel", null);
-
-        builder.show();
+        new AlertDialog.Builder(this)
+                .setTitle("No PDF Viewer Found")
+                .setMessage("Would you like to share the PDF?")
+                .setPositiveButton("Share", (d, w) -> sharePdfFile(pdfFile, uri))
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
-    // ================= SHARE PDF FILE =================
     private void sharePdfFile(File pdfFile, Uri uri) {
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
         shareIntent.setType("application/pdf");
         shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
-        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Salary Slip - " + cachedSnapshot.month);
-        shareIntent.putExtra(Intent.EXTRA_TEXT, "Please find attached salary slip for " + cachedSnapshot.month);
+        shareIntent.putExtra(Intent.EXTRA_SUBJECT, "Salary Slip - " + month);
         shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-
         startActivity(Intent.createChooser(shareIntent, "Share Salary Slip"));
-    }
-
-    // ================= SHOW SAVED LOCATION =================
-    private void showSavedLocation(File pdfFile) {
-        String location = pdfFile.getAbsolutePath();
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("PDF Saved Successfully");
-        builder.setMessage("Salary slip saved at:\n\n" + location + "\n\nYou can access it from your file manager.");
-
-        builder.setPositiveButton("OK", null);
-        builder.setNeutralButton("Open File Manager", (dialog, which) -> {
-            openFileManager();
-        });
-
-        builder.show();
-    }
-
-    // ================= OPEN FILE MANAGER =================
-    private void openFileManager() {
-        try {
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            Uri uri = Uri.parse("content://com.android.externalstorage.documents/document/primary:");
-            intent.setDataAndType(uri, "*/*");
-            startActivity(intent);
-        } catch (Exception e) {
-            Toast.makeText(this, "Cannot open file manager", Toast.LENGTH_SHORT).show();
-        }
     }
 }

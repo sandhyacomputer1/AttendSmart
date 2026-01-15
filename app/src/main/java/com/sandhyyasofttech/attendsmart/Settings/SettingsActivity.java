@@ -414,7 +414,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.sandhyyasofttech.attendsmart.Activities.EmployeeSelectionActivity;
 import com.sandhyyasofttech.attendsmart.Activities.ExportDataActivity;
+import com.sandhyyasofttech.attendsmart.Activities.GenerateSalaryActivity;
 import com.sandhyyasofttech.attendsmart.Activities.ProfileActivity;
 import com.sandhyyasofttech.attendsmart.Activities.WebViewActivity;
 import com.sandhyyasofttech.attendsmart.R;
@@ -428,7 +430,7 @@ public class SettingsActivity extends AppCompatActivity {
     private MaterialToolbar topAppBar;
     private SwitchMaterial switchAttendance, switchLeaveNotifications,
             switchAutoBackup, switchBiometric;
-    private LinearLayout cardCompanyProfile, cardChangePassword, cardExportData,
+    private LinearLayout cardCompanyProfile, cardChangePassword, cardExportData,salaryConfrigration,GenerateSalary,
             cardClearCache, cardPrivacyPolicy, cardTerms;
     private TextView tvAppVersion;
     private MaterialButton btnLogout;
@@ -455,8 +457,9 @@ public class SettingsActivity extends AppCompatActivity {
         switchLeaveNotifications = findViewById(R.id.switchLeaveNotifications);
         switchAutoBackup = findViewById(R.id.switchAutoBackup);
         switchBiometric = findViewById(R.id.switchBiometric);
-
+        salaryConfrigration = findViewById(R.id.salaryConfrigration);
         cardCompanyProfile = findViewById(R.id.cardCompanyProfile);
+        GenerateSalary= findViewById(R.id.GenerateSalary);
         cardChangePassword = findViewById(R.id.cardChangePassword);
         cardExportData = findViewById(R.id.cardExportData);
         cardClearCache = findViewById(R.id.cardClearCache);
@@ -577,6 +580,11 @@ public class SettingsActivity extends AppCompatActivity {
         // Company Profile Click
         cardCompanyProfile.setOnClickListener(v -> openCompanyProfile());
 
+        salaryConfrigration.setOnClickListener(v -> openEmployeeSelectionActivity());
+        // Generate Salary Click
+        GenerateSalary.setOnClickListener(v -> opengenerateSalary());
+
+
         // Change Password Click
         cardChangePassword.setOnClickListener(v -> showChangePasswordBottomSheet());
 
@@ -598,6 +606,16 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void openCompanyProfile() {
         Intent intent = new Intent(this, ProfileActivity.class);
+        startActivity(intent);
+    }
+
+    private void opengenerateSalary() {
+        Intent intent = new Intent(this, GenerateSalaryActivity.class);
+        startActivity(intent);
+    }
+
+    private void openEmployeeSelectionActivity() {
+        Intent intent = new Intent(this, EmployeeSelectionActivity.class);
         startActivity(intent);
     }
 

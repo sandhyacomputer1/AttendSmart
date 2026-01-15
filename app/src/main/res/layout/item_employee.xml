@@ -53,8 +53,9 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="John Doe"
-                    android:textSize="14sp"
+                    android:textSize="15sp"
                     android:textStyle="bold"
+                    android:fontFamily="@font/lato_bold"
                     android:textColor="?android:attr/textColorPrimary"
                     android:maxLines="1"
                     android:ellipsize="end" />
@@ -84,7 +85,8 @@
                         android:layout_height="wrap_content"
                         android:text="Present"
                         android:textSize="11sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        android:fontFamily="@font/lato_bold" />
                 </LinearLayout>
             </LinearLayout>
 
@@ -102,6 +104,7 @@
                     android:layout_height="wrap_content"
                     android:text="9999999999"
                     android:textSize="13sp"
+                    android:fontFamily="@font/lato_regular"
                     android:textColor="?android:attr/textColorSecondary" />
 
                 <View
@@ -118,6 +121,7 @@
                     android:layout_weight="1"
                     android:text="IT Department"
                     android:textSize="13sp"
+                    android:fontFamily="@font/lato_regular"
                     android:textColor="?android:attr/textColorSecondary"
                     android:maxLines="1"
                     android:ellipsize="end" />
@@ -131,6 +135,7 @@
                 android:layout_marginTop="4dp"
                 android:text="In: 10:30 AM • Out: 6:30 PM"
                 android:textSize="12sp"
+                android:fontFamily="@font/lato_regular"
                 android:textColor="?android:attr/textColorTertiary" />
 
         </LinearLayout>

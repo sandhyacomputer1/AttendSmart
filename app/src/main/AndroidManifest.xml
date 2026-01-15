@@ -33,7 +33,9 @@
         android:theme="@style/Theme.AttendSmart"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
-
+        <activity
+            android:name=".Activities.EmployeeSelectionActivity"
+            android:exported="false" />
         <activity
             android:name=".Activities.EmployeeWorkHistoryActivity"
             android:exported="false" />

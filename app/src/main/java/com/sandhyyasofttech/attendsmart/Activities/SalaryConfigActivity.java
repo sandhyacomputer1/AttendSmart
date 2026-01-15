@@ -12,6 +12,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.appbar.MaterialToolbar;
@@ -41,11 +42,11 @@ public class SalaryConfigActivity extends AppCompatActivity {
     private SwitchMaterial switchDeduction;
     private EditText etPfPercent, etEsiPercent, etOtherDeduction, etDeductionNote;
     private TextInputLayout tilPf, tilEsi, tilOtherDeduction, tilDeductionNote;
-    private Button btnSave;
+    private Button btnSave, btnDelete;
 
     // Firebase
     private DatabaseReference salaryRef;
-    private String companyKey, employeeMobile;
+    private String companyKey, employeeMobile, employeeName;
 
     // State
     private boolean isEditMode = false;
@@ -66,9 +67,8 @@ public class SalaryConfigActivity extends AppCompatActivity {
         fetchSalaryConfig();
 
         btnSave.setOnClickListener(v -> saveSalaryConfig());
+        btnDelete.setOnClickListener(v -> showDeleteConfirmation());
     }
-
-    // ==================== INITIALIZATION ====================
 
     private void initViews() {
         toolbar = findViewById(R.id.toolbar);
@@ -93,6 +93,7 @@ public class SalaryConfigActivity extends AppCompatActivity {
         tilDeductionNote = findViewById(R.id.tilDeductionNote);
 
         btnSave = findViewById(R.id.btnSaveSalary);
+        btnDelete = findViewById(R.id.btnDeleteSalary);
     }
 
     private void setupToolbar() {
@@ -102,6 +103,11 @@ public class SalaryConfigActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
         toolbar.setNavigationOnClickListener(v -> onBackPressed());
+
+        // Update title if employee name is provided
+        if (employeeName != null && !employeeName.isEmpty()) {
+            toolbar.setTitle("Salary Config - " + employeeName);
+        }
     }
 
     private void setupLateRuleSpinner() {
@@ -200,6 +206,7 @@ public class SalaryConfigActivity extends AppCompatActivity {
 
     private void initFirebase() {
         employeeMobile = getIntent().getStringExtra("employeeMobile");
+        employeeName = getIntent().getStringExtra("employeeName");
 
         if (employeeMobile == null || employeeMobile.isEmpty()) {
             Toast.makeText(this, "Error: Employee mobile not found", Toast.LENGTH_SHORT).show();
@@ -226,8 +233,6 @@ public class SalaryConfigActivity extends AppCompatActivity {
                 .child("salaryConfig");
     }
 
-    // ==================== FETCH DATA ====================
-
     private void fetchSalaryConfig() {
         salaryRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -235,9 +240,12 @@ public class SalaryConfigActivity extends AppCompatActivity {
                 if (snapshot.exists()) {
                     isEditMode = true;
                     btnSave.setText("Update Salary Configuration");
+                    btnDelete.setVisibility(View.VISIBLE);
                     populateFields(snapshot);
                 } else {
-                    // Set default values for new configuration
+                    isEditMode = false;
+                    btnSave.setText("Save Salary Configuration");
+                    btnDelete.setVisibility(View.GONE);
                     setDefaultValues();
                 }
             }
@@ -257,7 +265,6 @@ public class SalaryConfigActivity extends AppCompatActivity {
         etPaidLeaves.setText(getStringValue(snapshot, "paidLeaves"));
         etEffectiveFrom.setText(getStringValue(snapshot, "effectiveFrom"));
 
-        // Set late rule spinner
         String lateRule = getStringValue(snapshot, "lateRule");
         if (!lateRule.isEmpty()) {
             ArrayAdapter<String> adapter = (ArrayAdapter<String>) spLateRule.getAdapter();
@@ -267,7 +274,6 @@ public class SalaryConfigActivity extends AppCompatActivity {
             }
         }
 
-        // Set deduction fields
         Boolean deductionEnabled = snapshot.child("deductionEnabled").getValue(Boolean.class);
         if (deductionEnabled != null && deductionEnabled) {
             switchDeduction.setChecked(true);
@@ -277,7 +283,6 @@ public class SalaryConfigActivity extends AppCompatActivity {
             etDeductionNote.setText(getStringValue(snapshot, "deductionNote"));
         }
 
-        // Calculate per day salary
         calculatePerDaySalary();
     }
 
@@ -296,12 +301,9 @@ public class SalaryConfigActivity extends AppCompatActivity {
         etWorkingDays.setText("26");
     }
 
-    // ==================== VALIDATION ====================
-
     private boolean validateInputs() {
         boolean isValid = true;
 
-        // Validate Monthly Salary
         String salaryStr = etMonthlySalary.getText().toString().trim();
         if (salaryStr.isEmpty()) {
             etMonthlySalary.setError("Monthly salary is required");
@@ -319,7 +321,6 @@ public class SalaryConfigActivity extends AppCompatActivity {
             }
         }
 
-        // Validate Working Days
         String workingDaysStr = etWorkingDays.getText().toString().trim();
         if (workingDaysStr.isEmpty()) {
             etWorkingDays.setError("Working days is required");
@@ -337,28 +338,11 @@ public class SalaryConfigActivity extends AppCompatActivity {
             }
         }
 
-        // Validate Paid Leaves
-        String paidLeavesStr = etPaidLeaves.getText().toString().trim();
-        if (!paidLeavesStr.isEmpty()) {
-            try {
-                int leaves = Integer.parseInt(paidLeavesStr);
-                if (leaves < 0) {
-                    etPaidLeaves.setError("Paid leaves cannot be negative");
-                    isValid = false;
-                }
-            } catch (NumberFormatException e) {
-                etPaidLeaves.setError("Invalid number");
-                isValid = false;
-            }
-        }
-
-        // Validate Effective From
         if (etEffectiveFrom.getText().toString().trim().isEmpty()) {
             etEffectiveFrom.setError("Effective date is required");
             isValid = false;
         }
 
-        // Validate Deduction fields if enabled
         if (switchDeduction.isChecked()) {
             String pfStr = etPfPercent.getText().toString().trim();
             if (!pfStr.isEmpty()) {
@@ -373,40 +357,10 @@ public class SalaryConfigActivity extends AppCompatActivity {
                     isValid = false;
                 }
             }
-
-            String esiStr = etEsiPercent.getText().toString().trim();
-            if (!esiStr.isEmpty()) {
-                try {
-                    double esi = Double.parseDouble(esiStr);
-                    if (esi < 0 || esi > 100) {
-                        etEsiPercent.setError("ESI must be between 0 and 100");
-                        isValid = false;
-                    }
-                } catch (NumberFormatException e) {
-                    etEsiPercent.setError("Invalid percentage");
-                    isValid = false;
-                }
-            }
-
-            String otherDeductionStr = etOtherDeduction.getText().toString().trim();
-            if (!otherDeductionStr.isEmpty()) {
-                try {
-                    double amount = Double.parseDouble(otherDeductionStr);
-                    if (amount < 0) {
-                        etOtherDeduction.setError("Amount cannot be negative");
-                        isValid = false;
-                    }
-                } catch (NumberFormatException e) {
-                    etOtherDeduction.setError("Invalid amount");
-                    isValid = false;
-                }
-            }
         }
 
         return isValid;
     }
-
-    // ==================== SAVE DATA ====================
 
     private void saveSalaryConfig() {
         if (!validateInputs()) {
@@ -434,7 +388,6 @@ public class SalaryConfigActivity extends AppCompatActivity {
             data.put("otherDeduction", etOtherDeduction.getText().toString().trim());
             data.put("deductionNote", etDeductionNote.getText().toString().trim());
         } else {
-            // Clear deduction fields if disabled
             data.put("pfPercent", "");
             data.put("esiPercent", "");
             data.put("otherDeduction", "");
@@ -458,6 +411,27 @@ public class SalaryConfigActivity extends AppCompatActivity {
                             "Error: " + e.getMessage(),
                             Toast.LENGTH_LONG).show();
                 });
+    }
+
+    private void showDeleteConfirmation() {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Salary Configuration")
+                .setMessage("Are you sure you want to delete this salary configuration?")
+                .setPositiveButton("Delete", (dialog, which) -> deleteSalaryConfig())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void deleteSalaryConfig() {
+        salaryRef.removeValue()
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Salary configuration deleted", Toast.LENGTH_SHORT).show();
+                    finish();
+                })
+                .addOnFailureListener(e ->
+                        Toast.makeText(this, "Failed to delete: " + e.getMessage(),
+                                Toast.LENGTH_SHORT).show()
+                );
     }
 
     @Override
