@@ -3,7 +3,7 @@
     <!-- Base application theme : FORCE LIGHT MODE -->
     <style name="Base.Theme.AttendSmart"
         parent="Theme.Material3.Light.NoActionBar">
-        <!-- No dark / night changes -->
+        <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
     </style>
     <style name="Theme.AttendSmart"
         parent="Base.Theme.AttendSmart" />

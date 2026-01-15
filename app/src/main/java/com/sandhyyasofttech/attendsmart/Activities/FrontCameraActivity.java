@@ -26,6 +26,14 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.mlkit.vision.common.InputImage;
+import com.google.mlkit.vision.face.Face;
+import com.google.mlkit.vision.face.FaceDetection;
+import com.google.mlkit.vision.face.FaceDetector;
+import com.google.mlkit.vision.face.FaceDetectorOptions;
 import com.sandhyyasofttech.attendsmart.R;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -34,7 +42,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FrontCameraActivity extends AppCompatActivity implements SurfaceHolder.Callback {
+public class FrontCameraActivity extends AppCompatActivity implements SurfaceHolder.Callback, Camera.PreviewCallback {
 
     private Camera mCamera;
     private SurfaceView mSurfaceView;
@@ -54,6 +62,13 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
     private static final int IMAGE_MAX_SIZE = 1024; // Max dimension for the image
     private static final int IMAGE_QUALITY = 85; // Optimal quality for attendance photos
     private static final String TAG = "FrontCameraActivity";
+
+    // ML Kit Face Detection
+    private FaceDetector faceDetector;
+    private boolean isBlinkCapturing = false;
+    private boolean isProcessingFrame = false;
+    private int cameraRotation;
+    private static final float EYE_OPEN_PROBABILITY_THRESHOLD = 0.4f;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +96,15 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
 
         // Initially hide loading layout
         loadingLayout.setVisibility(View.GONE);
+
+        // Initialize ML Kit Face Detector
+        FaceDetectorOptions highAccuracyOpts =
+                new FaceDetectorOptions.Builder()
+                        .setPerformanceMode(FaceDetectorOptions.PERFORMANCE_MODE_ACCURATE)
+                        .setClassificationMode(FaceDetectorOptions.CLASSIFICATION_MODE_ALL)
+                        .build();
+
+        faceDetector = FaceDetection.getClient(highAccuracyOpts);
     }
 
     private void initViews() {
@@ -140,6 +164,10 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
                 return;
             }
 
+            Camera.CameraInfo info = new Camera.CameraInfo();
+            Camera.getCameraInfo(cameraId, info);
+            cameraRotation = info.orientation;
+
             mCamera = Camera.open(cameraId);
             mCamera.setDisplayOrientation(90); // Fix orientation
 
@@ -175,13 +203,12 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
             // Set JPEG quality
             parameters.setJpegQuality(IMAGE_QUALITY);
 
-            // Enable face detection if supported
-
             // Check and setup flash
             setupFlash(parameters);
 
             mCamera.setParameters(parameters);
             mCamera.setPreviewDisplay(holder);
+            mCamera.setPreviewCallback(this);
             mCamera.startPreview();
 
             // Auto-focus when camera starts
@@ -205,18 +232,14 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
         Camera.Size optimalSize = null;
         double minDiff = Double.MAX_VALUE;
 
-        // Try to find a size with matching aspect ratio and within limits
         for (Camera.Size size : sizes) {
             double ratio = (double) size.width / size.height;
 
-            // Skip if aspect ratio is too different
             if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) {
                 continue;
             }
 
-            // Check if width is within our desired range
             if (size.width >= minWidth && size.width <= maxWidth) {
-                // Choose the size closest to max width
                 if (Math.abs(size.width - maxWidth) < minDiff) {
                     optimalSize = size;
                     minDiff = Math.abs(size.width - maxWidth);
@@ -224,7 +247,6 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
             }
         }
 
-        // If no match found in range, get the smallest size above minWidth
         if (optimalSize == null) {
             minDiff = Double.MAX_VALUE;
             for (Camera.Size size : sizes) {
@@ -235,7 +257,6 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
             }
         }
 
-        // Last resort: use the largest available size
         if (optimalSize == null && !sizes.isEmpty()) {
             optimalSize = sizes.get(0);
             for (Camera.Size size : sizes) {
@@ -257,7 +278,6 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
         Camera.Size optimalSize = null;
         double minDiff = Double.MAX_VALUE;
 
-        // Because of the orientation, swap width/height
         int targetHeight = Math.min(width, height);
 
         for (Camera.Size size : sizes) {
@@ -270,7 +290,6 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
             }
         }
 
-        // If no match, find the closest size
         if (optimalSize == null) {
             minDiff = Double.MAX_VALUE;
             for (Camera.Size size : sizes) {
@@ -288,7 +307,6 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
         if (parameters.getSupportedFlashModes() != null &&
                 parameters.getSupportedFlashModes().contains(Camera.Parameters.FLASH_MODE_TORCH)) {
             flashIcon.setVisibility(View.VISIBLE);
-            // Set initial flash state to off
             parameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
             flashIcon.setImageResource(R.drawable.ic_flash_off);
             isFlashOn = false;
@@ -336,16 +354,13 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
 
         isFocusing = true;
 
-        // Calculate position relative to camera container
         float relativeX = x / cameraContainer.getWidth();
         float relativeY = y / cameraContainer.getHeight();
 
-        // Show focus indicator
         focusIndicator.setX(x - focusIndicator.getWidth() / 2);
         focusIndicator.setY(y - focusIndicator.getHeight() / 2);
         focusIndicator.setVisibility(View.VISIBLE);
 
-        // Animate focus indicator
         focusIndicator.animate()
                 .scaleX(0.7f)
                 .scaleY(0.7f)
@@ -361,11 +376,9 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
         try {
             Camera.Parameters params = mCamera.getParameters();
             if (params.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
-                // Convert touch position to camera focus area
                 int focusX = (int) (relativeX * 2000 - 1000);
                 int focusY = (int) (relativeY * 2000 - 1000);
 
-                // Ensure coordinates are within bounds
                 focusX = Math.max(-1000, Math.min(focusX, 1000));
                 focusY = Math.max(-1000, Math.min(focusY, 1000));
 
@@ -386,7 +399,6 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
                     @Override
                     public void onAutoFocus(boolean success, Camera camera) {
                         isFocusing = false;
-                        // Hide focus indicator after delay
                         new Handler().postDelayed(() -> {
                             focusIndicator.setVisibility(View.INVISIBLE);
                         }, 1000);
@@ -414,7 +426,6 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
             int flashIconRes;
 
             if (isFlashOn) {
-                // Turn flash off
                 if (flashModes.contains(Camera.Parameters.FLASH_MODE_OFF)) {
                     newMode = Camera.Parameters.FLASH_MODE_OFF;
                     flashIconRes = R.drawable.ic_flash_off;
@@ -423,7 +434,6 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
                     return;
                 }
             } else {
-                // Turn flash on
                 if (flashModes.contains(Camera.Parameters.FLASH_MODE_TORCH)) {
                     newMode = Camera.Parameters.FLASH_MODE_TORCH;
                     flashIconRes = R.drawable.ic_flash_on;
@@ -448,12 +458,11 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
     }
 
     private void captureImage() {
-        if (mCamera != null) {
-            // Disable buttons during capture
+        if (mCamera != null && !isBlinkCapturing) {
+            isBlinkCapturing = true;
             btnCapture.setEnabled(false);
             btnCancel.setEnabled(false);
 
-            // Show loading animation
             showLoading("Capturing photo...");
 
             mCamera.takePicture(null, null, new Camera.PictureCallback() {
@@ -461,7 +470,6 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
                 public void onPictureTaken(byte[] data, Camera camera) {
                     updateLoadingText("Processing image...");
 
-                    // Small delay to show processing text
                     new Handler().postDelayed(() -> {
                         try {
                             processCapturedImage(data);
@@ -478,7 +486,6 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
     }
 
     private void processCapturedImage(byte[] data) {
-        // Convert byte array to bitmap
         Bitmap originalBitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
 
         if (originalBitmap == null) {
@@ -490,7 +497,6 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
 
         updateLoadingText("Optimizing image...");
 
-        // Calculate optimal scale to reduce image size while maintaining quality
         int width = originalBitmap.getWidth();
         int height = originalBitmap.getHeight();
 
@@ -501,16 +507,14 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
             scale = (float) IMAGE_MAX_SIZE / height;
         }
 
-        // Don't upscale if image is smaller than max size
         if (scale > 1) {
             scale = 1;
         }
 
-        // Flip horizontally for front camera mirror effect and rotate
         Matrix matrix = new Matrix();
-        matrix.preScale(-1, 1); // Mirror effect for front camera
-        matrix.postRotate(90); // Rotate to correct orientation
-        matrix.postScale(scale, scale); // Scale down if needed
+        matrix.preScale(-1, 1); 
+        matrix.postRotate(90); 
+        matrix.postScale(scale, scale); 
 
         Bitmap processedBitmap = Bitmap.createBitmap(originalBitmap,
                 0, 0,
@@ -521,25 +525,20 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
 
         updateLoadingText("Compressing image...");
 
-        // Compress bitmap with optimal quality
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         processedBitmap.compress(Bitmap.CompressFormat.JPEG, IMAGE_QUALITY, stream);
         byte[] compressedData = stream.toByteArray();
 
-        // Log the image size
         Log.d(TAG, "Original image size: " + (data.length / 1024) + " KB");
         Log.d(TAG, "Compressed image size: " + (compressedData.length / 1024) + " KB");
         Log.d(TAG, "Image dimensions: " + processedBitmap.getWidth() + "x" + processedBitmap.getHeight());
 
         updateLoadingText("Finalizing...");
 
-        // Recycle bitmaps to free memory
         originalBitmap.recycle();
         processedBitmap.recycle();
 
-        // Small delay before returning result
         new Handler().postDelayed(() -> {
-            // Return result to main activity
             Intent resultIntent = new Intent();
             resultIntent.putExtra("image_data", compressedData);
             resultIntent.putExtra("action", action);
@@ -582,6 +581,7 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
         if (mCamera != null) {
             try {
                 mCamera.stopPreview();
+                mCamera.setPreviewCallback(null);
                 mCamera.release();
                 mCamera = null;
             } catch (Exception e) {
@@ -617,5 +617,58 @@ public class FrontCameraActivity extends AppCompatActivity implements SurfaceHol
     protected void onDestroy() {
         super.onDestroy();
         releaseCamera();
+        if (faceDetector != null) {
+            faceDetector.close();
+        }
+    }
+
+    @Override
+    public void onPreviewFrame(byte[] data, Camera camera) {
+        if (isProcessingFrame || isBlinkCapturing) {
+            return;
+        }
+        isProcessingFrame = true;
+
+        Camera.Parameters parameters = camera.getParameters();
+        int width = parameters.getPreviewSize().width;
+        int height = parameters.getPreviewSize().height;
+
+        InputImage image = InputImage.fromByteArray(
+                data,
+                width,
+                height,
+                cameraRotation,
+                InputImage.IMAGE_FORMAT_NV21
+        );
+
+        detectBlink(image);
+    }
+
+    private void detectBlink(InputImage image) {
+        faceDetector.process(image)
+            .addOnSuccessListener(
+                faces -> {
+                    if (!faces.isEmpty()) {
+                        Face face = faces.get(0);
+
+                        boolean leftEyeClosed = face.getLeftEyeOpenProbability() != null && face.getLeftEyeOpenProbability() < EYE_OPEN_PROBABILITY_THRESHOLD;
+                        boolean rightEyeClosed = face.getRightEyeOpenProbability() != null && face.getRightEyeOpenProbability() < EYE_OPEN_PROBABILITY_THRESHOLD;
+
+                        if (leftEyeClosed && rightEyeClosed) {
+                            runOnUiThread(() -> {
+                                if (!isBlinkCapturing) {
+                                    Toast.makeText(FrontCameraActivity.this, "Blink detected, capturing...", Toast.LENGTH_SHORT).show();
+                                    captureImage();
+                                }
+                            });
+                        }
+                    }
+                    isProcessingFrame = false;
+                })
+            .addOnFailureListener(
+                e -> {
+                    Log.e(TAG, "Face detection failed", e);
+                    isProcessingFrame = false;
+                });
     }
 }

@@ -63,10 +63,13 @@ public class AddEmployeeActivity extends AppCompatActivity {
     private ArrayList<String> shiftKeysList = new ArrayList<>();
     private boolean isEditMode = false;
     private String editingEmployeeId = "";
+    private TextInputEditText etEmployeeId;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_employee);
+
 
         initializeViews();
         setupToolbar();
@@ -77,6 +80,9 @@ public class AddEmployeeActivity extends AppCompatActivity {
         loadShifts();
         setupClickListeners();
         checkEditMode();
+        if (!isEditMode) {
+            generateEmployeeId();
+        }
 
     }
 
@@ -101,6 +107,7 @@ public class AddEmployeeActivity extends AppCompatActivity {
         etSalary.setText(employee.getSalary() != null ? employee.getSalary() : "");
         etAddress.setText(employee.getAddress() != null ? employee.getAddress() : "");
         etEmergencyContact.setText(employee.getEmergencyContact() != null ? employee.getEmergencyContact() : "");
+        etEmployeeId.setText(employee.getEmployeeId());
 
         // Set spinners to correct positions
         setSpinnerSelection(spinnerRole, employee.getEmployeeRole(), "Employee");
@@ -232,6 +239,7 @@ public class AddEmployeeActivity extends AppCompatActivity {
 
         // Button
         btnSaveEmployee = findViewById(R.id.btnSaveEmployee);
+        etEmployeeId = findViewById(R.id.etEmployeeId);
 
         joiningCalendar = Calendar.getInstance();
     }
@@ -243,6 +251,23 @@ public class AddEmployeeActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
             getSupportActionBar().setTitle("Add New Employee");
         }
+    }
+    private void generateEmployeeId() {
+        employeesRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int count = (int) snapshot.getChildrenCount() + 1;
+
+                // EMP001, EMP002, EMP003 ...
+                String empId = String.format(Locale.getDefault(), "EMP%03d", count);
+                etEmployeeId.setText(empId);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e(TAG, "Employee ID generation failed");
+            }
+        });
     }
 
     @Override
@@ -598,6 +623,7 @@ public class AddEmployeeActivity extends AppCompatActivity {
         String salary = etSalary.getText().toString().trim();
         String address = etAddress.getText().toString().trim();
         String emergencyContact = etEmergencyContact.getText().toString().trim();
+        String employeeId = etEmployeeId.getText().toString().trim();
 
         HashMap<String, Object> employeeInfo = new HashMap<>();
         employeeInfo.put("employeeName", name);
@@ -609,6 +635,7 @@ public class AddEmployeeActivity extends AppCompatActivity {
         employeeInfo.put("weeklyHoliday", selectedHoliday);
         employeeInfo.put("joinDate", joiningDate);
         employeeInfo.put("employeeStatus", "ACTIVE");
+        employeeInfo.put("employeeId", employeeId);
 
         // Password handling
         if (!isEditMode || !TextUtils.isEmpty(password)) {
