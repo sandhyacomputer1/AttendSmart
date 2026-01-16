@@ -68,9 +68,8 @@ public class SalaryListActivity extends AppCompatActivity {
                 .child("salary");
 
         rvSalary.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new SalaryListAdapter(salaryList, this::openSalaryDetail);
+        adapter = new SalaryListAdapter(salaryList, this::openSalaryDetail, this, companyKey);
         rvSalary.setAdapter(adapter);
-
         // Load all salary data first for "All Records" chip
         loadAllSalaryData();
 
@@ -211,7 +210,6 @@ public class SalaryListActivity extends AppCompatActivity {
         loadSalaryForMonth(lastMonth);
     }
 
-    // ================= SHOW ALL RECORDS =================
     private void showAllSalaryRecords() {
         salaryList.clear();
         salaryList.addAll(allSalaryRecords);
@@ -229,17 +227,21 @@ public class SalaryListActivity extends AppCompatActivity {
         updateSummary(salaryList);
     }
 
-    // ================= LOAD SPECIFIC MONTH =================
+    // Update the loadSalaryForMonth method:
     private void loadSalaryForMonth(String month) {
         salaryList.clear();
-        adapter.notifyDataSetChanged();
         layoutEmpty.setVisibility(View.GONE);
         rvSalary.setVisibility(View.VISIBLE);
+
+        // Create new adapter with employee details fetching
+        adapter = new SalaryListAdapter(salaryList, this::openSalaryDetail, this, companyKey);
+        rvSalary.setAdapter(adapter);
 
         companyRef.child(month)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        salaryList.clear();
 
                         if (!snapshot.exists()) {
                             layoutEmpty.setVisibility(View.VISIBLE);
