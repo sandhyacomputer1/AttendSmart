@@ -9,6 +9,7 @@ import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -138,42 +139,73 @@ public class AdminDashboardActivity extends AppCompatActivity {
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         if (!snapshot.exists()) return;
 
-                        StringBuilder messageBuilder = new StringBuilder();
+                        List<NotificationData> notifications = new ArrayList<>();
 
                         for (DataSnapshot notifSnap : snapshot.getChildren()) {
                             String title = notifSnap.child("title").getValue(String.class);
-                            String body  = notifSnap.child("body").getValue(String.class);
+                            String body = notifSnap.child("body").getValue(String.class);
 
-                            messageBuilder
-                                    .append("â€¢ ")
-                                    .append(title)
-                                    .append("\n")
-                                    .append(body)
-                                    .append("\n\n");
+                            if (title != null && body != null) {
+                                notifications.add(new NotificationData(title, body));
+                            }
 
+                            // Mark as delivered
                             notifSnap.getRef().child("delivered").setValue(true);
                         }
 
-                        showNotificationDialog(messageBuilder.toString());
+                        if (!notifications.isEmpty()) {
+                            showNotificationDialog(notifications);
+                        }
                     }
 
                     @Override
-                    public void onCancelled(@NonNull DatabaseError error) {}
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        // Handle error if needed
+                    }
                 });
     }
 
-    private void showNotificationDialog(String message) {
+    private void showNotificationDialog(List<NotificationData> notifications) {
         View dialogView = getLayoutInflater()
                 .inflate(R.layout.dialog_pending_notifications, null);
 
-        TextView tvNotifications = dialogView.findViewById(R.id.tvNotifications);
-        tvNotifications.setText(message);
+        LinearLayout container = dialogView.findViewById(R.id.notificationsContainer);
 
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        // Dynamically add each notification
+        for (NotificationData notif : notifications) {
+            View itemView = getLayoutInflater()
+                    .inflate(R.layout.notification_item, container, false);
+
+            TextView tvTitle = itemView.findViewById(R.id.tvNotificationTitle);
+            TextView tvBody = itemView.findViewById(R.id.tvNotificationBody);
+
+            tvTitle.setText(notif.title);
+            tvBody.setText(notif.body);
+
+            container.addView(itemView);
+        }
+
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setView(dialogView)
                 .setCancelable(false)
-                .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
-                .show();
+                .create();
+
+        // Handle dismiss button
+        TextView btnDismiss = dialogView.findViewById(R.id.btnDismiss);
+        btnDismiss.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
+    }
+
+    // Helper class to hold notification data
+    private static class NotificationData {
+        String title;
+        String body;
+
+        NotificationData(String title, String body) {
+            this.title = title;
+            this.body = body;
+        }
     }
 
     private void setupRealTimeLeaveListener() {
