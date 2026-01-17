@@ -1410,6 +1410,8 @@
 
 
 //BELOW CODE WORKING MULTIPLE CHEK IN AND CHECK OUT PROPER
+
+
 package com.sandhyyasofttech.attendsmart.Activities;
 
 import android.Manifest;
@@ -1706,42 +1708,31 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         };
     }
 
+
     private void updateButtonStates() {
         boolean hasFirstCheckIn = firstCheckInTime != null && !firstCheckInTime.isEmpty();
         boolean hasLastCheckOut = lastCheckOutTime != null && !lastCheckOutTime.isEmpty();
 
+        // Admin marked only status without any check-in time - ALLOW employee to check in/out
         boolean adminMarkedOnlyStatus = "Admin".equals(markedBy) &&
-                !hasFirstCheckIn && !hasLastCheckOut &&
+                !hasFirstCheckIn &&
                 finalStatus != null && !finalStatus.isEmpty();
-
-        boolean adminMarkedCheckIn = "Admin".equals(markedBy) && hasFirstCheckIn;
-        boolean adminMarkedComplete = "Admin".equals(markedBy) && hasFirstCheckIn && hasLastCheckOut;
 
         boolean canCheckIn = false;
         boolean canCheckOut = false;
 
-        if (adminMarkedOnlyStatus) {
-            // Admin marked only status without times
-            canCheckIn = false;
-            canCheckOut = false;
-        } else if (adminMarkedComplete) {
-            // Admin completed full attendance
-            canCheckIn = false;
-            canCheckOut = false;
-        } else if (adminMarkedCheckIn && !isCurrentlyCheckedIn) {
-            // Admin marked first check-in, allow employee to continue
-            canCheckIn = locationReady;
-            canCheckOut = false;
-        } else {
-            // Normal employee flow - multiple check-ins allowed
-            canCheckIn = locationReady && !isCurrentlyCheckedIn;
-            canCheckOut = locationReady && isCurrentlyCheckedIn;
-        }
+        // Always allow check-in/out based on current state
+        // Even if admin marked status, employee can still do their sessions
+        canCheckIn = locationReady && !isCurrentlyCheckedIn;
+        canCheckOut = locationReady && isCurrentlyCheckedIn;
 
         Log.d("BUTTON_STATE", "=================================");
         Log.d("BUTTON_STATE", "Location Ready: " + locationReady);
         Log.d("BUTTON_STATE", "Is Currently Checked In: " + isCurrentlyCheckedIn);
         Log.d("BUTTON_STATE", "Has First Check-In: " + hasFirstCheckIn);
+        Log.d("BUTTON_STATE", "Has Last Check-Out: " + hasLastCheckOut);
+        Log.d("BUTTON_STATE", "Marked By: " + markedBy);
+        Log.d("BUTTON_STATE", "Admin Marked Only Status: " + adminMarkedOnlyStatus);
         Log.d("BUTTON_STATE", "Can Check In: " + canCheckIn);
         Log.d("BUTTON_STATE", "Can Check Out: " + canCheckOut);
         Log.d("BUTTON_STATE", "=================================");
@@ -1752,6 +1743,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         cardCheckOut.setEnabled(canCheckOut);
         cardCheckOut.setAlpha(canCheckOut ? 1f : 0.4f);
     }
+
 
     private void requestLocationPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
@@ -1770,14 +1762,9 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
             return;
         }
 
-        Log.d("STATS_DEBUG", "Loading stats for: " + employeeMobile);
-
         String currentMonth = new SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(new Date());
-        Log.d("STATS_DEBUG", "Current month: " + currentMonth);
-
         Calendar cal = Calendar.getInstance();
         int daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
-        Log.d("STATS_DEBUG", "Days in month: " + daysInMonth);
 
         attendanceRef.orderByKey().startAt(currentMonth + "-01").endAt(currentMonth + "-31")
                 .addListenerForSingleValueEvent(new ValueEventListener() {
@@ -1788,9 +1775,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                         int onTimeCount = 0;
                         long totalMinutes = 0;
                         int daysWithHours = 0;
-                        int totalWorkDays = 0;
-
-                        Log.d("STATS_DEBUG", "Total date snapshots: " + snapshot.getChildrenCount());
 
                         for (DataSnapshot dateSnapshot : snapshot.getChildren()) {
                             DataSnapshot empData = dateSnapshot.child(employeeMobile);
@@ -1798,15 +1782,10 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                                 String finalStatus = empData.child("finalStatus").getValue(String.class);
                                 String lateStatus = empData.child("lateStatus").getValue(String.class);
                                 String checkInTime = empData.child("checkInTime").getValue(String.class);
+                                String checkOutTime = empData.child("checkOutTime").getValue(String.class);
                                 String status = empData.child("status").getValue(String.class);
+                                String markedBy = empData.child("markedBy").getValue(String.class);
                                 Long minutes = empData.child("totalMinutes").getValue(Long.class);
-
-                                Log.d("STATS_DEBUG", "Date: " + dateSnapshot.getKey() +
-                                        ", CheckInTime: " + checkInTime +
-                                        ", FinalStatus: " + finalStatus +
-                                        ", LateStatus: " + lateStatus +
-                                        ", Status: " + status +
-                                        ", Minutes: " + minutes);
 
                                 String effectiveStatus = (finalStatus != null) ? finalStatus : status;
 
@@ -1815,10 +1794,9 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                                                 effectiveStatus.equalsIgnoreCase("Half Day"))) {
 
                                     presentCount++;
-                                    totalWorkDays++;
 
+                                    // Check late status
                                     boolean isLate = false;
-
                                     if (lateStatus != null && lateStatus.equals("Late")) {
                                         isLate = true;
                                     } else if (status != null && status.contains("(Late)")) {
@@ -1831,35 +1809,37 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                                         onTimeCount++;
                                     }
 
-                                    Log.d("STATS_DEBUG", "Counted as: " + (isLate ? "Late" : "On-time"));
-                                } else {
-                                    Log.d("STATS_DEBUG", "Not counted as Present (effectiveStatus: " + effectiveStatus + ")");
-                                }
+                                    // Calculate worked minutes - FIXED
+                                    long dayMinutes = 0;
 
-                                if (minutes != null && minutes > 0) {
-                                    totalMinutes += minutes;
-                                    daysWithHours++;
-                                    Log.d("STATS_DEBUG", "Added minutes: " + minutes + ", Total now: " + totalMinutes);
-                                } else if (checkInTime != null && finalStatus != null &&
-                                        (finalStatus.equals("Present") || finalStatus.equals("Half Day"))) {
-                                    if (finalStatus.equals("Present")) {
-                                        totalMinutes += shiftDurationMinutes;
+                                    if (minutes != null && minutes > 0 && minutes < 1440) {
+                                        // Use actual recorded minutes (valid range: 0-1440)
+                                        dayMinutes = minutes;
+                                    } else if (checkInTime != null && !checkInTime.isEmpty() &&
+                                            checkOutTime != null && !checkOutTime.isEmpty()) {
+                                        // Calculate from check-in and check-out times
+                                        long calculatedMinutes = getDiffMinutes(checkInTime, checkOutTime);
+                                        if (calculatedMinutes > 0 && calculatedMinutes < 1440) {
+                                            dayMinutes = calculatedMinutes;
+                                        }
+                                    } else if ("Admin".equals(markedBy) && effectiveStatus.equals("Present")) {
+                                        // Admin marked Present without times - use full shift
+                                        dayMinutes = shiftDurationMinutes;
+                                    } else if ("Admin".equals(markedBy) && effectiveStatus.equals("Half Day")) {
+                                        // Admin marked Half Day without times - use half shift
+                                        dayMinutes = shiftDurationMinutes / 2;
+                                    }
+
+                                    if (dayMinutes > 0) {
+                                        totalMinutes += dayMinutes;
                                         daysWithHours++;
-                                        Log.d("STATS_DEBUG", "Estimated full shift minutes: " + shiftDurationMinutes);
-                                    } else if (finalStatus.equals("Half Day")) {
-                                        totalMinutes += (shiftDurationMinutes / 2);
-                                        daysWithHours++;
-                                        Log.d("STATS_DEBUG", "Estimated half shift minutes: " + (shiftDurationMinutes / 2));
+                                        Log.d("STATS_DEBUG", "Day: " + dateSnapshot.getKey() + ", Minutes: " + dayMinutes);
                                     }
                                 }
                             }
                         }
 
-                        Log.d("STATS_DEBUG", "Final counts - Present: " + presentCount +
-                                ", Late: " + lateCount +
-                                ", OnTime: " + onTimeCount +
-                                ", TotalMinutes: " + totalMinutes +
-                                ", DaysWithHours: " + daysWithHours);
+                        Log.d("STATS_DEBUG", "Final - Present: " + presentCount + ", TotalMinutes: " + totalMinutes + ", DaysWithHours: " + daysWithHours);
 
                         final int finalPresentCount = presentCount;
                         final int finalLateCount = lateCount;
@@ -1876,32 +1856,36 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                             int lateMax = finalPresentCount > 0 ? finalPresentCount : 1;
                             animateProgress(progressLate, finalLateCount, lateMax);
 
+                            // FIXED Average hours calculation
                             if (finalDaysWithHours > 0) {
                                 double avgHours = (double) finalTotalMinutes / finalDaysWithHours / 60.0;
-                                String avgText = String.format(Locale.getDefault(), "%.1f", avgHours);
-                                tvAvgWorkHours.setText(avgText);
 
-                                int progressValue = Math.min((int) (avgHours * 10), 90);
-                                animateProgress(progressAvgHours, progressValue, 90);
-                                Log.d("STATS_DEBUG", "Avg Hours: " + avgText + ", Progress: " + progressValue);
+                                // Safety check - average should be between 0 and 24
+                                if (avgHours >= 0 && avgHours <= 24) {
+                                    String avgText = String.format(Locale.getDefault(), "%.1f", avgHours);
+                                    tvAvgWorkHours.setText(avgText);
+
+                                    // Progress: 0-9 hours maps to 0-90
+                                    int progressValue = Math.min((int) (avgHours * 10), 90);
+                                    animateProgress(progressAvgHours, progressValue, 90);
+                                    Log.d("STATS_DEBUG", "Avg Hours: " + avgText);
+                                } else {
+                                    tvAvgWorkHours.setText("0.0");
+                                    if (progressAvgHours != null) progressAvgHours.setProgress(0);
+                                    Log.e("STATS_ERROR", "Invalid avg hours: " + avgHours);
+                                }
                             } else {
                                 tvAvgWorkHours.setText("0.0");
-                                if (progressAvgHours != null) {
-                                    progressAvgHours.setProgress(0);
-                                }
+                                if (progressAvgHours != null) progressAvgHours.setProgress(0);
                             }
 
                             if (finalPresentCount > 0) {
                                 int onTimePercent = (int) ((finalOnTimeCount * 100.0) / finalPresentCount);
                                 tvOnTimePercent.setText(String.valueOf(onTimePercent));
                                 animateProgress(progressOnTime, onTimePercent, 100);
-                                Log.d("STATS_DEBUG", "On-time %: " + onTimePercent + "% (" +
-                                        finalOnTimeCount + "/" + finalPresentCount + ")");
                             } else {
                                 tvOnTimePercent.setText("0");
-                                if (progressOnTime != null) {
-                                    progressOnTime.setProgress(0);
-                                }
+                                if (progressOnTime != null) progressOnTime.setProgress(0);
                             }
                         });
                     }
@@ -2207,7 +2191,11 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                         // Load check-in/out pairs
                         checkInOutPairs.clear();
                         DataSnapshot pairsSnapshot = snapshot.child("checkInOutPairs");
-                        if (pairsSnapshot.exists()) {
+
+                        boolean hasPairs = pairsSnapshot.exists() && pairsSnapshot.getChildrenCount() > 0;
+
+                        if (hasPairs) {
+                            // Load from pairs
                             for (DataSnapshot pairSnap : pairsSnapshot.getChildren()) {
                                 String checkIn = pairSnap.child("checkInTime").getValue(String.class);
                                 if (checkIn != null) {
@@ -2235,6 +2223,39 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                                     checkInOutPairs.add(pair);
                                 }
                             }
+                        } else if (firstCheckInTime != null && !firstCheckInTime.isEmpty()) {
+                            // No pairs structure - create from main fields (admin might have added)
+                            CheckInOutPair pair = new CheckInOutPair(firstCheckInTime);
+                            pair.checkInPhoto = snapshot.child("checkInPhoto").getValue(String.class);
+
+                            Double lat = snapshot.child("checkInLat").getValue(Double.class);
+                            pair.checkInLat = lat != null ? lat : 0;
+                            Double lng = snapshot.child("checkInLng").getValue(Double.class);
+                            pair.checkInLng = lng != null ? lng : 0;
+
+                            pair.checkInAddress = snapshot.child("checkInAddress").getValue(String.class);
+
+                            // Check if checkout exists
+                            if (lastCheckOutTime != null && !lastCheckOutTime.isEmpty()) {
+                                pair.checkOutTime = lastCheckOutTime;
+                                pair.checkOutPhoto = snapshot.child("checkOutPhoto").getValue(String.class);
+
+                                lat = snapshot.child("checkOutLat").getValue(Double.class);
+                                pair.checkOutLat = lat != null ? lat : 0;
+                                lng = snapshot.child("checkOutLng").getValue(Double.class);
+                                pair.checkOutLng = lng != null ? lng : 0;
+
+                                pair.checkOutAddress = snapshot.child("checkOutAddress").getValue(String.class);
+                                pair.durationMinutes = getDiffMinutes(firstCheckInTime, lastCheckOutTime);
+
+                                // Update totalWorkedMinutes if not set
+                                if (totalWorkedMinutes == 0) {
+                                    totalWorkedMinutes = pair.durationMinutes;
+                                }
+                            }
+
+                            checkInOutPairs.add(pair);
+                            Log.d("LOAD_DEBUG", "Created pair from main fields");
                         }
 
                         // Check if currently checked in (last pair has no checkout)
@@ -2253,6 +2274,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                         Log.d("LOAD_DEBUG", "Currently Checked In: " + isCurrentlyCheckedIn);
                         Log.d("LOAD_DEBUG", "Total Pairs: " + checkInOutPairs.size());
                         Log.d("LOAD_DEBUG", "Total Worked Minutes: " + totalWorkedMinutes);
+                        Log.d("LOAD_DEBUG", "Marked By: " + markedBy);
 
                         updateUI();
 
@@ -2268,8 +2290,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                 });
     }
 
-    private void updateUI() {
-        // Display first check-in and last check-out
+    private void updateUI() {        // Display first check-in and last check-out
         tvCheckInTime.setText(firstCheckInTime != null ? firstCheckInTime : "Not marked");
         tvCheckOutTime.setText(lastCheckOutTime != null ? lastCheckOutTime : "Not marked");
 
@@ -2277,7 +2298,27 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         int statusColor = ContextCompat.getColor(this, R.color.red);
         int dotDrawable = R.drawable.status_dot_absent;
 
-        if (firstCheckInTime == null) {
+        boolean hasFirstCheckIn = firstCheckInTime != null && !firstCheckInTime.isEmpty();
+        boolean adminMarkedOnlyStatus = "Admin".equals(markedBy) &&
+                !hasFirstCheckIn &&
+                finalStatus != null && !finalStatus.isEmpty();
+
+        if (adminMarkedOnlyStatus && !isCurrentlyCheckedIn && checkInOutPairs.isEmpty()) {
+            // Admin marked only status without times and employee hasn't checked in yet
+            displayStatus = finalStatus + " (Admin)";
+
+            if (finalStatus.equals("Present")) {
+                statusColor = ContextCompat.getColor(this, R.color.green);
+                dotDrawable = R.drawable.status_dot_present;
+            } else if (finalStatus.equals("Half Day")) {
+                statusColor = ContextCompat.getColor(this, R.color.yellow);
+                dotDrawable = R.drawable.status_dot_halfday;
+            } else if (finalStatus.equals("Absent")) {
+                statusColor = ContextCompat.getColor(this, R.color.red);
+                dotDrawable = R.drawable.status_dot_absent;
+            }
+
+        } else if (firstCheckInTime == null && checkInOutPairs.isEmpty()) {
             displayStatus = "Not Checked In";
             statusColor = ContextCompat.getColor(this, R.color.red);
             dotDrawable = R.drawable.status_dot_absent;
@@ -2318,17 +2359,41 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         tvTodayStatus.setTextColor(statusColor);
         statusIndicator.setBackgroundResource(dotDrawable);
 
-        Log.d("UI_UPDATE", "Display Status: " + displayStatus);
-        Log.d("UI_UPDATE", "Is Currently Checked In: " + isCurrentlyCheckedIn);
-        Log.d("UI_UPDATE", "Location Ready: " + locationReady);
-
         updateButtonStates();
 
         // Show work hours
-        if (totalWorkedMinutes > 0) {
-            tvWorkHours.setText(String.format("%dh %dm", totalWorkedMinutes / 60, totalWorkedMinutes % 60));
-        } else if (isCurrentlyCheckedIn && currentActiveCheckIn != null) {
+        if (isCurrentlyCheckedIn && currentActiveCheckIn != null) {
+            // Currently working - will be updated by timer
             tvWorkHours.setText("Working...");
+        } else if (totalWorkedMinutes > 0) {
+            // Has recorded time - display it
+            long hours = totalWorkedMinutes / 60;
+            long mins = totalWorkedMinutes % 60;
+            tvWorkHours.setText(String.format("%dh %dm", hours, mins));
+        } else if (firstCheckInTime != null && lastCheckOutTime != null) {
+            // Calculate from times if totalMinutes not available
+            long calculatedMinutes = getDiffMinutes(firstCheckInTime, lastCheckOutTime);
+            if (calculatedMinutes > 0 && calculatedMinutes < 1440) {
+                long hours = calculatedMinutes / 60;
+                long mins = calculatedMinutes % 60;
+                tvWorkHours.setText(String.format("%dh %dm", hours, mins));
+            } else {
+                tvWorkHours.setText("0h 0m");
+            }
+        } else if (adminMarkedOnlyStatus) {
+            // Admin marked status only - show estimated
+            if (finalStatus != null && finalStatus.equals("Present")) {
+                long hours = shiftDurationMinutes / 60;
+                long mins = shiftDurationMinutes % 60;
+                tvWorkHours.setText(String.format("%dh %dm (Est.)", hours, mins));
+            } else if (finalStatus != null && finalStatus.equals("Half Day")) {
+                long halfShift = shiftDurationMinutes / 2;
+                long hours = halfShift / 60;
+                long mins = halfShift % 60;
+                tvWorkHours.setText(String.format("%dh %dm (Est.)", hours, mins));
+            } else {
+                tvWorkHours.setText("0h 0m");
+            }
         } else {
             tvWorkHours.setText("0h 0m");
         }
@@ -2367,6 +2432,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                 });
     }
 
+
     private void tryCheckIn() {
         if (!isInternetAvailable()) {
             toast("❌ No Internet");
@@ -2383,11 +2449,8 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
             return;
         }
 
-        if ("Admin".equals(markedBy) && finalStatus != null && !finalStatus.isEmpty()
-                && firstCheckInTime == null) {
-            toast("⚠️ Attendance already marked by Admin");
-            return;
-        }
+        // REMOVED - Allow check-in even if admin marked status
+        // Employee can do their own sessions
 
         String currentTime = getCurrentTime();
 
@@ -2429,11 +2492,10 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
             return;
         }
 
-        if ("Admin".equals(markedBy) && lastCheckOutTime != null && !lastCheckOutTime.isEmpty()) {
-            toast("⚠️ Attendance already completed by Admin");
-            return;
-        }
+        // Remove admin blocking for check-out
+        // Employee can always check-out if they're checked in
 
+        toast("📸 Taking photo for check-out...");
         openCamera("checkOut");
     }
 
@@ -2579,197 +2641,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> toast("❌ Upload failed"));
     }
 
-//    private void saveAttendance(String photoUrl, String time) {
-//        if (employeeMobile == null) {
-//            toast("Profile not loaded");
-//            return;
-//        }
-//
-//        String today = getTodayDate();
-//        DatabaseReference node = attendanceRef.child(today).child(employeeMobile);
-//
-//        node.addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                String existingMarkedBy = snapshot.child("markedBy").getValue(String.class);
-//                String existingFirstCheckIn = snapshot.child("checkInTime").getValue(String.class);
-//                String existingLastCheckOut = snapshot.child("checkOutTime").getValue(String.class);
-//                String existingStatus = snapshot.child("status").getValue(String.class);
-//
-//                // Block if admin marked only status
-//                if ("Admin".equals(existingMarkedBy) &&
-//                        (existingFirstCheckIn == null || existingFirstCheckIn.isEmpty()) &&
-//                        (existingLastCheckOut == null || existingLastCheckOut.isEmpty()) &&
-//                        existingStatus != null && !existingStatus.isEmpty()) {
-//                    toast("⚠️ Attendance already marked by Admin");
-//                    return;
-//                }
-//
-//                if (pendingAction.equals("checkIn")) {
-//                    // Create new check-in pair
-//                    CheckInOutPair newPair = new CheckInOutPair(time);
-//                    newPair.checkInPhoto = photoUrl;
-//                    newPair.checkInLat = currentLat;
-//                    newPair.checkInLng = currentLng;
-//                    newPair.checkInAddress = currentAddress;
-//
-//                    checkInOutPairs.add(newPair);
-//                    currentActiveCheckIn = time;
-//                    isCurrentlyCheckedIn = true;
-//
-//                    Map<String, Object> updates = new HashMap<>();
-//
-//                    // Update first check-in if this is the first one
-//                    if (existingFirstCheckIn == null || existingFirstCheckIn.isEmpty()) {
-//                        firstCheckInTime = time;
-//                        updates.put("checkInTime", time);
-//                        updates.put("checkInPhoto", photoUrl);
-//                        updates.put("checkInLat", currentLat);
-//                        updates.put("checkInLng", currentLng);
-//                        updates.put("checkInAddress", currentAddress);
-//
-//                        // Calculate and save late status only on first check-in
-//                        boolean isLate = isLateCheckIn(shiftStart, time);
-//                        lateStatus = isLate ? "Late" : "On Time";
-//                        updates.put("lateStatus", lateStatus);
-//                        updates.put("status", isLate ? "Present (Late)" : "Present");
-//                        updates.put("finalStatus", "Present");
-//                    } else {
-//                        firstCheckInTime = existingFirstCheckIn;
-//                    }
-//
-//                    updates.put("markedBy", "Admin".equals(existingMarkedBy) ? "Admin+Employee" : "Employee");
-//
-//                    // Save main data first
-//                    node.updateChildren(updates).addOnSuccessListener(aVoid -> {
-//                        // Then save pairs
-//                        savePairsToDatabase(node, () -> {
-//                            String toastMessage = "✅ Checked In";
-//                            if (lateStatus != null && lateStatus.equals("Late") && firstCheckInTime.equals(time)) {
-//                                toastMessage += " - Late\n(More than 15 min after shift start)";
-//                            } else if (checkInOutPairs.size() > 1) {
-//                                toastMessage += " (Session " + checkInOutPairs.size() + ")";
-//                            }
-//
-//                            toast(toastMessage);
-//
-//                            Log.d("CHECKIN_SUCCESS", "Check-in saved successfully");
-//                            Log.d("CHECKIN_SUCCESS", "Total pairs now: " + checkInOutPairs.size());
-//                            Log.d("CHECKIN_SUCCESS", "Is currently checked in: " + isCurrentlyCheckedIn);
-//
-//                            startWorkTimer();
-//
-//                            // Reload attendance to refresh UI
-//                            new Handler().postDelayed(() -> loadTodayAttendance(), 500);
-//                        });
-//                    }).addOnFailureListener(e -> {
-//                        toast("❌ Failed to save check-in");
-//                        Log.e("CHECKIN_ERROR", "Error: " + e.getMessage());
-//                    });
-//
-//                } else if (pendingAction.equals("checkOut")) {
-//                    // Complete the last check-in pair
-//                    if (!checkInOutPairs.isEmpty()) {
-//                        CheckInOutPair lastPair = checkInOutPairs.get(checkInOutPairs.size() - 1);
-//
-//                        if (lastPair.checkOutTime == null || lastPair.checkOutTime.isEmpty()) {
-//                            lastPair.checkOutTime = time;
-//                            lastPair.checkOutPhoto = photoUrl;
-//                            lastPair.checkOutLat = currentLat;
-//                            lastPair.checkOutLng = currentLng;
-//                            lastPair.checkOutAddress = currentAddress;
-//                            lastPair.durationMinutes = getDiffMinutes(lastPair.checkInTime, time);
-//
-//                            // Calculate total worked minutes from all pairs
-//                            totalWorkedMinutes = 0;
-//                            for (CheckInOutPair pair : checkInOutPairs) {
-//                                if (pair.checkOutTime != null && !pair.checkOutTime.isEmpty()) {
-//                                    totalWorkedMinutes += pair.durationMinutes;
-//                                }
-//                            }
-//
-//                            // Update last check-out
-//                            lastCheckOutTime = time;
-//                            isCurrentlyCheckedIn = false;
-//                            currentActiveCheckIn = null;
-//
-//                            // Calculate final status
-//                            String finalStatusCalc = calculateFinalStatus(totalWorkedMinutes);
-//
-//                            // Add (Late) suffix if first check-in was late
-//                            String displayStatus = finalStatusCalc;
-//                            if ("Late".equals(lateStatus)) {
-//                                displayStatus = finalStatusCalc + " (Late)";
-//                            }
-//
-//                            Map<String, Object> updates = new HashMap<>();
-//                            updates.put("checkOutTime", time);
-//                            updates.put("checkOutPhoto", photoUrl);
-//                            updates.put("checkOutLat", currentLat);
-//                            updates.put("checkOutLng", currentLng);
-//                            updates.put("checkOutAddress", currentAddress);
-//                            updates.put("finalStatus", finalStatusCalc);
-//                            updates.put("status", displayStatus);
-//                            updates.put("totalMinutes", totalWorkedMinutes);
-//                            updates.put("totalHours", String.format("%.1f", totalWorkedMinutes / 60.0));
-//                            updates.put("shiftStart", shiftStart);
-//                            updates.put("shiftEnd", shiftEnd);
-//                            updates.put("shiftDurationMinutes", shiftDurationMinutes);
-//
-//                            if ("Admin".equals(existingMarkedBy)) {
-//                                updates.put("markedBy", "Admin+Employee");
-//                            } else {
-//                                updates.put("markedBy", "Employee");
-//                            }
-//
-//                            // Save main data first
-//                            node.updateChildren(updates).addOnSuccessListener(aVoid -> {
-//                                // Then save pairs
-//                                savePairsToDatabase(node, () -> {
-//                                    String toastMsg = "✅ Checked Out";
-//                                    if (checkInOutPairs.size() > 1) {
-//                                        toastMsg += " (Session " + checkInOutPairs.size() + ")";
-//                                    }
-//                                    toastMsg += "\n" + displayStatus +
-//                                            "\nTotal Worked: " + (totalWorkedMinutes/60) + "h " + (totalWorkedMinutes%60) + "m";
-//
-//                                    if (finalStatusCalc.equals("Half Day")) {
-//                                        long shortBy = shiftDurationMinutes - totalWorkedMinutes;
-//                                        toastMsg += "\n⚠️ Short by " + (shortBy/60) + "h " + (shortBy%60) + "m";
-//                                    }
-//
-//                                    toast(toastMsg);
-//
-//                                    Log.d("CHECKOUT_SUCCESS", "Check-out saved successfully");
-//                                    Log.d("CHECKOUT_SUCCESS", "Total worked minutes: " + totalWorkedMinutes);
-//                                    Log.d("CHECKOUT_SUCCESS", "Final status: " + finalStatusCalc);
-//
-//                                    stopWorkTimer();
-//
-//                                    // Reload attendance to refresh UI
-//                                    new Handler().postDelayed(() -> loadTodayAttendance(), 500);
-//                                });
-//                            }).addOnFailureListener(e -> {
-//                                toast("❌ Failed to save check-out");
-//                                Log.e("CHECKOUT_ERROR", "Error: " + e.getMessage());
-//                            });
-//                        } else {
-//                            toast("⚠️ Already checked out");
-//                        }
-//                    } else {
-//                        toast("⚠️ No check-in found");
-//                    }
-//                }
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//                toast("❌ Save failed");
-//            }
-//        });
-//    }
-
-
     private void saveAttendance(String photoUrl, String time) {
         if (employeeMobile == null) {
             toast("Profile not loaded");
@@ -2786,15 +2657,9 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                 String existingFirstCheckIn = snapshot.child("checkInTime").getValue(String.class);
                 String existingLastCheckOut = snapshot.child("checkOutTime").getValue(String.class);
                 String existingStatus = snapshot.child("status").getValue(String.class);
+                String existingFinalStatus = snapshot.child("finalStatus").getValue(String.class);
 
-                // Block if admin marked only status
-                if ("Admin".equals(existingMarkedBy) &&
-                        (existingFirstCheckIn == null || existingFirstCheckIn.isEmpty()) &&
-                        (existingLastCheckOut == null || existingLastCheckOut.isEmpty()) &&
-                        existingStatus != null && !existingStatus.isEmpty()) {
-                    toast("⚠️ Attendance already marked by Admin");
-                    return;
-                }
+                // REMOVED blocking - Allow employee to check-in/out even if admin marked status
 
                 if (pendingAction.equals("checkIn")) {
                     // Create new check-in pair
@@ -2810,9 +2675,9 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
 
                     Map<String, Object> updates = new HashMap<>();
 
-                    // Store values in final variables for lambda
                     final String checkInTimeForLambda = time;
                     final boolean isFirstCheckIn = (existingFirstCheckIn == null || existingFirstCheckIn.isEmpty());
+                    final boolean isAdminMarked = "Admin".equals(existingMarkedBy);
 
                     // Update first check-in if this is the first one
                     if (isFirstCheckIn) {
@@ -2827,15 +2692,22 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                         boolean isLate = isLateCheckIn(shiftStart, time);
                         lateStatus = isLate ? "Late" : "On Time";
                         updates.put("lateStatus", lateStatus);
-                        updates.put("status", isLate ? "Present (Late)" : "Present");
+
+                        // Update status - override admin's status if exists
+                        String newStatus = isLate ? "Present (Late)" : "Present";
+                        updates.put("status", newStatus);
                         updates.put("finalStatus", "Present");
                     } else {
                         firstCheckInTime = existingFirstCheckIn;
                     }
 
-                    updates.put("markedBy", "Admin".equals(existingMarkedBy) ? "Admin+Employee" : "Employee");
+                    // Update markedBy field
+                    if (isAdminMarked) {
+                        updates.put("markedBy", "Admin+Employee");
+                    } else {
+                        updates.put("markedBy", "Employee");
+                    }
 
-                    // Store final values for lambda
                     final String finalLateStatus = lateStatus;
                     final int pairCount = checkInOutPairs.size();
 
@@ -2844,10 +2716,14 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                         // Then save pairs
                         savePairsToDatabase(node, () -> {
                             String toastMessage = "✅ Checked In";
-                            if (finalLateStatus != null && finalLateStatus.equals("Late") &&
-                                    firstCheckInTime.equals(checkInTimeForLambda)) {
-                                toastMessage += " - Late\n(More than 15 min after shift start)";
-                            } else if (pairCount > 1) {
+
+                            if (pairCount == 1) {
+                                // First check-in
+                                if (finalLateStatus != null && finalLateStatus.equals("Late")) {
+                                    toastMessage += " - Late\n(More than 15 min after shift start)";
+                                }
+                            } else {
+                                // Multiple check-ins
                                 toastMessage += " (Session " + pairCount + ")";
                             }
 
@@ -2855,7 +2731,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
 
                             Log.d("CHECKIN_SUCCESS", "Check-in saved successfully");
                             Log.d("CHECKIN_SUCCESS", "Total pairs now: " + checkInOutPairs.size());
-                            Log.d("CHECKIN_SUCCESS", "Is currently checked in: " + isCurrentlyCheckedIn);
 
                             startWorkTimer();
 
@@ -2916,13 +2791,13 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                             updates.put("shiftEnd", shiftEnd);
                             updates.put("shiftDurationMinutes", shiftDurationMinutes);
 
+                            // Update markedBy field
                             if ("Admin".equals(existingMarkedBy)) {
                                 updates.put("markedBy", "Admin+Employee");
                             } else {
                                 updates.put("markedBy", "Employee");
                             }
 
-                            // Store final values for lambda
                             final String finalDisplayStatus = displayStatus;
                             final String finalStatusCalcForLambda = finalStatusCalc;
                             final long finalTotalWorkedMinutes = totalWorkedMinutes;
@@ -2950,7 +2825,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
 
                                     Log.d("CHECKOUT_SUCCESS", "Check-out saved successfully");
                                     Log.d("CHECKOUT_SUCCESS", "Total worked minutes: " + finalTotalWorkedMinutes);
-                                    Log.d("CHECKOUT_SUCCESS", "Final status: " + finalStatusCalcForLambda);
 
                                     stopWorkTimer();
 
@@ -2976,7 +2850,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
             }
         });
     }
-
 
 
     private void savePairsToDatabase(DatabaseReference node, Runnable onComplete) {
@@ -3094,14 +2967,20 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
 
             long diffMillis = endDate.getTime() - startDate.getTime();
 
+            // Handle next day scenario
             if (diffMillis < 0) {
                 diffMillis += 24 * 60 * 60 * 1000;
             }
 
             long minutes = diffMillis / 60000;
 
-            Log.d("TIME_DIFF", "Start: " + start + ", End: " + end +
-                    ", Diff: " + minutes + " mins (" + (minutes/60) + "h " + (minutes%60) + "m)");
+            // Safety check - if more than 24 hours, something is wrong
+            if (minutes > 1440) {
+                Log.e("TIME_DIFF", "Invalid time difference: " + minutes + " mins for " + start + " to " + end);
+                return 0;
+            }
+
+            Log.d("TIME_DIFF", "Start: " + start + ", End: " + end + ", Diff: " + minutes + " mins");
 
             return Math.max(0, minutes);
 
@@ -3112,6 +2991,8 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
     }
 
     private void startWorkTimer() {
+        stopWorkTimer(); // Stop any existing timer
+
         workTimerHandler = new Handler();
         workTimerRunnable = new Runnable() {
             @Override
@@ -3119,17 +3000,38 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                 if (isCurrentlyCheckedIn && currentActiveCheckIn != null) {
                     String currentTime = getCurrentTime();
                     long currentSessionMins = getDiffMinutes(currentActiveCheckIn, currentTime);
-                    long displayMins = totalWorkedMinutes + currentSessionMins;
-                    tvWorkHours.setText(String.format("%dh %dm", displayMins / 60, displayMins % 60));
+
+                    // Calculate total from all completed pairs
+                    long completedMins = 0;
+                    for (int i = 0; i < checkInOutPairs.size() - 1; i++) { // Exclude last (active) pair
+                        CheckInOutPair pair = checkInOutPairs.get(i);
+                        if (pair.checkOutTime != null && !pair.checkOutTime.isEmpty()) {
+                            completedMins += pair.durationMinutes;
+                        }
+                    }
+
+                    long displayMins = completedMins + currentSessionMins;
+
+                    // Safety check - if more than 24 hours, something is wrong
+                    if (displayMins > 0 && displayMins < 1440) {
+                        long hours = displayMins / 60;
+                        long mins = displayMins % 60;
+                        tvWorkHours.setText(String.format("%dh %dm", hours, mins));
+                    } else if (displayMins >= 1440) {
+                        // Error - reset to current session only
+                        long hours = currentSessionMins / 60;
+                        long mins = currentSessionMins % 60;
+                        tvWorkHours.setText(String.format("%dh %dm", hours, mins));
+                        Log.e("WORK_TIMER", "Invalid total minutes: " + displayMins);
+                    }
                 }
                 if (workTimerHandler != null) {
-                    workTimerHandler.postDelayed(this, 60000);
+                    workTimerHandler.postDelayed(this, 60000); // Update every minute
                 }
             }
         };
         workTimerHandler.post(workTimerRunnable);
     }
-
     private void stopWorkTimer() {
         if (workTimerHandler != null && workTimerRunnable != null) {
             workTimerHandler.removeCallbacks(workTimerRunnable);

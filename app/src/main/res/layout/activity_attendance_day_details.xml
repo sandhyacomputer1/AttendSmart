@@ -108,7 +108,7 @@
                     android:textColor="#757575" />
             </LinearLayout>
 
-            <!-- Absent -->
+            <!-- Total Sessions -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -123,17 +123,29 @@
                     android:text="0"
                     android:textSize="24sp"
                     android:textStyle="bold"
-                    android:textColor="#F44336" />
+                    android:textColor="#2196F3" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="No Check-out"
+                    android:text="Sessions"
                     android:textSize="12sp"
                     android:textColor="#757575" />
             </LinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
+
+    <!-- Section Header -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Check-In / Check-Out Sessions"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="#424242"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="8dp"
+        android:layout_marginTop="4dp" />
 
     <!-- RecyclerView -->
     <androidx.recyclerview.widget.RecyclerView
@@ -141,6 +153,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingHorizontal="12dp"
-        android:clipToPadding="false" />
+        android:clipToPadding="false"
+        android:paddingBottom="16dp" />
 
 </LinearLayout>

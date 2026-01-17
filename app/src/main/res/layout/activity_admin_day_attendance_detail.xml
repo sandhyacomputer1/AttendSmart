@@ -27,11 +27,10 @@
     <!-- Main Content -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:background="@color/white"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:fillViewport="true"
-        android:paddingBottom="70dp">
+        android:paddingBottom="140dp">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -56,7 +55,7 @@
                     android:background="@color/white"
                     android:padding="15dp">
 
-                    <!-- Date Header -->
+                    <!-- Date & Shift -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -67,12 +66,12 @@
                             android:layout_width="18dp"
                             android:layout_height="18dp"
                             android:src="@drawable/ic_calendar"
-                            app:tint="#1976D2"
-                            android:contentDescription="Date"/>
+                            app:tint="#1976D2"/>
 
                         <TextView
                             android:id="@+id/tvDate"
-                            android:layout_width="190dp"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
                             android:layout_height="wrap_content"
                             android:text="January 3, 2026"
                             android:textSize="14sp"
@@ -80,31 +79,20 @@
                             android:textColor="#212121"
                             android:layout_marginStart="5dp"/>
 
-                        <!-- Shift Timing Badge -->
-                        <LinearLayout
+                        <TextView
+                            android:id="@+id/tvShiftTiming"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="horizontal"
-                            android:gravity="center_vertical"
+                            android:text="Loading..."
+                            android:textSize="11sp"
+                            android:textColor="#FF9800"
+                            android:textStyle="bold"
                             android:background="@drawable/stats_bg_white"
                             android:paddingHorizontal="10dp"
-                            android:paddingVertical="4dp">
-
-
-
-                            <TextView
-                                android:id="@+id/tvShiftTiming"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Loading shift..."
-                                android:textSize="11sp"
-                                android:textColor="#FF9800"
-                                android:textStyle="bold"
-                                android:layout_marginStart="4dp"/>
-                        </LinearLayout>
+                            android:paddingVertical="4dp"/>
                     </LinearLayout>
 
-                    <!-- Total Hours Display -->
+                    <!-- Total Hours -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -127,7 +115,6 @@
                             android:id="@+id/tvTotalHours"
                             android:text="0h 0m"
                             android:textSize="18sp"
-                            android:layout_marginStart="5dp"
                             android:layout_marginEnd="5dp"
                             android:textStyle="bold"
                             android:textColor="#1976D2"
@@ -144,8 +131,7 @@
                 android:layout_marginHorizontal="12dp"
                 android:layout_marginBottom="10dp"
                 app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:strokeWidth="0dp">
+                app:cardElevation="2dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -154,7 +140,6 @@
                     android:orientation="vertical"
                     android:padding="14dp">
 
-                    <!-- Header -->
                     <TextView
                         android:text="STATUS"
                         android:textSize="12sp"
@@ -165,7 +150,6 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"/>
 
-                    <!-- Attendance Status Buttons -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -182,9 +166,6 @@
                             android:textAllCaps="false"
                             style="@style/Widget.Material3.Button.OutlinedButton"
                             app:cornerRadius="8dp"
-                            app:strokeColor="#E0E0E0"
-                            app:strokeWidth="1.5dp"
-                            android:textColor="#757575"
                             android:layout_marginEnd="5dp"/>
 
                         <com.google.android.material.button.MaterialButton
@@ -197,9 +178,6 @@
                             android:textAllCaps="false"
                             style="@style/Widget.Material3.Button.OutlinedButton"
                             app:cornerRadius="8dp"
-                            app:strokeColor="#E0E0E0"
-                            app:strokeWidth="1.5dp"
-                            android:textColor="#757575"
                             android:layout_marginHorizontal="2.5dp"/>
 
                         <com.google.android.material.button.MaterialButton
@@ -212,22 +190,20 @@
                             android:textAllCaps="false"
                             style="@style/Widget.Material3.Button.OutlinedButton"
                             app:cornerRadius="8dp"
-                            app:strokeColor="#E0E0E0"
-                            app:strokeWidth="1.5dp"
-                            android:textColor="#757575"
                             android:layout_marginStart="5dp"/>
                     </LinearLayout>
 
-                    <!-- Header -->
                     <TextView
-                        android:text=" LATE STATUS"
+                        android:text="LATE STATUS"
                         android:textSize="12sp"
                         android:textColor="#1976D2"
                         android:textStyle="bold"
                         android:letterSpacing="0.05"
                         android:layout_marginBottom="10dp"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>                    <LinearLayout
+                        android:layout_height="wrap_content"/>
+
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal">
@@ -242,9 +218,6 @@
                             android:textAllCaps="false"
                             style="@style/Widget.Material3.Button.OutlinedButton"
                             app:cornerRadius="8dp"
-                            app:strokeColor="#E0E0E0"
-                            app:strokeWidth="1.5dp"
-                            android:textColor="#757575"
                             android:layout_marginEnd="5dp"/>
 
                         <com.google.android.material.button.MaterialButton
@@ -257,262 +230,55 @@
                             android:textAllCaps="false"
                             style="@style/Widget.Material3.Button.OutlinedButton"
                             app:cornerRadius="8dp"
-                            app:strokeColor="#E0E0E0"
-                            app:strokeWidth="1.5dp"
-                            android:textColor="#757575"
                             android:layout_marginStart="5dp"/>
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Check-In/Out Combined Card -->
-            <com.google.android.material.card.MaterialCardView
+            <!-- Sessions Header -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginHorizontal="12dp"
-                android:layout_marginBottom="20dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                app:strokeWidth="0dp">
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="8dp">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@color/white"
-                    android:orientation="vertical"
-                    android:padding="14dp">
+                <TextView
+                    android:text="CHECK-IN / CHECK-OUT SESSIONS"
+                    android:textSize="12sp"
+                    android:textColor="#1976D2"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.05"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"/>
 
-                    <!-- Check-In/Out Times at Top -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginBottom="14dp">
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnAddSession"
+                    android:layout_width="wrap_content"
+                    android:layout_height="32dp"
+                    android:text="+ Add Session"
+                    android:textSize="11sp"
+                    android:textAllCaps="false"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    app:cornerRadius="6dp"
+                    app:iconGravity="textStart"
+                    android:paddingHorizontal="12dp"/>
+            </LinearLayout>
 
-                        <!-- Check-In Time -->
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:layout_marginEnd="6dp">
-
-                            <TextView
-                                android:text="CHECK-IN"
-                                android:textSize="11sp"
-                                android:textColor="#43A047"
-                                android:textStyle="bold"
-                                android:letterSpacing="0.05"
-                                android:layout_marginBottom="8dp"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"/>
-
-                            <com.google.android.material.textfield.TextInputLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
-                                app:boxCornerRadiusTopStart="8dp"
-                                app:boxCornerRadiusTopEnd="8dp"
-                                app:boxCornerRadiusBottomStart="8dp"
-                                app:boxCornerRadiusBottomEnd="8dp"
-                                app:startIconDrawable="@drawable/ic_time"
-                                app:startIconTint="#43A047">
-
-                                <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/etCheckIn"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:hint="Check-in"
-                                    android:textSize="14sp"
-                                    android:focusable="false"
-                                    android:inputType="none"/>
-                            </com.google.android.material.textfield.TextInputLayout>
-                        </LinearLayout>
-
-                        <!-- Check-Out Time -->
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:layout_marginStart="6dp">
-
-                            <TextView
-                                android:text="CHECK-OUT"
-                                android:textSize="11sp"
-                                android:textColor="#E53935"
-                                android:textStyle="bold"
-                                android:letterSpacing="0.05"
-                                android:layout_marginBottom="8dp"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"/>
-
-                            <com.google.android.material.textfield.TextInputLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                style="@style/Widget.Material3.TextInputLayout.OutlinedBox.Dense"
-                                app:boxCornerRadiusTopStart="8dp"
-                                app:boxCornerRadiusTopEnd="8dp"
-                                app:boxCornerRadiusBottomStart="8dp"
-                                app:boxCornerRadiusBottomEnd="8dp"
-                                app:startIconDrawable="@drawable/ic_time"
-                                app:startIconTint="#E53935">
-
-                                <com.google.android.material.textfield.TextInputEditText
-                                    android:id="@+id/etCheckOut"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:hint="Check-out"
-                                    android:textSize="14sp"
-                                    android:focusable="false"
-                                    android:inputType="none"/>
-                            </com.google.android.material.textfield.TextInputLayout>
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <!-- Photos & Locations in Middle -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <!-- Check-In Photo & Location -->
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:layout_marginEnd="6dp">
-
-                            <com.google.android.material.card.MaterialCardView
-                                android:id="@+id/cardCheckInPhoto"
-                                android:layout_width="match_parent"
-                                android:layout_height="100dp"
-                                app:cardCornerRadius="10dp"
-                                app:cardElevation="1dp"
-                                app:strokeWidth="0dp"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:foreground="?attr/selectableItemBackground"
-                                android:layout_marginBottom="8dp">
-
-                                <ImageView
-                                    android:id="@+id/ivCheckInPhoto"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:scaleType="centerCrop"
-                                    android:background="#F5F5F5"
-                                    android:contentDescription="Check-in photo"/>
-                            </com.google.android.material.card.MaterialCardView>
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal"
-                                android:gravity="center_vertical"
-                                android:layout_marginBottom="4dp">
-
-                                <ImageView
-                                    android:layout_width="14dp"
-                                    android:layout_height="14dp"
-                                    android:src="@drawable/ic_location"
-                                    app:tint="#757575"
-                                    android:contentDescription="Location"/>
-
-                                <TextView
-                                    android:text="Location"
-                                    android:textSize="10sp"
-                                    android:textColor="#757575"
-                                    android:textStyle="bold"
-                                    android:layout_marginStart="4dp"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"/>
-                            </LinearLayout>
-
-                            <TextView
-                                android:id="@+id/tvCheckInAddress"
-                                android:text="No location recorded"
-                                android:textSize="11sp"
-                                android:textColor="#212121"
-                                android:lineHeight="15dp"
-                                android:maxLines="3"
-                                android:ellipsize="end"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"/>
-                        </LinearLayout>
-
-                        <!-- Check-Out Photo & Location -->
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_weight="1"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:layout_marginStart="6dp">
-
-                            <com.google.android.material.card.MaterialCardView
-                                android:id="@+id/cardCheckOutPhoto"
-                                android:layout_width="match_parent"
-                                android:layout_height="100dp"
-                                app:cardCornerRadius="10dp"
-                                app:cardElevation="1dp"
-                                app:strokeWidth="0dp"
-                                android:clickable="true"
-                                android:focusable="true"
-                                android:foreground="?attr/selectableItemBackground"
-                                android:layout_marginBottom="8dp">
-
-                                <ImageView
-                                    android:id="@+id/ivCheckOutPhoto"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:scaleType="centerCrop"
-                                    android:background="#F5F5F5"
-                                    android:contentDescription="Check-out photo"/>
-                            </com.google.android.material.card.MaterialCardView>
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal"
-                                android:gravity="center_vertical"
-                                android:layout_marginBottom="4dp">
-
-                                <ImageView
-                                    android:layout_width="14dp"
-                                    android:layout_height="14dp"
-                                    android:src="@drawable/ic_location"
-                                    app:tint="#757575"
-                                    android:contentDescription="Location"/>
-
-                                <TextView
-                                    android:text="Location"
-                                    android:textSize="10sp"
-                                    android:textColor="#757575"
-                                    android:textStyle="bold"
-                                    android:layout_marginStart="4dp"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"/>
-                            </LinearLayout>
-
-                            <TextView
-                                android:id="@+id/tvCheckOutAddress"
-                                android:text="No location recorded"
-                                android:textSize="11sp"
-                                android:textColor="#212121"
-                                android:lineHeight="15dp"
-                                android:maxLines="3"
-                                android:ellipsize="end"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"/>
-                        </LinearLayout>
-                    </LinearLayout>
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
+            <!-- Sessions Container -->
+            <LinearLayout
+                android:id="@+id/sessionsContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="12dp"/>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Action Buttons at Bottom -->
+    <!-- Action Buttons -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -534,9 +300,7 @@
             android:textAllCaps="false"
             android:textStyle="bold"
             app:cornerRadius="10dp"
-            app:iconGravity="textStart"
             android:backgroundTint="#1976D2"
-            app:elevation="2dp"
             android:layout_marginEnd="5dp"/>
 
         <com.google.android.material.button.MaterialButton
@@ -550,11 +314,8 @@
             android:textStyle="bold"
             style="@style/Widget.Material3.Button.OutlinedButton"
             app:cornerRadius="10dp"
-            app:iconGravity="textStart"
             app:strokeColor="#E53935"
-            app:strokeWidth="1dp"
             android:textColor="#E53935"
-            app:iconTint="#E53935"
             android:layout_marginStart="5dp"/>
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
