@@ -48,6 +48,11 @@ public class GenerateSalaryActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_generate_salary);
+        // Set status bar color
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(getResources().getColor(R.color.blue_800));
+        }
+
 
         // Initialize all views
         toolbar = findViewById(R.id.toolbar);

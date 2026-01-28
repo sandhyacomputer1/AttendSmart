@@ -10,17 +10,18 @@
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="#FF5722"
+        android:layout_height="55dp"
+        android:background="@drawable/gradient_header"
         app:navigationIcon="@drawable/ic_arrow_back"
         app:navigationIconTint="@android:color/white"
         app:title="Edit Salary"
-        app:titleTextColor="@android:color/white"
-        app:titleTextAppearance="@style/TextAppearance.AppCompat.Title"/>
+        app:titleTextAppearance="@style/TextAppearance.AppCompat.Title"
+        app:titleTextColor="@android:color/white" />
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:backgroundTint="@color/white"
         android:layout_weight="1"
         android:background="#F5F5F5">
 
@@ -35,13 +36,14 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
+                app:cardCornerRadius="10dp"
                 app:cardElevation="2dp"
                 android:layout_marginBottom="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@color/white"
                     android:orientation="vertical"
                     android:padding="16dp">
 
@@ -198,7 +200,7 @@
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
+                app:cardCornerRadius="10dp"
                 app:cardElevation="2dp"
                 android:layout_marginBottom="16dp">
 
@@ -206,6 +208,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
+                    android:background="@color/white"
+
                     android:padding="16dp">
 
                     <TextView
@@ -370,7 +374,7 @@
                 android:id="@+id/cardAdjustments"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
+                app:cardCornerRadius="10dp"
                 app:cardElevation="2dp"
                 android:layout_marginBottom="16dp">
 
@@ -378,6 +382,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
+                    android:background="@color/white"
                     android:padding="16dp">
 
                     <TextView
@@ -525,11 +530,11 @@
                     android:layout_width="0dp"
                     android:layout_height="52dp"
                     android:layout_weight="1"
+                    android:backgroundTint="@color/blue_800"
                     android:text="SAVE SALARY"
                     android:textSize="14sp"
                     android:textStyle="bold"
-                    app:backgroundTint="#4CAF50"
-                    app:cornerRadius="8dp"/>
+                    app:cornerRadius="8dp" />
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
