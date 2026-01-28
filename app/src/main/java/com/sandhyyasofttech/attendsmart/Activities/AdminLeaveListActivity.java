@@ -45,6 +45,11 @@ public class AdminLeaveListActivity extends AppCompatActivity {
     protected void onCreate(Bundle b) {
         super.onCreate(b);
         setContentView(R.layout.activity_admin_leave_list);
+        // Set status bar color
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(getResources().getColor(R.color.blue_800));
+        }
+
 
         // 🔹 Toolbar setup
         androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);

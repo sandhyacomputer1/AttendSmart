@@ -862,6 +862,11 @@ public class AttendanceReportActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_attendance_report);
+        // Set status bar color
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setStatusBarColor(getResources().getColor(R.color.blue_800));
+        }
+
 
         androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -1146,12 +1151,7 @@ public class AttendanceReportActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * ✅ Process individual attendance record
-     */
-    /**
-     * ✅ Process individual attendance record
-     */
+
     private void processAttendance(DataSnapshot snapshot, String dateStr,
                                    final int[] present, final int[] late,
                                    final int[] halfDay, final int[] absent, final int[] checks) {
