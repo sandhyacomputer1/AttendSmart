@@ -12,7 +12,6 @@
         android:id="@+id/appBarLayout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="#FF5722"
         android:elevation="4dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -21,13 +20,13 @@
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="#FF5722"
+            android:layout_height="55dp"
+            android:background="@drawable/gradient_header"
             app:navigationIcon="@drawable/ic_arrow_back"
             app:navigationIconTint="@android:color/white"
             app:title="Generate Salary"
-            app:titleTextColor="@android:color/white"
-            app:titleTextAppearance="@style/TextAppearance.AppCompat.Title"/>
+            app:titleTextAppearance="@style/TextAppearance.AppCompat.Title"
+            app:titleTextColor="@android:color/white" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <!-- Main Content -->
@@ -86,7 +85,7 @@
                         android:layout_width="22dp"
                         android:layout_height="22dp"
                         android:src="@drawable/ic_calendar"
-                        android:tint="#757575"/>
+                        app:tint="#757575"/>
 
                     <EditText
                         android:id="@+id/etMonth"
@@ -108,7 +107,7 @@
                         android:layout_width="20dp"
                         android:layout_height="20dp"
                         android:src="@drawable/ic_arrow_drop_down"
-                        android:tint="#757575"/>
+                        app:tint="#757575"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -150,7 +149,7 @@
                         android:layout_width="22dp"
                         android:layout_height="22dp"
                         android:src="@drawable/ic_person"
-                        android:tint="#757575"/>
+                        app:tint="#757575"/>
 
                     <Spinner
                         android:id="@+id/spEmployee"
@@ -169,19 +168,19 @@
                 android:id="@+id/btnGenerateSalary"
                 android:layout_width="0dp"
                 android:layout_height="52dp"
+                android:layout_marginTop="28dp"
+                android:backgroundTint="@color/blue_800"
                 android:text="GENERATE SALARY"
+                android:textAllCaps="false"
                 android:textSize="14sp"
                 android:textStyle="bold"
-                android:textAllCaps="false"
-                app:backgroundTint="#FF5722"
                 app:cornerRadius="10dp"
                 app:iconGravity="textStart"
-                app:iconTint="@android:color/white"
                 app:iconPadding="8dp"
-                app:layout_constraintTop_toBottomOf="@id/cardEmployee"
-                app:layout_constraintStart_toStartOf="parent"
+                app:iconTint="@android:color/white"
                 app:layout_constraintEnd_toEndOf="parent"
-                android:layout_marginTop="28dp"/>
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/cardEmployee" />
 
             <!-- View Salary Button -->
             <com.google.android.material.button.MaterialButton

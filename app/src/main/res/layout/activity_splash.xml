@@ -87,7 +87,7 @@
                 android:layout_marginTop="32dp"
                 android:fontFamily="sans-serif-medium"
                 android:text="S Salary"
-                android:textColor="#F44336"
+                android:textColor="#0D0D0D"
                 android:textSize="32sp"
                 android:textStyle="bold"
                 android:elevation="4dp"
@@ -104,7 +104,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="Smart Attendance Solution"
-                android:textColor="#FF5722"
+                android:textColor="#0D0D0D"
                 android:textSize="14sp"
                 android:alpha="0.9"
                 android:fontFamily="sans-serif-light"
@@ -184,7 +184,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Sandhya Softtech Pvt Ltd"
-            android:textColor="#F44336"
+            android:textColor="#090909"
             android:textSize="15sp"
             android:textStyle="bold"
             android:fontFamily="sans-serif-medium"
@@ -210,7 +210,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Made with "
-                android:textColor="#F44336"
+                android:textColor="#0D0D0D"
                 android:textSize="13sp"
                 android:alpha="0.9" />
 
@@ -224,7 +224,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text=" in India "
-                android:textColor="#F44336"
+                android:textColor="#0D0D0D"
                 android:textSize="13sp"
                 android:alpha="0.9" />
 
@@ -242,7 +242,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:text="Version 1.0.0"
-            android:textColor="#F44336"
+            android:textColor="#0B0B0B"
             android:textSize="11sp"
             android:alpha="0.7"
             android:fontFamily="sans-serif-light" />

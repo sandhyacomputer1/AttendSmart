@@ -1,5 +1,7 @@
 package com.sandhyyasofttech.attendsmart.Activities;
 
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -9,6 +11,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -62,6 +65,15 @@ public class EmpSalDetailsActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setTitle("Salary Details");
+            // Set title text color
+            toolbar.setTitleTextColor(getResources().getColor(android.R.color.white));
+
+            // For back arrow color - create a white drawable
+            Drawable upArrow = ContextCompat.getDrawable(this, R.drawable.ic_arrow_back);
+            if (upArrow != null) {
+                upArrow.setColorFilter(getResources().getColor(android.R.color.white), PorterDuff.Mode.SRC_ATOP);
+                getSupportActionBar().setHomeAsUpIndicator(upArrow);
+            }
         }
     }
 

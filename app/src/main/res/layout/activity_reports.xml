@@ -16,16 +16,17 @@
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/colorPrimary"
+            android:layout_height="55dp"
+            android:background="@drawable/gradient_header"
             app:title="Attendance Reports"
             app:titleTextColor="@android:color/white"
-            app:navigationIcon="?attr/homeAsUpIndicator" />
+            app:navigationIcon="@drawable/ic_arrow_back" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="20dp"
         android:fillViewport="true">
 
         <LinearLayout
@@ -39,7 +40,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
+                app:cardCornerRadius="10dp"
                 app:cardElevation="3dp"
                 app:cardBackgroundColor="@android:color/white">
 
@@ -94,7 +95,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
+                app:cardCornerRadius="10dp"
                 app:cardElevation="3dp"
                 app:cardBackgroundColor="@android:color/white">
 
@@ -143,13 +144,16 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="48dp"
                                 android:text="Select Date"
-                                android:textSize="13sp"
                                 android:textAllCaps="false"
-                                app:backgroundTint="#FF5722"
-                                app:cornerRadius="8dp"
+                                android:textSize="13sp"
+                                app:backgroundTint="#E1EEF8"
+                                app:strokeWidth="1dp"
+                                android:textColor="@color/black"
+                                app:strokeColor="@color/colorPrimary1"
+                                app:cornerRadius="10dp"
                                 app:iconGravity="start"
                                 app:iconPadding="4dp"
-                                app:iconSize="18dp"/>
+                                app:iconSize="18dp" />
                         </LinearLayout>
 
                         <LinearLayout
@@ -175,8 +179,10 @@
                                 android:text="Select Date"
                                 android:textSize="13sp"
                                 android:textAllCaps="false"
-                                app:backgroundTint="#FF5722"
-                                app:cornerRadius="8dp"
+                                app:backgroundTint="#E1EEF8"
+                                app:strokeWidth="1dp"
+                                android:textColor="@color/black"
+                                app:strokeColor="@color/colorPrimary1"                                app:cornerRadius="8dp"
                                 app:iconGravity="start"
                                 app:iconPadding="4dp"
                                 app:iconSize="18dp"/>
@@ -191,8 +197,9 @@
                         android:textStyle="bold"
                         android:textSize="14sp"
                         android:textAllCaps="false"
-                        app:backgroundTint="#FF5722"
-                        app:cornerRadius="8dp"
+                        app:backgroundTint="#2196F3"
+                        app:cornerRadius="10dp"
+                        app:iconTint="@color/white"
                         app:icon="@android:drawable/ic_menu_search"
                         app:iconGravity="textStart"/>
                 </LinearLayout>
@@ -204,7 +211,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
-                app:cardCornerRadius="12dp"
+                app:cardCornerRadius="10dp"
                 app:cardElevation="3dp"
                 app:cardBackgroundColor="@android:color/white">
 
@@ -534,9 +541,9 @@
                     android:textSize="13sp"
                     android:textAllCaps="false"
                     app:strokeColor="#2196F3"
-                    app:strokeWidth="2dp"
+                    app:strokeWidth="1dp"
                     android:textColor="#2196F3"
-                    app:cornerRadius="8dp"
+                    app:cornerRadius="10dp"
                     android:layout_marginEnd="6dp"
                     app:icon="@android:drawable/ic_menu_view"
                     app:iconTint="#2196F3"
@@ -552,7 +559,7 @@
                     android:textSize="13sp"
                     android:textAllCaps="false"
                     app:backgroundTint="#4CAF50"
-                    app:cornerRadius="8dp"
+                    app:cornerRadius="10dp"
                     android:layout_marginStart="6dp"
                     app:icon="@android:drawable/ic_menu_share"
                     app:iconGravity="textStart"/>

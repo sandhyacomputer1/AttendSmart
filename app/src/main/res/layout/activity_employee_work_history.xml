@@ -9,9 +9,10 @@
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@color/colorPrimary"
+        android:layout_height="55dp"
+        android:background="@drawable/gradient_header"
         android:elevation="4dp"
+        android:gravity="center"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
@@ -30,7 +31,7 @@
             android:text=" Employee's Work History"
             android:textSize="16sp"
             android:textStyle="bold"
-            android:textColor="@color/colorPrimary" />
+            android:textColor="@color/black" />
 
         <TextView
             android:id="@+id/tvStats"

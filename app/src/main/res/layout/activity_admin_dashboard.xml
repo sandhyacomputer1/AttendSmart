@@ -23,13 +23,13 @@
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/topAppBar"
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="#FF5722"
-                app:title=""
-                app:titleTextColor="@android:color/white"
-                app:titleCentered="false"
+                android:layout_height="55dp"
+                android:background="@drawable/gradient_header"
                 app:navigationIcon="@drawable/ic_menu"
-                app:navigationIconTint="@android:color/white" >
+                app:navigationIconTint="@android:color/white"
+                app:title=""
+                app:titleCentered="false"
+                app:titleTextColor="@android:color/white">
 
                 <TextView
                     android:id="@+id/tvToolbarTitle"
@@ -261,7 +261,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="📊 This Week Attendance"
+                            android:text=" This Week Attendance"
                             android:textSize="18sp"
                             android:textStyle="bold"
                             android:fontFamily="sans-serif-medium"
@@ -474,7 +474,7 @@
             android:fontFamily="sans-serif-medium"
             android:letterSpacing="0.02"
             app:iconTint="@android:color/white"
-            app:backgroundTint="#FF5722"
+            app:backgroundTint="#2196F3"
             app:elevation="6dp"/>
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>

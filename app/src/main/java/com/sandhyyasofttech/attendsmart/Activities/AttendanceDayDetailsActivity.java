@@ -1,5 +1,7 @@
 package com.sandhyyasofttech.attendsmart.Activities;
 
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -9,6 +11,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -24,17 +27,13 @@ import java.util.List;
 public class AttendanceDayDetailsActivity extends AppCompatActivity {
 
     private static final String TAG = "AttendanceDetails";
-
     private RecyclerView rvDetails;
     private TextView tvDate, tvTotalCount, tvOnTimeCount, tvLateCount, tvSessionCount;
-
     private DatabaseReference attendanceRef, employeesRef;
     private PrefManager prefManager;
     private String companyKey, selectedDate;
-
     private PunchDetailsAdapter adapter;
     private final List<EmployeePunchModel> employeeList = new ArrayList<>();
-
     private static final String OFFICE_START_TIME = "09:30";
 
     @Override
@@ -84,6 +83,13 @@ public class AttendanceDayDetailsActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
         tvDate.setText("Attendance - " + selectedDate);
+        // For back arrow color - create a white drawable
+        Drawable upArrow = ContextCompat.getDrawable(this, R.drawable.ic_arrow_back);
+        if (upArrow != null) {
+            upArrow.setColorFilter(getResources().getColor(android.R.color.white), PorterDuff.Mode.SRC_ATOP);
+            getSupportActionBar().setHomeAsUpIndicator(upArrow);
+        }
+
     }
 
     private void setupRecyclerView() {

@@ -18,7 +18,7 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="55dp"
             android:background="@drawable/gradient_header"
             android:elevation="4dp"
             app:title="Add New Employee"
@@ -46,7 +46,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
+                app:cardCornerRadius="10dp"
                 app:cardElevation="2dp"
                 app:cardBackgroundColor="@android:color/white">
 
@@ -72,8 +72,9 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="12dp"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                        app:boxStrokeColor="#FF5722"
-                        app:hintTextColor="#FF5722"
+                        app:boxStrokeColor="#454545"
+                        app:boxStrokeWidth="0.5dp"
+                        app:hintTextColor="#454545"
                         app:boxCornerRadiusTopStart="8dp"
                         app:boxCornerRadiusTopEnd="8dp"
                         app:boxCornerRadiusBottomStart="8dp"
@@ -102,17 +103,19 @@
 
                     <!-- Mobile -->
                     <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="12dp"
-                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                        app:boxStrokeColor="#FF5722"
-                        app:hintTextColor="#FF5722"
-                        app:prefixText="+91 "
-                        app:boxCornerRadiusTopStart="8dp"
-                        app:boxCornerRadiusTopEnd="8dp"
+                        android:backgroundTint="@color/white"
+                        app:boxCornerRadiusBottomEnd="8dp"
                         app:boxCornerRadiusBottomStart="8dp"
-                        app:boxCornerRadiusBottomEnd="8dp">
+                        app:boxCornerRadiusTopEnd="8dp"
+                        app:boxCornerRadiusTopStart="8dp"
+                        app:boxStrokeColor="#454545"
+                        app:boxStrokeWidth="0.5dp"
+                        app:hintTextColor="#454545"
+                        app:prefixText="+91 ">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etEmpMobile"
@@ -130,8 +133,9 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="12dp"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                        app:boxStrokeColor="#FF5722"
-                        app:hintTextColor="#FF5722"
+                        app:boxStrokeColor="#454545"
+                        app:boxStrokeWidth="0.5dp"
+                        app:hintTextColor="#454545"
                         app:boxCornerRadiusTopStart="8dp"
                         app:boxCornerRadiusTopEnd="8dp"
                         app:boxCornerRadiusBottomStart="8dp"
@@ -152,8 +156,9 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="12dp"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                        app:boxStrokeColor="#FF5722"
-                        app:hintTextColor="#FF5722"
+                        app:boxStrokeColor="#454545"
+                        app:boxStrokeWidth="0.5dp"
+                        app:hintTextColor="#454545"
                         app:endIconMode="password_toggle"
                         app:endIconTint="#242424"
                         app:boxCornerRadiusTopStart="8dp"
@@ -175,8 +180,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                        app:boxStrokeColor="#FF5722"
-                        app:hintTextColor="#FF5722"
+                        app:boxStrokeColor="#454545"
+                        app:boxStrokeWidth="0.5dp"
+                        app:hintTextColor="#454545"
                         app:prefixText="+91 "
                         app:boxCornerRadiusTopStart="8dp"
                         app:boxCornerRadiusTopEnd="8dp"
@@ -201,7 +207,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
+                app:cardCornerRadius="10dp"
                 app:cardElevation="2dp"
                 app:cardBackgroundColor="@android:color/white">
 
@@ -227,10 +233,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="12dp"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                        app:boxStrokeColor="#FF5722"
-                        app:hintTextColor="#FF5722"
-                        app:startIconDrawable="@drawable/ic_calendar"
-                        app:startIconTint="#FF5722"
+                        app:startIconTint="#464647"
+                        app:hintTextColor="#4D4C4B"
                         app:boxCornerRadiusTopStart="8dp"
                         app:boxCornerRadiusTopEnd="8dp"
                         app:boxCornerRadiusBottomStart="8dp"
@@ -252,8 +256,9 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="12dp"
                         app:cardCornerRadius="8dp"
+                        android:backgroundTint="@color/white"
                         app:cardElevation="0dp"
-                        app:strokeColor="#FF5722"
+                        app:strokeColor="#3F51B5"
                         app:strokeWidth="1dp">
 
                         <LinearLayout
@@ -263,12 +268,7 @@
                             android:padding="8dp"
                             android:gravity="center_vertical">
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="🏢"
-                                android:textSize="20sp"
-                                android:layout_marginEnd="8dp"/>
+
 
                             <Spinner
                                 android:id="@+id/spinnerDepartment"
@@ -284,10 +284,12 @@
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:backgroundTint="@color/white"
+
                         android:layout_marginBottom="12dp"
                         app:cardCornerRadius="8dp"
                         app:cardElevation="0dp"
-                        app:strokeColor="#FF5722"
+                        app:strokeColor="#3F51B5"
                         app:strokeWidth="1dp">
 
                         <LinearLayout
@@ -297,12 +299,6 @@
                             android:padding="8dp"
                             android:gravity="center_vertical">
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="👤"
-                                android:textSize="20sp"
-                                android:layout_marginEnd="8dp"/>
 
                             <Spinner
                                 android:id="@+id/spinnerRole"
@@ -320,8 +316,10 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="12dp"
                         app:cardCornerRadius="8dp"
+                        android:backgroundTint="@color/white"
+
                         app:cardElevation="0dp"
-                        app:strokeColor="#FF5722"
+                        app:strokeColor="#3F51B5"
                         app:strokeWidth="1dp">
 
                         <LinearLayout
@@ -330,13 +328,6 @@
                             android:orientation="horizontal"
                             android:padding="8dp"
                             android:gravity="center_vertical">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="🕐"
-                                android:textSize="20sp"
-                                android:layout_marginEnd="8dp"/>
 
                             <Spinner
                                 android:id="@+id/spinnerShift"
@@ -352,10 +343,11 @@
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:backgroundTint="@color/white"
                         android:layout_marginBottom="12dp"
                         app:cardCornerRadius="8dp"
                         app:cardElevation="0dp"
-                        app:strokeColor="#FF5722"
+                        app:strokeColor="#3F51B5"
                         app:strokeWidth="1dp">
 
                         <LinearLayout
@@ -365,12 +357,7 @@
                             android:padding="8dp"
                             android:gravity="center_vertical">
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="📅"
-                                android:textSize="20sp"
-                                android:layout_marginEnd="8dp"/>
+
 
                             <Spinner
                                 android:id="@+id/spinnerHoliday"
@@ -387,8 +374,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                        app:boxStrokeColor="#FF5722"
-                        app:hintTextColor="#FF5722"
+                        app:boxStrokeColor="#454545"
+                        app:boxStrokeWidth="0.5dp"
+                        app:hintTextColor="#454545"
                         app:prefixText="₹ "
                         app:boxCornerRadiusTopStart="8dp"
                         app:boxCornerRadiusTopEnd="8dp"
@@ -412,7 +400,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
+                app:cardCornerRadius="10dp"
                 app:cardElevation="2dp"
                 app:cardBackgroundColor="@android:color/white">
 
@@ -437,8 +425,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                        app:boxStrokeColor="#FF5722"
-                        app:hintTextColor="#FF5722"
+                        app:boxStrokeColor="#454545"
+                        app:boxStrokeWidth="0.5dp"
+                        app:hintTextColor="#454545"
                         app:boxCornerRadiusTopStart="8dp"
                         app:boxCornerRadiusTopEnd="8dp"
                         app:boxCornerRadiusBottomStart="8dp"
@@ -468,9 +457,8 @@
                 android:textSize="16sp"
                 android:textAllCaps="false"
                 android:textStyle="bold"
-                android:backgroundTint="#FF5722"
+                android:backgroundTint="#2196F3"
                 app:cornerRadius="12dp"
-                app:icon="@drawable/ic_check"
                 app:iconGravity="textStart"
                 app:iconTint="@android:color/white"
                 android:elevation="4dp"

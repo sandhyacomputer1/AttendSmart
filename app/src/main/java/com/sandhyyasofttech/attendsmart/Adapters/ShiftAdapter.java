@@ -32,8 +32,8 @@ public class ShiftAdapter extends RecyclerView.Adapter<ShiftAdapter.ViewHolder> 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         ShiftModel model = shiftList.get(position);
-        holder.tvShiftName.setText(model.name);
-        holder.tvShiftTime.setText(model.startTime + " - " + model.endTime);
+        holder.tvShiftName.setText(model.getShiftName());
+        holder.tvShiftTime.setText(model.getStartTime() + " - " + model.getEndTime());
     }
 
     @Override

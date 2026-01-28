@@ -10,13 +10,14 @@
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="55dp"
+        android:gravity="center"
         android:elevation="0dp">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="55dp"
             android:background="@drawable/gradient_header"
             app:navigationIconTint="@android:color/white"
             app:titleTextColor="@android:color/white">
@@ -359,7 +360,7 @@
         android:paddingVertical="14dp"
         android:layout_margin="10dp"
         app:cornerRadius="10dp"
-        app:backgroundTint="#FF5722"
+        app:backgroundTint="#2196F3"
         android:elevation="4dp"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

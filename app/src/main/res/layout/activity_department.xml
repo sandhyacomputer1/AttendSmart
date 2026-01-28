@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    android:layout_height="match_parent">
+    android:background="#F8FAFF">
 
-    <!-- Toolbar -->
+    <!-- App Bar with Blue Gradient -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
@@ -14,20 +14,18 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="#FF5722"
-            app:title="Manage Departments"
-            app:titleTextColor="@android:color/white"
+            android:layout_height="55dp"
+            android:background="@drawable/gradient_header"
             app:navigationIcon="@drawable/ic_arrow_back"
-            app:navigationIconTint="@android:color/white"/>
+            app:navigationIconTint="@android:color/white"
+            app:title="Manage Departments"
+            app:titleTextColor="@android:color/white" />
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Content -->
+    <!-- Main Content -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/white"
-
         android:fillViewport="true"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
@@ -35,49 +33,158 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@color/white"
             android:padding="16dp">
 
-            <!-- Add Department -->
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            <!-- Add Department Card -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                app:boxStrokeColor="#FF5722"
-                app:boxCornerRadiusTopStart="10dp"
-                app:boxCornerRadiusTopEnd="10dp"
-                app:boxCornerRadiusBottomStart="10dp"
-                app:boxCornerRadiusBottomEnd="10dp">
+                app:cardBackgroundColor="@android:color/white"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:strokeColor="#E3F2FD"
+                app:strokeWidth="1dp"
+                android:layout_marginBottom="24dp">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etNewDepartment"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Department Name"/>
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAddDepartment"
-                android:layout_width="wrap_content"
-                android:layout_height="50dp"
-                android:text="Add Department"
-                android:textAllCaps="false"
-                android:layout_gravity="end"
-                android:backgroundTint="#FF5722"
-                app:cornerRadius="10dp"
-                app:icon="@drawable/ic_add"
-                app:iconTint="@android:color/white"
-                android:layout_marginBottom="16dp"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Add New Department"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#1565C0"
+                        android:layout_marginBottom="16dp" />
 
-            <!-- RecyclerView -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvDepartments"
+                    <!-- Department Name Input -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:boxStrokeColor="#2196F3"
+                        app:boxStrokeWidth="1dp"
+                        app:startIconDrawable="@drawable/ic_business"
+                        app:startIconTint="#2196F3"
+                        app:hintTextColor="#64B5F6"
+                        app:boxBackgroundColor="#FAFAFA"
+                        android:layout_marginBottom="16dp"
+                        android:hint="Department Name">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etNewDepartment"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textSize="14sp"
+                            android:textColor="#1A1A1A"
+                            android:maxLines="1"
+                            android:maxLength="50"
+                            android:padding="12dp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Add Button -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAddDepartment"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:text="ADD DEPARTMENT"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        app:icon="@drawable/ic_add"
+                        app:iconGravity="textStart"
+                        app:iconPadding="8dp"
+                        app:iconTint="@android:color/white"
+                        app:backgroundTint="#2196F3"
+                        app:cornerRadius="10dp"
+                        android:elevation="2dp"
+                        app:rippleColor="#1976D2" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Add departments like: HR, Engineering, Sales, etc."
+                        android:textSize="11sp"
+                        android:textColor="#95A5A6"
+                        android:gravity="center"
+                        android:layout_marginTop="12dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Department List Section -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"/>
+                android:orientation="vertical">
+
+                <!-- Section Header -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Departments"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="#1A1A1A" />
+
+                </LinearLayout>
+
+                <!-- Empty State -->
+                <LinearLayout
+                    android:id="@+id/llEmptyState"
+                    android:layout_width="match_parent"
+                    android:layout_height="300dp"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    android:padding="20dp">
+
+                    <ImageView
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:src="@drawable/ic_department"
+                        app:tint="#B0BEC5"
+                        android:layout_marginBottom="16dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="No Departments Yet"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#95A5A6"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Add your first department to get started"
+                        android:textSize="13sp"
+                        android:textColor="#B0BEC5"
+                        android:gravity="center" />
+                </LinearLayout>
+
+                <!-- Departments List -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvDepartments"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:nestedScrollingEnabled="false"
+                    android:clipToPadding="false"
+                    android:padding="2dp" />
+
+            </LinearLayout>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

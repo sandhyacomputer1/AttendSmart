@@ -18,13 +18,13 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="#FF5722"
-            app:title="My Leave Requests"
-            app:titleTextColor="@android:color/white"
+            android:layout_height="55dp"
+            android:background="@drawable/gradient_header"
+            app:layout_scrollFlags="scroll|enterAlways"
             app:navigationIcon="@drawable/ic_arrow_back"
             app:navigationIconTint="@android:color/white"
-            app:layout_scrollFlags="scroll|enterAlways" />
+            app:title="My Leave Requests"
+            app:titleTextColor="@android:color/white" />
 
     </com.google.android.material.appbar.AppBarLayout>
 

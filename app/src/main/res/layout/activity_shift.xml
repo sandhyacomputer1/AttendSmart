@@ -1,33 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true">
+    android:fitsSystemWindows="true"
+    android:background="#F8FAFF">
 
-    <!-- App Bar -->
+    <!-- App Bar with Blue Gradient -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:elevation="4dp">
+        android:background="@android:color/transparent"
+        app:elevation="0dp">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="#FF5722"
+            android:layout_height="55dp"
+            android:background="@drawable/gradient_header"
             app:title="Manage Shifts"
             app:titleTextColor="@android:color/white"
             app:navigationIcon="@drawable/ic_arrow_back"
             app:navigationIconTint="@android:color/white"/>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Content -->
+    <!-- Main Content -->
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/nestedScrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/white"
         android:fillViewport="true"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
@@ -35,115 +36,272 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="16dp">
 
-            <!-- Section Title -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Shift Details"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                android:layout_marginBottom="12dp"/>
-
-            <!-- Shift Name -->
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+            <!-- Add Shift Card -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:boxStrokeColor="#FF5722"
-                app:hintTextColor="#FF5722"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusBottomEnd="12dp">
+                app:cardBackgroundColor="@android:color/white"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:strokeColor="#E3F2FD"
+                app:strokeWidth="1dp"
+                android:layout_marginBottom="24dp">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etShiftName"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Shift Name (Morning / Night)"
-                    android:inputType="textCapWords"/>
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:orientation="vertical"
+                    android:padding="20dp">
 
-            <!-- Start Time -->
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Add New Shift"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#1565C0"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Shift Name -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:boxStrokeColor="#2196F3"
+                        app:boxStrokeWidth="1dp"
+                        app:startIconDrawable="@drawable/ic_access_time"
+                        app:startIconTint="#2196F3"
+                        app:hintTextColor="#64B5F6"
+                        app:boxBackgroundColor="#FAFAFA"
+                        android:layout_marginBottom="16dp"
+                        android:hint="Shift Name">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etShiftName"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Morning / Night / Evening"
+
+                            android:textSize="14sp"
+                            android:textColor="#1A1A1A"
+                            android:maxLines="1"
+                            android:maxLength="30"
+                            android:inputType="textCapWords"
+                            android:padding="12dp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- Time Picker Row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="24dp">
+
+                        <!-- Start Time -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="8dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Start Time"
+                                android:textSize="12sp"
+                                android:textColor="#64B5F6"
+                                android:layout_marginBottom="6dp" />
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:cardBackgroundColor="#FAFAFA"
+                                app:cardCornerRadius="8dp"
+                                app:cardElevation="0dp"
+                                app:strokeColor="#BBDEFB"
+                                app:strokeWidth="1dp"
+                                android:clickable="true"
+                                android:focusable="true">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:padding="12dp"
+                                    android:gravity="center_vertical"
+                                    android:id="@+id/llStartTime">
+
+                                    <ImageView
+                                        android:layout_width="18dp"
+                                        android:layout_height="18dp"
+                                        android:src="@drawable/ic_access_time"
+                                        app:tint="#2196F3"
+                                        android:layout_marginEnd="8dp" />
+
+                                    <com.google.android.material.textfield.TextInputEditText
+                                        android:id="@+id/etStartTime"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:text="9:00 AM"
+                                        android:textSize="14sp"
+                                        android:textColor="#1A1A1A"
+                                        android:maxLines="1"
+                                        android:clickable="false"
+                                        android:focusable="false"
+                                        android:background="@android:color/transparent" />
+
+                                    <ImageView
+                                        android:layout_width="16dp"
+                                        android:layout_height="16dp"
+                                        android:src="@drawable/ic_arrow_drop_down"
+                                        app:tint="#95A5A6" />
+                                </LinearLayout>
+                            </com.google.android.material.card.MaterialCardView>
+                        </LinearLayout>
+
+                        <!-- End Time -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="End Time"
+                                android:textSize="12sp"
+                                android:textColor="#64B5F6"
+                                android:layout_marginBottom="6dp" />
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:cardBackgroundColor="#FAFAFA"
+                                app:cardCornerRadius="8dp"
+                                app:cardElevation="0dp"
+                                app:strokeColor="#BBDEFB"
+                                app:strokeWidth="1dp"
+                                android:clickable="true"
+                                android:focusable="true">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:padding="12dp"
+                                    android:gravity="center_vertical"
+                                    android:id="@+id/llEndTime">
+
+                                    <ImageView
+                                        android:layout_width="18dp"
+                                        android:layout_height="18dp"
+                                        android:src="@drawable/ic_access_time"
+                                        app:tint="#2196F3"
+                                        android:layout_marginEnd="8dp" />
+
+                                    <com.google.android.material.textfield.TextInputEditText
+                                        android:id="@+id/etEndTime"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:text="6:00 PM"
+                                        android:textSize="14sp"
+                                        android:textColor="#1A1A1A"
+                                        android:maxLines="1"
+                                        android:clickable="false"
+                                        android:focusable="false"
+                                        android:background="@android:color/transparent" />
+
+                                    <ImageView
+                                        android:layout_width="16dp"
+                                        android:layout_height="16dp"
+                                        android:src="@drawable/ic_arrow_drop_down"
+                                        app:tint="#95A5A6" />
+                                </LinearLayout>
+                            </com.google.android.material.card.MaterialCardView>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <!-- Add Button -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnAddShift"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:text="ADD SHIFT"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        app:icon="@drawable/ic_add"
+                        app:iconGravity="textStart"
+                        app:iconPadding="8dp"
+                        app:iconTint="@android:color/white"
+                        app:backgroundTint="#2196F3"
+                        app:cornerRadius="10dp"
+                        android:elevation="2dp"
+                        app:rippleColor="#1976D2" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Add shifts like: Morning (9-6), Night (9-6), etc."
+                        android:textSize="11sp"
+                        android:textColor="#95A5A6"
+                        android:gravity="center"
+                        android:layout_marginTop="12dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Shifts List Section -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:boxStrokeColor="#FF5722"
-                app:hintTextColor="#FF5722"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusBottomEnd="12dp">
+                android:orientation="vertical">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etStartTime"
+                <!-- Section Header -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Start Time (9:00 AM)"
-                    android:focusable="false"
-                    android:clickable="true"/>
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
 
-            <!-- End Time -->
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                app:boxStrokeColor="#FF5722"
-                app:hintTextColor="#FF5722"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusBottomEnd="12dp">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Active Shifts"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="#1A1A1A" />
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etEndTime"
+                    <TextView
+                        android:id="@+id/tvCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="0 Shifts"
+                        android:textSize="12sp"
+                        android:textColor="#64B5F6"
+                        android:background="#E3F2FD"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        app:cornerRadius="8dp" />
+                </LinearLayout>
+
+                <!-- Shifts List -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvShifts"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="End Time (6:00 PM)"
-                    android:focusable="false"
-                    android:clickable="true"/>
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:nestedScrollingEnabled="false"
+                    android:clipToPadding="false"
+                    android:padding="2dp" />
 
-            <!-- Add Shift Button -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAddShift"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:text="Add Shift"
-                android:textAllCaps="false"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:backgroundTint="#FF5722"
-                app:cornerRadius="12dp"
-                app:icon="@drawable/ic_check"
-                app:iconTint="@android:color/white"
-                android:layout_marginBottom="24dp"/>
-
-            <!-- Shifts List Title -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Your Shifts"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                android:layout_marginBottom="12dp"/>
-
-            <!-- Shifts List -->
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvShifts"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"/>
-
+            </LinearLayout>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

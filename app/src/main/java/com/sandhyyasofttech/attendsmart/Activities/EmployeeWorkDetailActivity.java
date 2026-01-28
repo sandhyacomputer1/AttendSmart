@@ -161,7 +161,7 @@ public class EmployeeWorkDetailActivity extends AppCompatActivity {
                     cardNotSubmitted.setVisibility(View.VISIBLE);
                     layoutWorkDetails.setVisibility(View.GONE);
                     tvStatus.setText("⏳ Work Not Submitted");
-                    tvStatus.setTextColor(getResources().getColor(android.R.color.holo_orange_dark));
+                    tvStatus.setTextColor(getResources().getColor(android.R.color.holo_red_light));
                 }
             }
 

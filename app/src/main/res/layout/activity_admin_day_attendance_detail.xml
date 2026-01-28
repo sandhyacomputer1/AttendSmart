@@ -17,7 +17,8 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="55dp"
+            android:gravity="center"
             app:title="Attendance Details"
             app:titleTextColor="#FFFFFF"
             app:navigationIcon="@drawable/ic_arrow_back"
@@ -150,6 +151,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"/>
 
+                    <!-- First Row: Present and Half Day -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -178,7 +180,15 @@
                             android:textAllCaps="false"
                             style="@style/Widget.Material3.Button.OutlinedButton"
                             app:cornerRadius="8dp"
-                            android:layout_marginHorizontal="2.5dp"/>
+                            android:layout_marginStart="5dp"/>
+                    </LinearLayout>
+
+                    <!-- Second Row: Absent and Holiday -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="10dp">
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnStatusAbsent"
@@ -186,6 +196,18 @@
                             android:layout_weight="1"
                             android:layout_height="42dp"
                             android:text="Absent"
+                            android:textSize="12sp"
+                            android:textAllCaps="false"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            app:cornerRadius="8dp"
+                            android:layout_marginEnd="5dp"/>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnStatusHoliday"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="42dp"
+                            android:text="Holiday"
                             android:textSize="12sp"
                             android:textAllCaps="false"
                             style="@style/Widget.Material3.Button.OutlinedButton"

@@ -16,7 +16,7 @@
             android:layout_width="match_parent"
             android:layout_height="150dp"
             app:layout_scrollFlags="scroll|exitUntilCollapsed"
-            app:contentScrim="#FF5722"
+            app:contentScrim="#2196F3"
             app:titleTextColor="@color/white"
             app:collapsedTitleTextColor="@color/white"
             app:expandedTitleMarginStart="16dp"
@@ -35,11 +35,11 @@
                     android:id="@+id/ivProfile"
                     android:layout_width="100dp"
                     android:layout_height="100dp"
-                    android:src="@drawable/ic_profile"
-                    android:padding="16dp"
                     android:background="@android:color/white"
+                    android:padding="16dp"
+                    android:src="@drawable/ic_profile"
+                    android:tint="@color/colorPrimary1"
                     app:shapeAppearance="@style/CircleImage"
-                    app:tint="#FF5722"
                     app:strokeColor="@android:color/white"
                     app:strokeWidth="3dp" />
 
@@ -104,7 +104,7 @@
                         android:layout_height="wrap_content"
                         android:text="ID: Loading..."
                         android:textSize="14sp"
-                        android:textColor="#FF5722"
+                        android:textColor="#000000"
                         android:paddingHorizontal="12dp"
                         android:paddingVertical="6dp" />
 
@@ -118,7 +118,7 @@
                 android:text=" Contact Information"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="#FF5722"
+                android:textColor="#000000"
                 android:layout_marginBottom="12dp" />
 
             <!-- Mobile -->
@@ -202,7 +202,7 @@
                 android:text=" Work Details"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="#FF5722"
+                android:textColor="#000000"
                 android:layout_marginBottom="12dp" />
 
             <!-- Role & Department Grid -->
@@ -447,7 +447,7 @@
                 android:text=" Important Dates"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="#FF5722"
+                android:textColor="#000000"
                 android:layout_marginBottom="12dp" />
 
             <!-- Join Date & Created At Grid -->

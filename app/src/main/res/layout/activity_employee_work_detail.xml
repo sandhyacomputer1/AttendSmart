@@ -9,7 +9,7 @@
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
+        android:layout_height="55dp"
         android:elevation="4dp"
         android:background="@drawable/gradient_header"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
@@ -45,7 +45,7 @@
                         android:layout_height="wrap_content"
                         android:text="Employee Name"
                         android:textSize="18sp"
-                        android:textColor="@color/colorPrimary" />
+                        android:textColor="@color/black" />
 
                     <TextView
                         android:id="@+id/tvDate"
@@ -91,7 +91,7 @@
                         android:text="📝 Work Details"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="@color/colorPrimary"
+                        android:textColor="@color/black"
                         android:layout_marginBottom="16dp" />
 
                     <!-- Completed Work -->
@@ -227,7 +227,7 @@
                     android:layout_weight="1"
                     android:text="Assign Task"
                     app:cornerRadius="12dp"
-                    app:backgroundTint="@color/colorPrimary"
+                    app:backgroundTint="@color/blue_800"
                     android:layout_marginEnd="8dp"
                     app:iconGravity="textStart" />
 
@@ -236,7 +236,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     app:cornerRadius="12dp"
-
+                    app:backgroundTint="@color/colorPrimary1"
                     android:layout_weight="1"
                     android:text="All Work History"
                     android:layout_marginStart="8dp"

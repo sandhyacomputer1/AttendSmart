@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="20dp"
         android:text="Assign New Task"
-        android:textColor="@color/colorPrimary"
+        android:textColor="@color/black"
         android:textSize="22sp"
         android:textStyle="bold" />
 
@@ -100,6 +100,8 @@
             android:text="Cancel"
             app:cornerRadius="12dp"
             android:textSize="14sp"
+            android:backgroundTint="@color/absent"
+
             android:textStyle="bold"
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
@@ -110,7 +112,7 @@
             android:layout_width="wrap_content"
             android:layout_height="46dp"
             android:layout_marginStart="12dp"
-            android:backgroundTint="@color/colorPrimary"
+            android:backgroundTint="@color/blue_800"
             android:paddingStart="24dp"
             android:paddingEnd="24dp"
             android:text="Assign Task"

@@ -11,7 +11,7 @@
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
+        android:layout_height="55dp"
         android:background="@drawable/gradient_header"
         app:navigationIcon="@drawable/ic_arrow_back"
         app:title="Monthly Attendance"
@@ -40,40 +40,42 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:padding="16dp"
-                    android:background="@color/white"
+                    android:background="#E5F2F6"
                     android:gravity="center"
                     android:orientation="horizontal">
 
                     <ImageView
                         android:id="@+id/ivPrev"
-                        android:src="@drawable/ic_arrow_left"
-                        app:tint="@color/black"
-                        android:padding="8dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
                         android:layout_width="40dp"
-                        android:layout_height="40dp"/>
+                        android:layout_height="40dp"
+                        android:background="@drawable/card_background"
+                        android:padding="8dp"
+
+                        android:src="@drawable/ic_arrow_left"
+                        app:tint="@color/black" />
 
                     <TextView
+                        android:id="@+id/tvMonthYear"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:id="@+id/tvMonthYear"
-                        android:text="March 2026"
-                        android:textSize="20sp"
-                        android:textStyle="bold"
-                        android:textColor="#212121"
                         android:gravity="center"
-                        android:background="?attr/selectableItemBackground"
-                        android:padding="8dp"/>
+                        android:padding="8dp"
+                        android:text="March 2026"
+                        android:layout_marginStart="15dp"
+                        android:layout_marginEnd="15dp"
+                        android:textColor="#212121"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
 
                     <ImageView
                         android:id="@+id/ivNext"
-                        android:src="@drawable/ic_arrow_right"
-                        app:tint="@color/black"
-                        android:padding="8dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
                         android:layout_width="40dp"
-                        android:layout_height="40dp"/>
+                        android:layout_height="40dp"
+                        android:background="@drawable/card_background"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_arrow_right"
+                        app:tint="@color/black" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -132,7 +134,8 @@
                                 android:layout_height="wrap_content"
                                 android:text="Present"
                                 android:textSize="12sp"
-                                android:textColor="#4CAF50"/>                                android:layout_marginTop="4dp"/>
+                                android:textColor="#4CAF50"
+                            android:layout_marginTop="4dp"/>
                         </LinearLayout>
 
                         <!-- Absent -->
@@ -158,7 +161,8 @@
                                 android:layout_height="wrap_content"
                                 android:text="Absent"
                                 android:textSize="12sp"
-                                android:textColor="#F44336"/>                           android:layout_marginTop="4dp"/>
+                                android:textColor="#F44336"
+                            android:layout_marginTop="4dp"/>
                         </LinearLayout>
 
                         <!-- Half Day -->
@@ -212,7 +216,8 @@
                                 android:layout_height="wrap_content"
                                 android:text="Late"
                                 android:textSize="12sp"
-                                android:textColor="#FFC107"/>                                android:layout_marginTop="4dp"/>
+                                android:textColor="#FFC107"
+                            android:layout_marginTop="4dp"/>
                         </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
@@ -238,6 +243,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
+                        android:backgroundTint="#F1F8FA"
                         android:padding="8dp"
                         android:background="@color/white">
 

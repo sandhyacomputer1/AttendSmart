@@ -14,7 +14,7 @@
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/topAppBar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_height="55dp"
             android:background="@drawable/gradient_header"
             app:navigationIcon="@drawable/ic_arrow_back"
             app:title="Employee Attendance"
@@ -36,16 +36,6 @@
             android:background="@color/white"
             android:padding="16dp">
 
-            <!-- Employee Info Card -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:text="Employee Details"
-                android:textColor="@color/primary"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:fontFamily="@font/lato_bold" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -104,16 +94,6 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Monthly Stats Card -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:text="Monthly Statistics"
-                android:textColor="@color/primary"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:fontFamily="@font/lato_bold" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
@@ -267,7 +247,7 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="50dp"
-                        android:background="@drawable/gradient_backgroundd"
+                        android:background="#ECF6FD"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
@@ -288,7 +268,7 @@
                             android:layout_weight="1"
                             android:gravity="center"
                             android:text="January 2026"
-                            android:textColor="@android:color/white"
+                            android:textColor="@color/black"
                             android:textSize="18sp"
                             android:textStyle="bold"
                             android:fontFamily="@font/lato_bold" />

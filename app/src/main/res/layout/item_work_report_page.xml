@@ -35,7 +35,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/gradient_header"
+                    android:background="#5ad1e6"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:paddingHorizontal="16dp"
@@ -62,7 +62,7 @@
                             android:layout_height="wrap_content"
                             android:text="MONDAY"
                             android:textSize="11sp"
-                            android:textColor="#BBDEFB"
+                            android:textColor="#000000"
                             android:letterSpacing="0.1"
                             android:layout_marginTop="1dp"/>
                     </LinearLayout>
@@ -74,7 +74,7 @@
                         android:text="⏰ 11:30 AM"
                         android:textSize="12sp"
                         android:textColor="#FFFFFF"
-                        android:background="#F46135"
+                        android:background="#219ebc"
                         android:paddingHorizontal="10dp"
                         android:paddingVertical="4dp"
                         android:gravity="center"/>
@@ -128,7 +128,7 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="✅ Completed Work"
+                            android:text="Completed Work"
                             android:textSize="13sp"
                             android:textStyle="bold"
                             android:textColor="#4CAF50"
@@ -160,7 +160,7 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="🔄 Ongoing Work"
+                            android:text="Ongoing Work"
                             android:textSize="13sp"
                             android:textStyle="bold"
                             android:textColor="#FF9800"
@@ -192,7 +192,7 @@
                         <TextView
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="📅 Tomorrow's Plan"
+                            android:text="Tomorrow's Plan"
                             android:textSize="13sp"
                             android:textStyle="bold"
                             android:textColor="#2196F3"
@@ -225,15 +225,15 @@
                             style="@style/Widget.Material3.Button.OutlinedButton"
                             android:layout_width="0dp"
                             android:layout_height="44dp"
+                            android:layout_marginEnd="5dp"
                             android:layout_weight="1"
-                            android:text="✏️ Edit"
-                            android:textSize="13sp"
+                            android:text="Edit"
                             android:textAllCaps="false"
+                            android:textColor="#000000"
+                            android:textSize="13sp"
                             app:cornerRadius="8dp"
-                            app:strokeColor="#FF5722"
-                            app:strokeWidth="1.5dp"
-                            android:textColor="#FF5722"
-                            android:layout_marginEnd="5dp"/>
+                            app:strokeColor="#8ecae6"
+                            app:strokeWidth="1dp" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnDelete"
@@ -241,12 +241,12 @@
                             android:layout_width="0dp"
                             android:layout_height="44dp"
                             android:layout_weight="1"
-                            android:text="🗑️ Delete"
+                            android:text="Delete"
                             android:textSize="13sp"
                             android:textAllCaps="false"
                             app:cornerRadius="8dp"
-                            app:strokeColor="#F44336"
-                            app:strokeWidth="1.5dp"
+                            app:strokeColor="#8ecae6"
+                            app:strokeWidth="1dp"
                             android:textColor="#F44336"
                             android:layout_marginStart="5dp"/>
 
