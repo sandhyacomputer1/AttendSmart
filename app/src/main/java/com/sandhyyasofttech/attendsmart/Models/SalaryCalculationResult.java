@@ -1,6 +1,7 @@
 package com.sandhyyasofttech.attendsmart.Models;
+import java.io.Serializable;
 
-public class SalaryCalculationResult {
+public class SalaryCalculationResult implements Serializable {  // ✅ implements Serializable
 
     public double perDaySalary;
     public double payableDays;

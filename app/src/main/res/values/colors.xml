@@ -2,9 +2,9 @@
 <resources>
     <color name="black">#FF000000</color>
 
-    <color name="primary">#1976D2</color> <!-- Professional Blue -->
+<!--    <color name="primary">#1976D2</color> &lt;!&ndash; Professional Blue &ndash;&gt;-->
     <color name="primary_variant">#1565C0</color>
-    <color name="primary_light">#42A5F5</color>
+<!--    <color name="primary_light">#42A5F5</color>-->
 
     <color name="colorPrimary">#FF5722</color>
     <color name="colorPrimary1">#219ebc</color>
@@ -30,8 +30,8 @@
         <color name="background_light">#F8F9FA</color>
 
         <!-- Text Colors -->
-        <color name="text_primary">#1A1A1A</color>
-        <color name="text_secondary">#666666</color>
+<!--        <color name="text_primary">#1A1A1A</color>-->
+<!--        <color name="text_secondary">#666666</color>-->
 
         <!-- Status Colors -->
         <color name="present">#4CAF50</color>
@@ -69,12 +69,12 @@
     <!-- Text Colors -->
 
     <!-- Status Colors -->
-    <color name="success">#4CAF50</color>
-    <color name="warning">#FF9800</color>
-    <color name="error">#F44336</color>
+<!--    <color name="success">#4CAF50</color>-->
+<!--    <color name="warning">#FF9800</color>-->
+<!--    <color name="error">#F44336</color>-->
 
     <!-- App Theme Colors (Material 3) -->
-    <color name="surface">#FFFFFF</color>
+<!--    <color name="surface">#FFFFFF</color>-->
     <color name="on_surface">#000000</color>
 
 
@@ -121,6 +121,36 @@
     <color name="stat_percent_progress">#9C27B0</color>
 
     <color name="progress_track">#E0E0E0</color>
+
+    <!-- Primary Colors -->
+    <color name="primary">#5B7FFF</color>
+    <color name="primary_dark">#4A5FCC</color>
+    <color name="primary_light">#F0F4FF</color>
+    <color name="accent">#764BA2</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#1E293B</color>
+    <color name="text_secondary">#64748B</color>
+    <color name="text_tertiary">#94A3B8</color>
+
+    <!-- Status Colors -->
+    <color name="success">#10B981</color>
+    <color name="success_light">#E8F7ED</color>
+    <color name="error">#EF4444</color>
+    <color name="error_light">#FEF2F2</color>
+    <color name="warning">#F59E0B</color>
+    <color name="warning_light">#FEF7EC</color>
+    <color name="info">#5B7FFF</color>
+    <color name="info_light">#F0F4FF</color>
+
+    <!-- Background Colors -->
+    <color name="background">#F8F9FE</color>
+    <color name="card_background">#FFFFFF</color>
+    <color name="surface">#FFFFFF</color>
+
+    <!-- Border & Divider -->
+    <color name="border">#E2E8F0</color>
+    <color name="divider">#F1F5F9</color>
 
 
     <!-- Background colors -->

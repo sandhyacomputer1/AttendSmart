@@ -1,6 +1,7 @@
 package com.sandhyyasofttech.attendsmart.Models;
+import java.io.Serializable;
 
-public class SalaryConfig {
+public class SalaryConfig implements Serializable {  // ✅ implements Serializable
 
     // 🔢 NUMBERS ONLY (Firebase Number)
     public double monthlySalary;

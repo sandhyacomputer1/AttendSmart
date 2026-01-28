@@ -1,7 +1,11 @@
 package com.sandhyyasofttech.attendsmart.Models;
 
-public class SalarySnapshot {
+import java.io.Serializable;
 
+public class SalarySnapshot implements Serializable {  // ✅ implements Serializable
+    // नवीन fields add करा
+    public boolean manualAdjustments;
+    public String adjustmentNotes;
     // Meta
     public String month;          // "2026-01"
     public String employeeMobile;

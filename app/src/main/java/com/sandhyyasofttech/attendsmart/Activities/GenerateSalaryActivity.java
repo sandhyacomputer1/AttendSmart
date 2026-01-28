@@ -22,6 +22,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.sandhyyasofttech.attendsmart.Models.MonthlyAttendanceSummary;
 import com.sandhyyasofttech.attendsmart.Models.SalaryCalculationResult;
 import com.sandhyyasofttech.attendsmart.Models.SalaryConfig;
+import com.sandhyyasofttech.attendsmart.Models.SalaryPreviewData;
 import com.sandhyyasofttech.attendsmart.Models.SalarySnapshot;
 import com.sandhyyasofttech.attendsmart.R;
 import com.sandhyyasofttech.attendsmart.Utils.PrefManager;
@@ -361,59 +362,44 @@ public class GenerateSalaryActivity extends AppCompatActivity {
     }
 
     // ================= GENERATE & SAVE =================
+// ================= GENERATE & SAVE =================
     private void generateAndSaveSalary(
             String month,
             String employeeMobile,
             MonthlyAttendanceSummary summary,
             SalaryConfig config
     ) {
-        SalaryCalculationResult result =
-                SalaryCalculator.calculateSalary(summary, config);
+        SalaryCalculationResult result = SalaryCalculator.calculateSalary(summary, config);
 
-        SalarySnapshot snapshot = new SalarySnapshot();
-        snapshot.month = month;
-        snapshot.employeeMobile = employeeMobile;
-        snapshot.generatedAt = System.currentTimeMillis();
-        snapshot.attendanceSummary = summary;
-        snapshot.calculationResult = result;
-        snapshot.salaryConfigSnapshot = config;
+        // ✅ आता योग्य field names वापरा
+        // result मध्ये basicSalary नाही, grossSalary आहे
+        // result मध्ये otherDeductions नाही, otherDeduction आहे
 
-        companyRef.child("salary")
-                .child(month)
-                .child(employeeMobile)
-                .setValue(snapshot)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(
-                            GenerateSalaryActivity.this,
-                            "Salary generated successfully",
-                            Toast.LENGTH_SHORT
-                    ).show();
+        // ✅ Direct save नाही, तर Preview screen वर navigate करा
+        SalaryPreviewData previewData = new SalaryPreviewData();
+        previewData.month = month;
+        previewData.employeeMobile = employeeMobile;
+        previewData.attendanceSummary = summary;
+        previewData.salaryConfig = config;
+        previewData.calculationResult = result;
 
-                    // ✅ Show View Salary button
-                    btnViewSalary.setVisibility(View.VISIBLE);
+        // Original values सेट करा (योग्य field names वापरून)
+        previewData.manualGrossSalary = result.grossSalary;          // basicSalary च्या ऐवजी
+        previewData.manualPfAmount = result.pfAmount;
+        previewData.manualEsiAmount = result.esiAmount;
+        previewData.manualOtherDeduction = result.otherDeduction;   // otherDeductions च्या ऐवजी
+        previewData.manualNetSalary = result.netSalary;
 
-                    btnViewSalary.setOnClickListener(v -> {
-                        Intent intent = new Intent(
-                                GenerateSalaryActivity.this,
-                                SalaryDetailActivity.class
-                        );
-                        intent.putExtra("month", month);
-                        intent.putExtra("employeeMobile", employeeMobile);
-                        startActivity(intent);
-                    });
+        // Preview Activity ला navigate करा
+        Intent intent = new Intent(
+                GenerateSalaryActivity.this,
+                SalaryPreviewActivity.class
+        );
+        intent.putExtra("previewData", previewData);
+        startActivityForResult(intent, 101);
 
-                    resetGenerateButton();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(
-                            GenerateSalaryActivity.this,
-                            "Error: " + e.getMessage(),
-                            Toast.LENGTH_LONG
-                    ).show();
-                    resetGenerateButton();
-                });
+        resetGenerateButton();
     }
-
     // ================= SAFE PARSING =================
     private SalaryConfig parseSalaryConfig(DataSnapshot s) {
         SalaryConfig c = new SalaryConfig();

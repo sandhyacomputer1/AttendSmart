@@ -259,7 +259,7 @@ public class AddEmployeeActivity extends AppCompatActivity {
                 int count = (int) snapshot.getChildrenCount() + 1;
 
                 // EMP001, EMP002, EMP003 ...
-                String empId = String.format(Locale.getDefault(), "EMP%03d", count);
+                String empId = String.format(Locale.getDefault(), "SMCCS%03d", count);
                 etEmployeeId.setText(empId);
             }
 
