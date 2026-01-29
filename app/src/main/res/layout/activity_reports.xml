@@ -563,6 +563,7 @@
                     android:layout_marginStart="6dp"
                     app:icon="@android:drawable/ic_menu_share"
                     app:iconGravity="textStart"/>
+
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

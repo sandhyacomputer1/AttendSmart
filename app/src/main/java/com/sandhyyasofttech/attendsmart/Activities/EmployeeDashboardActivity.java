@@ -1907,6 +1907,14 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
     private void uploadPhotoAndSaveAttendance() {
         String today = getTodayDate();
         String time = getCurrentTime();
+
+        // If photo is null, directly save attendance without photo
+        if (currentPhotoBitmap == null) {
+            toast("⚠️ Photo failed. Saving without photo...");
+            saveAttendance(null, time);   // pass null photo
+            return;
+        }
+
         String photoName = employeeMobile + "_" + pendingAction + "_" +
                 System.currentTimeMillis() + ".jpg";
         StorageReference photoRef = attendancePhotoRef.child(today).child(photoName);
@@ -1916,11 +1924,22 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         byte[] data = baos.toByteArray();
 
         toast("⬆️ Uploading...");
-        photoRef.putBytes(data).addOnSuccessListener(task ->
-                        photoRef.getDownloadUrl().addOnSuccessListener(uri ->
-                                saveAttendance(uri.toString(), time)))
-                .addOnFailureListener(e -> toast("❌ Upload failed"));
+
+        photoRef.putBytes(data)
+                .addOnSuccessListener(task ->
+                        photoRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                            // Photo upload success → save with photo
+                            saveAttendance(uri.toString(), time);
+                        })
+                )
+                .addOnFailureListener(e -> {
+                    // Photo upload failed → save WITHOUT photo
+                    toast("⚠️ Photo upload failed. Saving attendance without photo.");
+                    saveAttendance(null, time);
+                });
     }
+
+
 
     private void saveAttendance(String photoUrl, String time) {
         if (employeeMobile == null) {
