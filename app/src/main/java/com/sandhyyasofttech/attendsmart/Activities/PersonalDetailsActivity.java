@@ -18,8 +18,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.sandhyyasofttech.attendsmart.R;
 import com.sandhyyasofttech.attendsmart.Utils.PrefManager;
+
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class PersonalDetailsActivity extends AppCompatActivity {
@@ -29,6 +32,8 @@ public class PersonalDetailsActivity extends AppCompatActivity {
             etMotherName, etSpouseName, etEmergencyContactName, etEmergencyContact, etEmergencyRelation;
     private AutoCompleteTextView spGender, spMaritalStatus, spBloodGroup, spNationality;
     private MaterialButton btnSave;
+    private String dob = "";
+
     private DatabaseReference dbRef;
     private String companyKey, employeeMobile;
 
@@ -58,7 +63,7 @@ public class PersonalDetailsActivity extends AppCompatActivity {
         initViews();
         setupToolbar();
         setupDropdowns();
-        setupDatePicker();
+        setupDobPicker();
         loadPersonalData();
         setupSaveButton();
     }
@@ -105,16 +110,29 @@ public class PersonalDetailsActivity extends AppCompatActivity {
         }
     }
 
-    private void setupDatePicker() {
-        if (etDOB != null) {
-            etDOB.setOnClickListener(v -> {
-                Calendar cal = Calendar.getInstance();
-                new DatePickerDialog(this, (view, year, month, day) ->
-                        etDOB.setText(String.format("%02d/%02d/%d", day, month + 1, year)),
-                        cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH))
-                        .getDatePicker().setMaxDate(System.currentTimeMillis());
-            });
-        }
+    private void setupDobPicker() {
+        etDOB.setOnClickListener(v -> {
+            Calendar calendar = Calendar.getInstance();
+
+            DatePickerDialog datePickerDialog = new DatePickerDialog(
+                    this,
+                    (view, year, month, dayOfMonth) -> {
+                        Calendar dobCal = Calendar.getInstance();
+                        dobCal.set(year, month, dayOfMonth);
+
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
+                        dob = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(dobCal.getTime());
+                        etDOB.setText(sdf.format(dobCal.getTime()));
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
+            );
+
+            // DOB must be past date only
+            datePickerDialog.getDatePicker().setMaxDate(System.currentTimeMillis());
+            datePickerDialog.show();
+        });
     }
 
     private void loadPersonalData() {
