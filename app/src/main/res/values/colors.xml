@@ -2,9 +2,9 @@
 <resources>
     <color name="black">#FF000000</color>
 
-<!--    <color name="primary">#1976D2</color> &lt;!&ndash; Professional Blue &ndash;&gt;-->
+    <!--    <color name="primary">#1976D2</color> &lt;!&ndash; Professional Blue &ndash;&gt;-->
     <color name="primary_variant">#1565C0</color>
-<!--    <color name="primary_light">#42A5F5</color>-->
+    <!--    <color name="primary_light">#42A5F5</color>-->
 
     <color name="colorPrimary">#FF5722</color>
     <color name="colorPrimary1">#219ebc</color>
@@ -26,30 +26,30 @@
     <color name="textSecondary">#757575</color>
     <color name="textTertiary">#9E9E9E</color>
 
-        <color name="background_gray">#F5F7FA</color>
-        <color name="background_light">#F8F9FA</color>
+    <color name="background_gray">#F5F7FA</color>
+    <color name="background_light">#F8F9FA</color>
 
-        <!-- Text Colors -->
-<!--        <color name="text_primary">#1A1A1A</color>-->
-<!--        <color name="text_secondary">#666666</color>-->
+    <!-- Text Colors -->
+    <!--        <color name="text_primary">#1A1A1A</color>-->
+    <!--        <color name="text_secondary">#666666</color>-->
 
-        <!-- Status Colors -->
-        <color name="present">#4CAF50</color>
-        <color name="present_bg">#E8F5E9</color>
+    <!-- Status Colors -->
+    <color name="present">#4CAF50</color>
+    <color name="present_bg">#E8F5E9</color>
 
-        <color name="late">#FF9800</color>
-        <color name="late_bg">#FFF3E0</color>
+    <color name="late">#FF9800</color>
+    <color name="late_bg">#FFF3E0</color>
 
-        <color name="halfday">#2196F3</color>
-        <color name="halfday_bg">#E3F2FD</color>
+    <color name="halfday">#2196F3</color>
+    <color name="halfday_bg">#E3F2FD</color>
 
-        <color name="absent">#F44336</color>
-        <color name="absent_bg">#FFEBEE</color>
+    <color name="absent">#F44336</color>
+    <color name="absent_bg">#FFEBEE</color>
 
-        <!-- Card Styling -->
-        <color name="card_stroke">#E0E0E0</color>
+    <!-- Card Styling -->
+    <color name="card_stroke">#E0E0E0</color>
 
-        <!-- Primary Color -->
+    <!-- Primary Color -->
 
     <color name="dividerColor">#E0E0E0</color>
 
@@ -69,12 +69,12 @@
     <!-- Text Colors -->
 
     <!-- Status Colors -->
-<!--    <color name="success">#4CAF50</color>-->
-<!--    <color name="warning">#FF9800</color>-->
-<!--    <color name="error">#F44336</color>-->
+    <!--    <color name="success">#4CAF50</color>-->
+    <!--    <color name="warning">#FF9800</color>-->
+    <!--    <color name="error">#F44336</color>-->
 
     <!-- App Theme Colors (Material 3) -->
-<!--    <color name="surface">#FFFFFF</color>-->
+    <!--    <color name="surface">#FFFFFF</color>-->
     <color name="on_surface">#000000</color>
 
 
@@ -159,42 +159,9 @@
     <color name="light_orange">#FFF3E0</color>
     <color name="light_blue">#E3F2FD</color>
     <color name="light_red">#FFEBEE</color>
+    <color name="blue_800">#2196F3</color>
     <color name="text_grey">#95A5A6</color>
     <color name="border_grey">#B0BEC5</color>
     <color name="dark_grey">#7F8C8D</color>
-    <!-- res/values/colors.xml -->
-        <!-- Primary Colors -->
-        <color name="blue_50">#EFF6FF</color>
-        <color name="blue_100">#DBEAFE</color>
-        <color name="blue_200">#BFDBFE</color>
-        <color name="blue_300">#93C5FD</color>
-        <color name="blue_400">#60A5FA</color>
-        <color name="blue_500">#3B82F6</color>
-        <color name="blue_600">#2563EB</color>
-        <color name="blue_700">#1D4ED8</color>
-        <color name="blue_800">#1E40AF</color>
-        <color name="blue_900">#1E3A8A</color>
-
-        <!-- Success/Green Colors -->
-        <color name="green_50">#ECFDF5</color>
-        <color name="green_100">#D1FAE5</color>
-        <color name="green_500">#10B981</color>
-        <color name="green_600">#059669</color>
-        <color name="green_700">#047857</color>
-
-        <!-- Error/Red Colors -->
-        <color name="red_50">#FEF2F2</color>
-        <color name="red_100">#FEE2E2</color>
-        <color name="red_500">#EF4444</color>
-        <color name="red_600">#DC2626</color>
-        <color name="red_700">#B91C1C</color>
-
-        <!-- Warning/Orange Colors -->
-        <color name="orange_50">#FFF7ED</color>
-        <color name="orange_100">#FFEDD5</color>
-        <color name="orange_500">#F59E0B</color>
-        <color name="orange_600">#D97706</color>
-        <color name="orange_700">#B45309</color>
-
 
 </resources>
