@@ -98,41 +98,47 @@ public class ReportsActivity extends AppCompatActivity {
     }
 
     private void initPaintObjects() {
-        // Header Background Paint - Using orange color #FF5722
+        // Header Background Paint - Blue color
         headerBgPaint = new Paint();
-        headerBgPaint.setColor(Color.parseColor("#FF5722")); // Orange color
+        headerBgPaint.setColor(Color.parseColor("#1976D2")); // Blue
 
         // Header Text Paint
         headerTextPaint = new Paint();
         headerTextPaint.setColor(Color.WHITE);
         headerTextPaint.setTextSize(10);
         headerTextPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        headerTextPaint.setAntiAlias(true);
 
         // Title Paint
         titlePaint = new Paint();
-        titlePaint.setColor(Color.BLACK);
+        titlePaint.setColor(Color.parseColor("#0D47A1")); // Dark Blue
         titlePaint.setTextSize(14);
         titlePaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        titlePaint.setAntiAlias(true);
 
         // Regular Text Paint
         textPaint = new Paint();
         textPaint.setColor(Color.BLACK);
         textPaint.setTextSize(9);
+        textPaint.setAntiAlias(true);
 
-        // Line Paint
+        // Lighter Border Paint - Dark Gray instead of Black
         linePaint = new Paint();
-        linePaint.setColor(Color.parseColor("#E0E0E0"));
-        linePaint.setStrokeWidth(1f);
+        linePaint.setColor(Color.parseColor("#666666")); // Dark Gray
+        linePaint.setStrokeWidth(0.8f); // Reduced from 1.5f
+        linePaint.setStyle(Paint.Style.STROKE);
 
-        // Alternate Row Paint
+        // Alternate Row Paint - Light Blue
         altRowPaint = new Paint();
-        altRowPaint.setColor(Color.parseColor("#F8F8F8"));
+        altRowPaint.setColor(Color.parseColor("#F0F8FF")); // Even lighter blue
 
         // Footer Paint
         footerPaint = new Paint();
         footerPaint.setColor(Color.GRAY);
         footerPaint.setTextSize(8);
+        footerPaint.setAntiAlias(true);
     }
+
 
     private void initViews() {
         tvTotalEmployees = findViewById(R.id.tvTotalEmployees);
@@ -210,15 +216,29 @@ public class ReportsActivity extends AppCompatActivity {
     }
 
     private void calculateColumnPositions() {
-        // Adjust column widths for 7 columns (without address)
+        int availableWidth = PAGE_WIDTH - LEFT_MARGIN - RIGHT_MARGIN;
+
+        // Calculate proportional widths based on content needs
         colDateX = LEFT_MARGIN;
-        colNameX = colDateX + 90; // Wider for name
-        colPhoneX = colNameX + 180; // Much wider for full name
-        colStatusX = colPhoneX + 100;
-        colCheckInX = colStatusX + 90;
-        colCheckOutX = colCheckInX + 100;
-        colMarkedByX = colCheckOutX + 100;
-        // No address column
+        colNameX = colDateX + 80;        // Date column: 80px
+        colPhoneX = colNameX + 150;      // Name column: 150px
+        colStatusX = colPhoneX + 100;    // Phone column: 100px
+        colCheckInX = colStatusX + 80;   // Status column: 80px
+        colCheckOutX = colCheckInX + 100; // Check-in: 100px
+        colMarkedByX = colCheckOutX + 100; // Check-out: 100px
+        // Total used: 80+150+100+80+100+100 = 610px, well within 842-60=782px
+
+        // Validate boundaries
+        if (colMarkedByX + 100 > PAGE_WIDTH - RIGHT_MARGIN) {
+            // Auto-adjust if needed
+            float scaleFactor = (float)(PAGE_WIDTH - RIGHT_MARGIN - LEFT_MARGIN) / (colMarkedByX + 100 - LEFT_MARGIN);
+            colNameX = (int)(LEFT_MARGIN + 80 * scaleFactor);
+            colPhoneX = (int)(colNameX + 150 * scaleFactor);
+            colStatusX = (int)(colPhoneX + 100 * scaleFactor);
+            colCheckInX = (int)(colStatusX + 80 * scaleFactor);
+            colCheckOutX = (int)(colCheckInX + 100 * scaleFactor);
+            colMarkedByX = (int)(colCheckOutX + 100 * scaleFactor);
+        }
     }
 
     private void setupToolbar() {
@@ -376,117 +396,22 @@ public class ReportsActivity extends AppCompatActivity {
             }
         }).start();
     }
-//    private void fetchAttendanceData() {
-//        databaseRef.child("attendance").addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(@NonNull DataSnapshot snapshot) {
-//                // Create wrapper object to hold counts
-//                final CountWrapper counts = new CountWrapper();
-//
-//                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-//
-//                // Iterate through each date in the range
-//                Calendar currentDate = (Calendar) fromDate.clone();
-//                while (!currentDate.after(toDate)) {
-//                    String dateKey = dateFormat.format(currentDate.getTime());
-//
-//                    if (snapshot.hasChild(dateKey)) {
-//                        DataSnapshot dateSnapshot = snapshot.child(dateKey);
-//
-//                        for (DataSnapshot empSnapshot : dateSnapshot.getChildren()) {
-//                            String phone = empSnapshot.getKey();
-//
-//                            if (!employeeDataMap.containsKey(phone)) continue;
-//
-//                            AttendanceRecord record = new AttendanceRecord();
-//                            record.date = dateKey;
-//                            record.phone = phone;
-//
-//                            // Get employee name from map
-//                            EmployeeData empData = employeeDataMap.get(phone);
-//                            record.employeeName = empData != null ? empData.name : "Unknown";
-//
-//                            // Get status
-//                            String finalStatus = empSnapshot.child("finalStatus").getValue(String.class);
-//                            String adminStatus = empSnapshot.child("adminStatus").getValue(String.class);
-//                            String status = empSnapshot.child("status").getValue(String.class);
-//
-//                            record.status = finalStatus != null ? finalStatus :
-//                                    (adminStatus != null ? adminStatus : status);
-//
-//                            record.lateStatus = empSnapshot.child("lateStatus").getValue(String.class);
-//                            record.markedBy = empSnapshot.child("markedBy").getValue(String.class);
-//                            record.checkInTime = empSnapshot.child("checkInTime").getValue(String.class);
-//                            record.checkOutTime = empSnapshot.child("checkOutTime").getValue(String.class);
-//                            record.checkInAddress = empSnapshot.child("checkInAddress").getValue(String.class);
-//
-//                            attendanceRecords.add(record);
-//
-//                            // Count status types
-//                            if (record.status != null) {
-//                                if (record.status.equalsIgnoreCase("Present")) {
-//                                    counts.presentCount++;
-//                                    if ("Late".equalsIgnoreCase(record.lateStatus)) {
-//                                        counts.lateCount++;
-//                                    }
-//                                } else if (record.status.equalsIgnoreCase("Absent")) {
-//                                    counts.absentCount++;
-//                                } else if (record.status.equalsIgnoreCase("Half Day") ||
-//                                        record.status.equalsIgnoreCase("Half-Day")) {
-//                                    counts.halfDayCount++;
-//                                }
-//                            }
-//                        }
-//                    }
-//                    currentDate.add(Calendar.DAY_OF_MONTH, 1);
-//                }
-//
-//                // Sort records
-//                Collections.sort(attendanceRecords, (a, b) -> {
-//                    int dateCompare = a.date.compareTo(b.date);
-//                    if (dateCompare != 0) return dateCompare;
-//                    return (a.employeeName != null ? a.employeeName : "").compareTo(b.employeeName != null ? b.employeeName : "");
-//                });
-//
-//                // Update UI on main thread
-//                runOnUiThread(() -> {
-//                    tvPresentCount.setText(String.valueOf(counts.presentCount));
-//                    tvAbsentCount.setText(String.valueOf(counts.absentCount));
-//                    tvLateCount.setText(String.valueOf(counts.lateCount));
-//                    tvHalfDayCount.setText(String.valueOf(counts.halfDayCount));
-//
-//                    // Generate PDF based on selected type
-//                    new Thread(() -> {
-//                        if (selectedReportType == 0) {
-//                            createDetailedPdf();
-//                        } else {
-//                            createMonthlySummaryPdf();
-//                        }
-//                    }).start();
-//                });
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError error) {
-//                runOnUiThread(() -> {
-//                    progressDialog.dismiss();
-//                    Toast.makeText(ReportsActivity.this, "Error loading attendance data", Toast.LENGTH_SHORT).show();
-//                });
-//            }
-//        });
-//    }
 
     private void fetchAttendanceData() {
         databaseRef.child("attendance").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                // Create wrapper object to hold counts
                 final CountWrapper counts = new CountWrapper();
                 final MonthlyCountWrapper monthlyCounts = new MonthlyCountWrapper();
 
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
-                // Iterate through each date in the range
+                attendanceRecords.clear();
+
+                // Track which employees were present on which dates
+                Map<String, Set<String>> employeeAttendanceByDate = new HashMap<>();
+
+                // First pass: Collect all attendance records that exist
                 Calendar currentDate = (Calendar) fromDate.clone();
                 while (!currentDate.after(toDate)) {
                     String dateKey = dateFormat.format(currentDate.getTime());
@@ -494,62 +419,128 @@ public class ReportsActivity extends AppCompatActivity {
                     if (snapshot.hasChild(dateKey)) {
                         DataSnapshot dateSnapshot = snapshot.child(dateKey);
 
+                        // Process each employee who has attendance on this date
                         for (DataSnapshot empSnapshot : dateSnapshot.getChildren()) {
                             String phone = empSnapshot.getKey();
 
                             if (!employeeDataMap.containsKey(phone)) continue;
 
+                            // Track this employee as having attendance on this date
+                            if (!employeeAttendanceByDate.containsKey(dateKey)) {
+                                employeeAttendanceByDate.put(dateKey, new HashSet<>());
+                            }
+                            employeeAttendanceByDate.get(dateKey).add(phone);
+
                             AttendanceRecord record = new AttendanceRecord();
                             record.date = dateKey;
                             record.phone = phone;
 
-                            // Get employee name from map
                             EmployeeData empData = employeeDataMap.get(phone);
                             record.employeeName = empData != null ? empData.name : "Unknown";
 
-                            // Get status
+                            // Get finalStatus and lateStatus
                             String finalStatus = empSnapshot.child("finalStatus").getValue(String.class);
-                            String adminStatus = empSnapshot.child("adminStatus").getValue(String.class);
-                            String status = empSnapshot.child("status").getValue(String.class);
+                            String lateStatus = empSnapshot.child("lateStatus").getValue(String.class);
 
-                            record.status = finalStatus != null ? finalStatus :
-                                    (adminStatus != null ? adminStatus : status);
-
-                            record.lateStatus = empSnapshot.child("lateStatus").getValue(String.class);
-                            record.markedBy = empSnapshot.child("markedBy").getValue(String.class);
                             record.checkInTime = empSnapshot.child("checkInTime").getValue(String.class);
                             record.checkOutTime = empSnapshot.child("checkOutTime").getValue(String.class);
+                            record.markedBy = empSnapshot.child("markedBy").getValue(String.class);
                             record.checkInAddress = empSnapshot.child("checkInAddress").getValue(String.class);
 
-                            attendanceRecords.add(record);
+                            // Display finalStatus as-is
+                            record.status = finalStatus;
+                            record.lateStatus = lateStatus;
 
-                            // Count status types for detailed report
-                            if (record.status != null) {
-                                if (record.status.equalsIgnoreCase("Present")) {
+                            // ✅ COUNT EXISTING ATTENDANCE RECORDS
+                            if (finalStatus != null) {
+                                String statusLower = finalStatus.trim().toLowerCase();
+
+                                // ✅ Holiday - Skip (don't add to records)
+                                if (statusLower.equals("holiday")) {
+                                    continue; // Skip this record entirely
+                                }
+                                // ✅ Present
+                                else if (statusLower.equals("present")) {
                                     counts.presentCount++;
-                                    if ("Late".equalsIgnoreCase(record.lateStatus)) {
-                                        counts.lateCount++;
-                                    }
-                                } else if (record.status.equalsIgnoreCase("Absent")) {
-                                    counts.absentCount++;
-                                } else if (record.status.equalsIgnoreCase("Half Day") ||
-                                        record.status.equalsIgnoreCase("Half-Day")) {
+                                    record.status = "Present";
+                                }
+                                // ✅ Half Day
+                                else if (statusLower.equals("half day") || statusLower.equals("half-day")) {
                                     counts.halfDayCount++;
+                                    record.status = "Half Day";
                                 }
                             }
+
+                            // ✅ Late Status - Separate count
+                            if (lateStatus != null && lateStatus.trim().equalsIgnoreCase("late")) {
+                                counts.lateCount++;
+                            }
+
+                            // Add record to list (skip holidays)
+                            attendanceRecords.add(record);
                         }
                     }
+
                     currentDate.add(Calendar.DAY_OF_MONTH, 1);
                 }
 
-                // Sort records
+                // ✅ SECOND PASS: COUNT ABSENT EMPLOYEES
+                // For each date in the range, count employees who don't have attendance
+                currentDate = (Calendar) fromDate.clone(); // Reset to start date
+
+                while (!currentDate.after(toDate)) {
+                    String dateKey = dateFormat.format(currentDate.getTime());
+
+                    // Skip weekends for absent counting (optional)
+                    int dayOfWeek = currentDate.get(Calendar.DAY_OF_WEEK);
+                    if (dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY) {
+                        currentDate.add(Calendar.DAY_OF_MONTH, 1);
+                        continue;
+                    }
+
+                    // Get employees who were present on this date
+                    Set<String> presentEmployeesOnThisDate = employeeAttendanceByDate.get(dateKey);
+                    if (presentEmployeesOnThisDate == null) {
+                        presentEmployeesOnThisDate = new HashSet<>();
+                    }
+
+                    // For each employee, check if they have attendance on this date
+                    for (Map.Entry<String, EmployeeData> entry : employeeDataMap.entrySet()) {
+                        String phone = entry.getKey();
+                        EmployeeData empData = entry.getValue();
+
+                        // If employee doesn't have attendance record for this date, they're absent
+                        if (!presentEmployeesOnThisDate.contains(phone)) {
+                            // ✅ CREATE ABSENT RECORD
+                            AttendanceRecord absentRecord = new AttendanceRecord();
+                            absentRecord.date = dateKey;
+                            absentRecord.phone = phone;
+                            absentRecord.employeeName = empData.name != null ? empData.name : "Unknown";
+                            absentRecord.status = "Absent";
+                            absentRecord.lateStatus = null;
+                            absentRecord.checkInTime = null;
+                            absentRecord.checkOutTime = null;
+                            absentRecord.markedBy = "System";
+                            absentRecord.checkInAddress = "Not Applicable";
+
+                            attendanceRecords.add(absentRecord);
+                            counts.absentCount++;
+                        }
+                    }
+
+                    currentDate.add(Calendar.DAY_OF_MONTH, 1);
+                }
+
+                // ✅ SORT records
                 Collections.sort(attendanceRecords, (a, b) -> {
                     int dateCompare = a.date.compareTo(b.date);
                     if (dateCompare != 0) return dateCompare;
-                    return (a.employeeName != null ? a.employeeName : "").compareTo(b.employeeName != null ? b.employeeName : "");
+                    String nameA = a.employeeName != null ? a.employeeName : "";
+                    String nameB = b.employeeName != null ? b.employeeName : "";
+                    return nameA.compareToIgnoreCase(nameB);
                 });
 
-                // Calculate monthly summary stats
+                // Calculate monthly summary
                 Map<String, EmployeeMonthlySummary> monthlySummary = calculateMonthlySummary();
                 monthlyCounts.totalEmployees = employeeDataMap.size();
                 monthlyCounts.workingDays = calculateWorkingDays(fromDate, toDate);
@@ -559,21 +550,19 @@ public class ReportsActivity extends AppCompatActivity {
                     monthlyCounts.totalAbsentDays += summary.absentDays;
                 }
 
-                // Update UI on main thread
+                // Update UI
                 runOnUiThread(() -> {
-                    // Update detailed report summary
                     tvPresentCount.setText(String.valueOf(counts.presentCount));
                     tvAbsentCount.setText(String.valueOf(counts.absentCount));
                     tvLateCount.setText(String.valueOf(counts.lateCount));
                     tvHalfDayCount.setText(String.valueOf(counts.halfDayCount));
 
-                    // Update monthly report summary
                     tvTotalEmployeesSummary.setText(String.valueOf(monthlyCounts.totalEmployees));
                     tvWorkingDays.setText(String.valueOf(monthlyCounts.workingDays));
                     tvTotalPresentDays.setText(String.valueOf(monthlyCounts.totalPresentDays));
                     tvTotalAbsentDays.setText(String.valueOf(monthlyCounts.totalAbsentDays));
 
-                    // Generate PDF based on selected type
+                    // Generate PDF
                     new Thread(() -> {
                         if (selectedReportType == 0) {
                             createDetailedPdf();
@@ -588,16 +577,12 @@ public class ReportsActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError error) {
                 runOnUiThread(() -> {
                     progressDialog.dismiss();
-                    Toast.makeText(ReportsActivity.this, "Error loading attendance data", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ReportsActivity.this,
+                            "Error loading attendance data", Toast.LENGTH_SHORT).show();
                 });
             }
         });
     }
-
-    // ==============================
-    // DETAILED PDF GENERATION
-    // ==============================
-
     private void createDetailedPdf() {
         try {
             PdfDocument pdfDocument = new PdfDocument();
@@ -631,10 +616,12 @@ public class ReportsActivity extends AppCompatActivity {
                     yPosition = drawPageContinuationHeader(canvas, yPosition, pageNumber);
                 }
 
-                // Draw table header
+                // Draw table header - NO extra space added
                 yPosition = drawDetailedTableHeader(canvas, yPosition);
 
-                // Draw table rows (max 30 rows per page)
+                // REMOVED: yPosition += 10; // No extra space
+
+                // Draw table rows with proper boundary checking
                 int rowsDrawn = drawDetailedTableRows(canvas, yPosition, startRecord);
                 startRecord += rowsDrawn;
 
@@ -656,33 +643,43 @@ public class ReportsActivity extends AppCompatActivity {
             });
         }
     }
-
     private int drawDetailedHeader(Canvas canvas, int yPosition) {
-        // Draw company header background with orange color
+        // Draw blue background
+        Paint headerBgPaint = new Paint();
+        headerBgPaint.setColor(Color.parseColor("#1976D2"));
         canvas.drawRect(0, 0, PAGE_WIDTH, 70, headerBgPaint);
 
         // Company name
         String companyName = (companyInfo != null && companyInfo.companyName != null) ?
                 companyInfo.companyName : "AttendSmart";
-        Paint companyPaint = new Paint(headerTextPaint);
+        Paint companyPaint = new Paint();
+        companyPaint.setColor(Color.WHITE);
         companyPaint.setTextSize(22);
         companyPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        companyPaint.setAntiAlias(true);
 
         float companyWidth = companyPaint.measureText(companyName);
         float companyX = (PAGE_WIDTH - companyWidth) / 2;
         canvas.drawText(companyName, companyX, 35, companyPaint);
 
         // Report title
-        Paint titlePaint = new Paint(headerTextPaint);
-        titlePaint.setTextSize(16);
+        Paint reportTitlePaint = new Paint();
+        reportTitlePaint.setColor(Color.WHITE);
+        reportTitlePaint.setTextSize(16);
+        reportTitlePaint.setAntiAlias(true);
         String reportTitle = "DETAILED ATTENDANCE REPORT";
-        float titleWidth = titlePaint.measureText(reportTitle);
+        float titleWidth = reportTitlePaint.measureText(reportTitle);
         float titleX = (PAGE_WIDTH - titleWidth) / 2;
-        canvas.drawText(reportTitle, titleX, 55, titlePaint);
+        canvas.drawText(reportTitle, titleX, 55, reportTitlePaint);
+
+        // Draw bottom border
+        Paint borderPaint = new Paint();
+        borderPaint.setColor(Color.BLACK);
+        borderPaint.setStrokeWidth(2f);
+        canvas.drawLine(0, 70, PAGE_WIDTH, 70, borderPaint);
 
         return 90;
     }
-
     private int drawPageContinuationHeader(Canvas canvas, int yPosition, int pageNumber) {
         canvas.drawLine(LEFT_MARGIN, yPosition - 10, PAGE_WIDTH - RIGHT_MARGIN, yPosition - 10, linePaint);
 
@@ -749,138 +746,156 @@ public class ReportsActivity extends AppCompatActivity {
     }
 
     private int drawDetailedTableHeader(Canvas canvas, int yPosition) {
-        // Draw table header background with orange color
-        canvas.drawRect(LEFT_MARGIN, yPosition, PAGE_WIDTH - RIGHT_MARGIN, yPosition + 25, headerBgPaint);
+        // Draw blue header background
+        Paint headerBg = new Paint();
+        headerBg.setColor(Color.parseColor("#1976D2"));
+        canvas.drawRect(LEFT_MARGIN, yPosition, PAGE_WIDTH - RIGHT_MARGIN, yPosition + 24, headerBg);
 
-        // Draw column headers with vertical lines
-        int headerY = yPosition + 17;
+        // Draw DARK GRAY border around header (lighter than black)
+        Paint grayBorder = new Paint();
+        grayBorder.setColor(Color.parseColor("#666666"));
+        grayBorder.setStyle(Paint.Style.STROKE);
+        grayBorder.setStrokeWidth(0.8f); // Lighter border
+        canvas.drawRect(LEFT_MARGIN, yPosition, PAGE_WIDTH - RIGHT_MARGIN, yPosition + 24, grayBorder);
 
-        // Date column
-        canvas.drawText("Date", colDateX + 5, headerY, headerTextPaint);
-        canvas.drawLine(colNameX, yPosition, colNameX, yPosition + 25, headerTextPaint);
+        int headerY = yPosition + 16; // Adjusted text position
 
-        // Name column - Wider for full name
-        canvas.drawText("Employee Name", colNameX + 5, headerY, headerTextPaint);
-        canvas.drawLine(colPhoneX, yPosition, colPhoneX, yPosition + 25, headerTextPaint);
+        // Draw DARK GRAY vertical lines between columns (lighter)
+        // IMPORTANT: Use exact column positions that match the table rows
+        Paint verticalLine = new Paint();
+        verticalLine.setColor(Color.parseColor("#666666"));
+        verticalLine.setStrokeWidth(0.8f); // Lighter border
 
-        // Phone column
-        canvas.drawText("Phone", colPhoneX + 5, headerY, headerTextPaint);
-        canvas.drawLine(colStatusX, yPosition, colStatusX, yPosition + 25, headerTextPaint);
+        // Make sure lines extend to exact header bottom
+        float headerBottom = yPosition + 22;
 
-        // Status column
-        canvas.drawText("Status", colStatusX + 5, headerY, headerTextPaint);
-        canvas.drawLine(colCheckInX, yPosition, colCheckInX, yPosition + 25, headerTextPaint);
+        // Draw lines at EXACT column boundaries
+        canvas.drawLine(colNameX, yPosition, colNameX, headerBottom, verticalLine);
+        canvas.drawLine(colPhoneX, yPosition, colPhoneX, headerBottom, verticalLine);
+        canvas.drawLine(colStatusX, yPosition, colStatusX, headerBottom, verticalLine);
+        canvas.drawLine(colCheckInX, yPosition, colCheckInX, headerBottom, verticalLine);
+        canvas.drawLine(colCheckOutX, yPosition, colCheckOutX, headerBottom, verticalLine);
+        canvas.drawLine(colMarkedByX, yPosition, colMarkedByX, headerBottom, verticalLine);
 
-        // Check-In column
-        canvas.drawText("Check-In", colCheckInX + 5, headerY, headerTextPaint);
-        canvas.drawLine(colCheckOutX, yPosition, colCheckOutX, yPosition + 25, headerTextPaint);
+        // White text for headers
+        Paint headerText = new Paint();
+        headerText.setColor(Color.WHITE);
+        headerText.setTextSize(10);
+        headerText.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        headerText.setAntiAlias(true);
 
-        // Check-Out column
-        canvas.drawText("Check-Out", colCheckOutX + 5, headerY, headerTextPaint);
-        canvas.drawLine(colMarkedByX, yPosition, colMarkedByX, yPosition + 25, headerTextPaint);
+        canvas.drawText("Date", colDateX + 5, headerY, headerText);
+        canvas.drawText("Employee Name", colNameX + 5, headerY, headerText);
+        canvas.drawText("Phone", colPhoneX + 5, headerY, headerText);
+        canvas.drawText("Status", colStatusX + 5, headerY, headerText);
+        canvas.drawText("Check-In", colCheckInX + 5, headerY, headerText);
+        canvas.drawText("Check-Out", colCheckOutX + 5, headerY, headerText);
+        canvas.drawText("Marked By", colMarkedByX + 5, headerY, headerText);
 
-        // Marked By column (last column)
-        canvas.drawText("Marked By", colMarkedByX + 5, headerY, headerTextPaint);
-
-        return yPosition + 30;
+        return yPosition + 26; // Reduced from 30 to minimize gap
     }
 
     private int drawDetailedTableRows(Canvas canvas, int yPosition, int startRecord) {
-        int maxRowsPerPage = 30;
-        int rowHeight = 20;
+        int maxRowsPerPage = 22; // Increased by 2 rows since we have more space now
+        int rowHeight = 20; // Slightly reduced row height
         int rowsDrawn = 0;
 
+        // Reduced footer space to 40px (from 50px)
+        int footerSpace = 40;
+
+        // Lighter border paint
+        Paint borderPaint = new Paint();
+        borderPaint.setColor(Color.parseColor("#666666")); // Dark Gray
+        borderPaint.setStrokeWidth(0.8f); // Lighter border
+
         for (int i = startRecord; i < attendanceRecords.size() && rowsDrawn < maxRowsPerPage; i++) {
-            if (yPosition + rowHeight > PAGE_HEIGHT - BOTTOM_MARGIN) {
+            // Check if there's enough space for this row
+            int currentY = yPosition + (rowsDrawn * rowHeight);
+
+            // Reduced buffer to 45px (just 5px above footer)
+            if (currentY + rowHeight > PAGE_HEIGHT - footerSpace - 5) {
                 break;
             }
 
             AttendanceRecord record = attendanceRecords.get(i);
-            int rowY = yPosition + (rowsDrawn * rowHeight);
+            int rowY = currentY;
 
-            // Draw alternate row background
+            // Draw alternate row background (light blue)
             if (rowsDrawn % 2 == 0) {
                 canvas.drawRect(LEFT_MARGIN, rowY, PAGE_WIDTH - RIGHT_MARGIN, rowY + rowHeight, altRowPaint);
             }
 
-            // Draw vertical lines for all columns
-            canvas.drawLine(colNameX, rowY, colNameX, rowY + rowHeight, linePaint);
-            canvas.drawLine(colPhoneX, rowY, colPhoneX, rowY + rowHeight, linePaint);
-            canvas.drawLine(colStatusX, rowY, colStatusX, rowY + rowHeight, linePaint);
-            canvas.drawLine(colCheckInX, rowY, colCheckInX, rowY + rowHeight, linePaint);
-            canvas.drawLine(colCheckOutX, rowY, colCheckOutX, rowY + rowHeight, linePaint);
-            canvas.drawLine(colMarkedByX, rowY, colMarkedByX, rowY + rowHeight, linePaint);
+            // Draw horizontal border for row - Lighter
+            canvas.drawLine(LEFT_MARGIN, rowY + rowHeight, PAGE_WIDTH - RIGHT_MARGIN, rowY + rowHeight, borderPaint);
 
-            // Draw row content
-            int textY = rowY + 14;
+            // Draw vertical lines - Lighter
+            canvas.drawLine(colNameX, rowY, colNameX, rowY + rowHeight, borderPaint);
+            canvas.drawLine(colPhoneX, rowY, colPhoneX, rowY + rowHeight, borderPaint);
+            canvas.drawLine(colStatusX, rowY, colStatusX, rowY + rowHeight, borderPaint);
+            canvas.drawLine(colCheckInX, rowY, colCheckInX, rowY + rowHeight, borderPaint);
+            canvas.drawLine(colCheckOutX, rowY, colCheckOutX, rowY + rowHeight, borderPaint);
+            canvas.drawLine(colMarkedByX, rowY, colMarkedByX, rowY + rowHeight, borderPaint);
 
-            // Date - formatted nicely
+            int textY = rowY + 14; // Adjusted text position
+
+            // Date
             String displayDate = formatDate(record.date);
             canvas.drawText(displayDate, colDateX + 5, textY, textPaint);
 
-            // Employee Name - display full name
+            // Employee Name
             String name = record.employeeName != null ? record.employeeName : "Unknown";
-            if (name.length() > 30) {
-                name = name.substring(0, 27) + "...";
+            if (name.length() > 25) {
+                name = name.substring(0, 22) + "...";
             }
             canvas.drawText(name, colNameX + 5, textY, textPaint);
 
             // Phone
-            String phone = record.phone != null ? record.phone : "-";
-            canvas.drawText(phone, colPhoneX + 5, textY, textPaint);
+            canvas.drawText(record.phone != null ? record.phone : "-", colPhoneX + 5, textY, textPaint);
 
             // Status with color coding
             Paint statusPaint = new Paint(textPaint);
             statusPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
 
-            if ("Present".equalsIgnoreCase(record.status)) {
-                statusPaint.setColor(Color.parseColor("#388E3C")); // Dark green
-            } else if ("Absent".equalsIgnoreCase(record.status)) {
-                statusPaint.setColor(Color.parseColor("#D32F2F")); // Dark red
-            } else if (record.status != null && (record.status.toLowerCase().contains("half") ||
-                    record.status.equalsIgnoreCase("Half Day"))) {
-                statusPaint.setColor(Color.parseColor("#1976D2")); // Blue
-            } else if ("Late".equalsIgnoreCase(record.status)) {
-                statusPaint.setColor(Color.parseColor("#FF5722")); // Orange (matching your company color)
-            } else {
-                statusPaint.setColor(Color.BLACK);
-            }
-
             String status = record.status != null ? record.status : "-";
+            if ("Present".equalsIgnoreCase(status)) {
+                statusPaint.setColor(Color.parseColor("#2E7D32"));
+            } else if ("Absent".equalsIgnoreCase(status)) {
+                statusPaint.setColor(Color.parseColor("#C62828"));
+            } else if (status.toLowerCase().contains("half")) {
+                statusPaint.setColor(Color.parseColor("#1565C0"));
+            }
             canvas.drawText(status, colStatusX + 5, textY, statusPaint);
 
             // Check-In Time
-            String checkIn = record.checkInTime != null ? record.checkInTime : "-";
-            canvas.drawText(checkIn, colCheckInX + 5, textY, textPaint);
+            canvas.drawText(record.checkInTime != null ? record.checkInTime : "-", colCheckInX + 5, textY, textPaint);
 
             // Check-Out Time
-            String checkOut = record.checkOutTime != null ? record.checkOutTime : "-";
-            canvas.drawText(checkOut, colCheckOutX + 5, textY, textPaint);
+            canvas.drawText(record.checkOutTime != null ? record.checkOutTime : "-", colCheckOutX + 5, textY, textPaint);
 
-            // Marked By (last column)
+            // Marked By
             String markedBy = record.markedBy != null ? record.markedBy : "-";
-            if (markedBy.length() > 15) {
-                markedBy = markedBy.substring(0, 12) + "...";
+            if (markedBy.length() > 12) {
+                markedBy = markedBy.substring(0, 10) + "..";
             }
             canvas.drawText(markedBy, colMarkedByX + 5, textY, textPaint);
 
             rowsDrawn++;
         }
 
-        // Draw horizontal line at bottom of table
+        // Draw left and right borders for entire table - Lighter
         int tableBottomY = yPosition + (rowsDrawn * rowHeight);
-        canvas.drawLine(LEFT_MARGIN, tableBottomY, PAGE_WIDTH - RIGHT_MARGIN, tableBottomY, linePaint);
+
+        // Only draw vertical borders if we actually drew rows
+        if (rowsDrawn > 0) {
+            canvas.drawLine(LEFT_MARGIN, yPosition - 25, LEFT_MARGIN, tableBottomY, borderPaint);
+            canvas.drawLine(PAGE_WIDTH - RIGHT_MARGIN, yPosition - 25, PAGE_WIDTH - RIGHT_MARGIN, tableBottomY, borderPaint);
+
+            // Draw top border of table - Lighter
+            canvas.drawLine(LEFT_MARGIN, yPosition - 25, PAGE_WIDTH - RIGHT_MARGIN, yPosition - 25, borderPaint);
+        }
 
         return rowsDrawn;
     }
-
-    // ==============================
-    // MONTHLY SUMMARY PDF GENERATION
-    // ==============================
-
-    // ==============================
-// MONTHLY SUMMARY PDF GENERATION - FIXED VERSION
-// ==============================
 
     private void createMonthlySummaryPdf() {
         try {
@@ -889,7 +904,7 @@ public class ReportsActivity extends AppCompatActivity {
             if (attendanceRecords.isEmpty()) {
                 runOnUiThread(() -> {
                     progressDialog.dismiss();
-                    Toast.makeText(this, "No attendance records found for selected period", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "No attendance records found", Toast.LENGTH_SHORT).show();
                 });
                 return;
             }
@@ -899,120 +914,97 @@ public class ReportsActivity extends AppCompatActivity {
 
             int pageNumber = 1;
             int startRecord = 0;
-            List<String> employeeNames = new ArrayList<>(monthlySummary.keySet());
-            Collections.sort(employeeNames);
 
-            while (startRecord < employeeNames.size()) {
-                // Create a new page
+            // Use phone numbers as keys and sort by employee name
+            List<String> employeePhones = new ArrayList<>(monthlySummary.keySet());
+            Collections.sort(employeePhones, (p1, p2) -> {
+                String name1 = monthlySummary.get(p1).employeeName;
+                String name2 = monthlySummary.get(p2).employeeName;
+                return name1.compareToIgnoreCase(name2);
+            });
+
+            while (startRecord < employeePhones.size()) {
                 PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(PAGE_WIDTH, PAGE_HEIGHT, pageNumber).create();
                 PdfDocument.Page page = pdfDocument.startPage(pageInfo);
                 Canvas canvas = page.getCanvas();
 
                 int yPosition = TOP_MARGIN;
 
-                // Draw header for first page only
                 if (pageNumber == 1) {
                     yPosition = drawMonthlySummaryHeader(canvas, yPosition);
                     yPosition = drawMonthlyReportInfo(canvas, yPosition);
                     yPosition = drawMonthlySummaryStats(canvas, yPosition, monthlySummary);
                 } else {
-                    // Draw continuation header for other pages
                     yPosition = drawMonthlyContinuationHeader(canvas, yPosition, pageNumber);
                 }
 
-                // Draw table header
                 yPosition = drawMonthlyTableHeader(canvas, yPosition);
-
-                // Draw table rows
-                int rowsDrawn = drawMonthlyTableRows(canvas, yPosition, startRecord, employeeNames, monthlySummary);
+                int rowsDrawn = drawMonthlyTableRows(canvas, yPosition, startRecord, employeePhones, monthlySummary);
                 startRecord += rowsDrawn;
 
-                // Draw footer
                 drawMonthlyFooter(canvas, pageNumber);
 
                 pdfDocument.finishPage(page);
                 pageNumber++;
             }
 
-            // Save the PDF document
             savePdfDocument(pdfDocument, "Monthly_Summary_");
 
         } catch (Exception e) {
-            Log.e("ReportsActivity", "Monthly PDF Generation Error: " + e.getMessage(), e);
+            Log.e("ReportsActivity", "Monthly PDF Error: " + e.getMessage(), e);
             runOnUiThread(() -> {
                 progressDialog.dismiss();
-                Toast.makeText(this, "Failed to create monthly summary PDF", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Failed to create PDF", Toast.LENGTH_SHORT).show();
             });
         }
     }
 
+
     private Map<String, EmployeeMonthlySummary> calculateMonthlySummary() {
         Map<String, EmployeeMonthlySummary> summaryMap = new HashMap<>();
 
-        // Get month name from date range
-        SimpleDateFormat monthFormat = new SimpleDateFormat("MMM yyyy", Locale.getDefault());
-
-        // Check if date range spans multiple months
-        Calendar tempCal = (Calendar) fromDate.clone();
-        List<String> monthsInRange = new ArrayList<>();
-
-        while (!tempCal.after(toDate)) {
-            monthsInRange.add(monthFormat.format(tempCal.getTime()));
-            tempCal.add(Calendar.MONTH, 1);
-            tempCal.set(Calendar.DAY_OF_MONTH, 1);
-        }
-
-        String monthText;
-        if (monthsInRange.size() == 1) {
-            monthText = monthsInRange.get(0);
-        } else {
-            monthText = monthFormat.format(fromDate.getTime()) + " to " + monthFormat.format(toDate.getTime());
-        }
-
-        // Calculate total working days
-        int totalWorkingDays = calculateWorkingDays(fromDate, toDate);
-
+        // Initialize for all employees
         for (Map.Entry<String, EmployeeData> entry : employeeDataMap.entrySet()) {
             EmployeeMonthlySummary summary = new EmployeeMonthlySummary();
             summary.employeeName = entry.getValue().name;
             summary.phone = entry.getValue().phone;
             summary.department = entry.getValue().department;
-            summary.month = monthText;
-            summary.totalWorkingDays = totalWorkingDays;
-
-            // Initialize counters
+            summary.totalWorkingDays = calculateWorkingDays(fromDate, toDate);
             summary.presentDays = 0;
             summary.absentDays = 0;
             summary.lateDays = 0;
             summary.halfDays = 0;
 
-            summaryMap.put(entry.getValue().name, summary);
+            summaryMap.put(entry.getKey(), summary);
         }
 
-        // Count attendance for each employee
+        // ✅ Count from all attendance records (including system-generated absent records)
         for (AttendanceRecord record : attendanceRecords) {
-            String employeeName = record.employeeName;
-            if (summaryMap.containsKey(employeeName)) {
-                EmployeeMonthlySummary summary = summaryMap.get(employeeName);
+            if (!summaryMap.containsKey(record.phone)) continue;
 
-                if (record.status != null) {
-                    if (record.status.equalsIgnoreCase("Present")) {
-                        summary.presentDays++;
-                        if ("Late".equalsIgnoreCase(record.lateStatus)) {
-                            summary.lateDays++;
-                        }
-                    } else if (record.status.equalsIgnoreCase("Absent")) {
-                        summary.absentDays++;
-                    } else if (record.status.equalsIgnoreCase("Half Day") ||
-                            record.status.equalsIgnoreCase("Half-Day")) {
-                        summary.halfDays++;
-                    }
+            EmployeeMonthlySummary summary = summaryMap.get(record.phone);
+
+            // ✅ Count based on status
+            if (record.status != null) {
+                if (record.status.equals("Present")) {
+                    summary.presentDays++;
+                } else if (record.status.equals("Absent")) {
+                    summary.absentDays++;
+                } else if (record.status.equals("Half Day")) {
+                    summary.halfDays++;
                 }
+            }
+
+            // ✅ Count lateStatus separately
+            if (record.lateStatus != null && record.lateStatus.trim().equalsIgnoreCase("late")) {
+                summary.lateDays++;
             }
         }
 
         return summaryMap;
     }
+
+
     private int calculateWorkingDays(Calendar start, Calendar end) {
         int workingDays = 0;
         Calendar current = (Calendar) start.clone();
@@ -1028,32 +1020,43 @@ public class ReportsActivity extends AppCompatActivity {
 
         return workingDays;
     }
+
+
     private int drawMonthlySummaryHeader(Canvas canvas, int yPosition) {
-        // Draw company header background with orange color
-        canvas.drawRect(0, 0, PAGE_WIDTH, 70, headerBgPaint);
+        // Draw blue background
+        Paint headerBg = new Paint();
+        headerBg.setColor(Color.parseColor("#1976D2"));
+        canvas.drawRect(0, 0, PAGE_WIDTH, 70, headerBg);
 
         // Company name
         String companyName = (companyInfo != null && companyInfo.companyName != null) ?
                 companyInfo.companyName : "AttendSmart";
-        Paint companyPaint = new Paint(headerTextPaint);
+        Paint companyPaint = new Paint();
+        companyPaint.setColor(Color.WHITE);
         companyPaint.setTextSize(22);
         companyPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        companyPaint.setAntiAlias(true);
 
         float companyWidth = companyPaint.measureText(companyName);
-        float companyX = (PAGE_WIDTH - companyWidth) / 2;
-        canvas.drawText(companyName, companyX, 35, companyPaint);
+        canvas.drawText(companyName, (PAGE_WIDTH - companyWidth) / 2, 35, companyPaint);
 
         // Report title
-        Paint titlePaint = new Paint(headerTextPaint);
+        Paint titlePaint = new Paint();
+        titlePaint.setColor(Color.WHITE);
         titlePaint.setTextSize(16);
-        String reportTitle = "EMPLOYEE ATTENDANCE SUMMARY";
+        titlePaint.setAntiAlias(true);
+        String reportTitle = "MONTHLY ATTENDANCE SUMMARY";
         float titleWidth = titlePaint.measureText(reportTitle);
-        float titleX = (PAGE_WIDTH - titleWidth) / 2;
-        canvas.drawText(reportTitle, titleX, 55, titlePaint);
+        canvas.drawText(reportTitle, (PAGE_WIDTH - titleWidth) / 2, 55, titlePaint);
+
+        // Draw bottom border
+        Paint border = new Paint();
+        border.setColor(Color.BLACK);
+        border.setStrokeWidth(2f);
+        canvas.drawLine(0, 70, PAGE_WIDTH, 70, border);
 
         return 90;
     }
-
     private int drawMonthlyReportInfo(Canvas canvas, int yPosition) {
         // Draw report period
         SimpleDateFormat displayFormat = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
@@ -1137,213 +1140,173 @@ public class ReportsActivity extends AppCompatActivity {
     }
 
     private int drawMonthlyTableHeader(Canvas canvas, int yPosition) {
-        // Draw table header background with orange color
-        int headerHeight = 25;
-        canvas.drawRect(LEFT_MARGIN, yPosition, PAGE_WIDTH - RIGHT_MARGIN, yPosition + headerHeight, headerBgPaint);
+        int headerHeight = 24; // Reduced to match detailed report
 
-        // Draw column headers
-        int headerY = yPosition + 17;
+        // Draw blue background
+        Paint headerBg = new Paint();
+        headerBg.setColor(Color.parseColor("#1976D2"));
+        canvas.drawRect(LEFT_MARGIN, yPosition, PAGE_WIDTH - RIGHT_MARGIN, yPosition + headerHeight, headerBg);
 
-        // Set column positions for monthly summary - MORE SPACE FOR NAME
+        // Draw LIGHT GRAY border around header
+        Paint grayBorder = new Paint();
+        grayBorder.setColor(Color.parseColor("#666666")); // Dark Gray
+        grayBorder.setStyle(Paint.Style.STROKE);
+        grayBorder.setStrokeWidth(0.8f); // Lighter border
+        canvas.drawRect(LEFT_MARGIN, yPosition, PAGE_WIDTH - RIGHT_MARGIN, yPosition + headerHeight, grayBorder);
+
+        // Calculate column positions with proper spacing
         int colNameX = LEFT_MARGIN;
-        int colPhoneX = colNameX + 220;  // Increased from 180 to 220
-        int colDeptX = colPhoneX + 100;
-        int colPresentX = colDeptX + 80;  // Reduced from 90 to 80
-        int colAbsentX = colPresentX + 65; // Reduced from 70 to 65
-        int colLateX = colAbsentX + 55;   // Reduced from 60 to 55
-        int colHalfDayX = colLateX + 65;  // Reduced from 70 to 65
-        int colTotalX = colHalfDayX + 70; // Reduced from 80 to 70
+        int colPhoneX = colNameX + 180;
+        int colDeptX = colPhoneX + 90;
+        int colPresentX = colDeptX + 80;
+        int colAbsentX = colPresentX + 70;
+        int colLateX = colAbsentX + 65;
+        int colHalfDayX = colLateX + 60;
+        int colTotalX = colHalfDayX + 65;
 
-        // Draw vertical lines
-        Paint whiteLinePaint = new Paint();
-        whiteLinePaint.setColor(Color.WHITE);
-        whiteLinePaint.setStrokeWidth(1f);
+        int headerY = yPosition + 16; // Adjusted for text positioning
 
-        canvas.drawLine(colPhoneX, yPosition, colPhoneX, yPosition + headerHeight, whiteLinePaint);
-        canvas.drawLine(colDeptX, yPosition, colDeptX, yPosition + headerHeight, whiteLinePaint);
-        canvas.drawLine(colPresentX, yPosition, colPresentX, yPosition + headerHeight, whiteLinePaint);
-        canvas.drawLine(colAbsentX, yPosition, colAbsentX, yPosition + headerHeight, whiteLinePaint);
-        canvas.drawLine(colLateX, yPosition, colLateX, yPosition + headerHeight, whiteLinePaint);
-        canvas.drawLine(colHalfDayX, yPosition, colHalfDayX, yPosition + headerHeight, whiteLinePaint);
-        canvas.drawLine(colTotalX, yPosition, colTotalX, yPosition + headerHeight, whiteLinePaint);
+        // Draw LIGHT GRAY vertical lines
+        Paint vertLine = new Paint();
+        vertLine.setColor(Color.parseColor("#666666")); // Dark Gray
+        vertLine.setStrokeWidth(0.8f); // Lighter border
 
-        // Draw header text
-        canvas.drawText("Employee Name", colNameX + 5, headerY, headerTextPaint);
-        canvas.drawText("Phone", colPhoneX + 5, headerY, headerTextPaint);
-        canvas.drawText("Department", colDeptX + 5, headerY, headerTextPaint);
-        canvas.drawText("Present", colPresentX + 5, headerY, headerTextPaint);
-        canvas.drawText("Absent", colAbsentX + 5, headerY, headerTextPaint);
-        canvas.drawText("Late", colLateX + 5, headerY, headerTextPaint);
-        canvas.drawText("Half Day", colHalfDayX + 5, headerY, headerTextPaint);
-        canvas.drawText("Total Days", colTotalX + 5, headerY, headerTextPaint);
+        canvas.drawLine(colPhoneX, yPosition, colPhoneX, yPosition + headerHeight, vertLine);
+        canvas.drawLine(colDeptX, yPosition, colDeptX, yPosition + headerHeight, vertLine);
+        canvas.drawLine(colPresentX, yPosition, colPresentX, yPosition + headerHeight, vertLine);
+        canvas.drawLine(colAbsentX, yPosition, colAbsentX, yPosition + headerHeight, vertLine);
+        canvas.drawLine(colLateX, yPosition, colLateX, yPosition + headerHeight, vertLine);
+        canvas.drawLine(colHalfDayX, yPosition, colHalfDayX, yPosition + headerHeight, vertLine);
+        canvas.drawLine(colTotalX, yPosition, colTotalX, yPosition + headerHeight, vertLine);
 
-        return yPosition + 30;
+        // White text headers
+        Paint headerText = new Paint();
+        headerText.setColor(Color.WHITE);
+        headerText.setTextSize(10);
+        headerText.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
+        headerText.setAntiAlias(true);
+
+        canvas.drawText("Employee Name", colNameX + 5, headerY, headerText);
+        canvas.drawText("Phone", colPhoneX + 5, headerY, headerText);
+        canvas.drawText("Department", colDeptX + 5, headerY, headerText);
+        canvas.drawText("Present", colPresentX + 5, headerY, headerText);
+        canvas.drawText("Absent", colAbsentX + 5, headerY, headerText);
+        canvas.drawText("Late", colLateX + 5, headerY, headerText);
+        canvas.drawText("Half Day", colHalfDayX + 5, headerY, headerText);
+        canvas.drawText("Total", colTotalX + 5, headerY, headerText);
+
+        return yPosition + 28; // Same as detailed report
     }
 
     private int drawMonthlyTableRows(Canvas canvas, int yPosition, int startRecord,
-                                     List<String> employeeNames, Map<String, EmployeeMonthlySummary> summaryMap) {
-        int maxRowsPerPage = 35;
-        int rowHeight = 18;
+                                     List<String> employeePhones, Map<String, EmployeeMonthlySummary> summaryMap) {
+        int maxRowsPerPage = 22; // Increased to match detailed report
+        int rowHeight = 20; // Reduced row height
         int rowsDrawn = 0;
 
-        // Define column positions (same as header)
+        // Column positions (same as header)
         int colNameX = LEFT_MARGIN;
-        int colPhoneX = colNameX + 220;
-        int colDeptX = colPhoneX + 100;
+        int colPhoneX = colNameX + 180;
+        int colDeptX = colPhoneX + 90;
         int colPresentX = colDeptX + 80;
-        int colAbsentX = colPresentX + 65;
-        int colLateX = colAbsentX + 55;
-        int colHalfDayX = colLateX + 65;
-        int colTotalX = colHalfDayX + 70;
+        int colAbsentX = colPresentX + 70;
+        int colLateX = colAbsentX + 65;
+        int colHalfDayX = colLateX + 60;
+        int colTotalX = colHalfDayX + 65;
 
-        for (int i = startRecord; i < employeeNames.size() && rowsDrawn < maxRowsPerPage; i++) {
-            if (yPosition + rowHeight > PAGE_HEIGHT - BOTTOM_MARGIN) {
+        // Lighter border paint
+        Paint borderPaint = new Paint();
+        borderPaint.setColor(Color.parseColor("#666666")); // Dark Gray
+        borderPaint.setStrokeWidth(0.8f); // Lighter border
+
+        for (int i = startRecord; i < employeePhones.size() && rowsDrawn < maxRowsPerPage; i++) {
+            if (yPosition + rowHeight > PAGE_HEIGHT - 45) { // Adjusted for footer
                 break;
             }
 
-            String employeeName = employeeNames.get(i);
-            EmployeeMonthlySummary summary = summaryMap.get(employeeName);
+            String phone = employeePhones.get(i);
+            EmployeeMonthlySummary summary = summaryMap.get(phone);
 
             int rowY = yPosition + (rowsDrawn * rowHeight);
 
-            // Draw alternate row background
+            // Draw alternate row background (light blue)
             if (rowsDrawn % 2 == 0) {
                 canvas.drawRect(LEFT_MARGIN, rowY, PAGE_WIDTH - RIGHT_MARGIN, rowY + rowHeight, altRowPaint);
             }
 
-            // Draw vertical lines
-            canvas.drawLine(colPhoneX, rowY, colPhoneX, rowY + rowHeight, linePaint);
-            canvas.drawLine(colDeptX, rowY, colDeptX, rowY + rowHeight, linePaint);
-            canvas.drawLine(colPresentX, rowY, colPresentX, rowY + rowHeight, linePaint);
-            canvas.drawLine(colAbsentX, rowY, colAbsentX, rowY + rowHeight, linePaint);
-            canvas.drawLine(colLateX, rowY, colLateX, rowY + rowHeight, linePaint);
-            canvas.drawLine(colHalfDayX, rowY, colHalfDayX, rowY + rowHeight, linePaint);
-            canvas.drawLine(colTotalX, rowY, colTotalX, rowY + rowHeight, linePaint);
+            // Draw LIGHT GRAY horizontal border
+            canvas.drawLine(LEFT_MARGIN, rowY + rowHeight, PAGE_WIDTH - RIGHT_MARGIN, rowY + rowHeight, borderPaint);
 
-            // Draw row content
-            int textY = rowY + 13;
+            // Draw LIGHT GRAY vertical lines
+            canvas.drawLine(colPhoneX, rowY, colPhoneX, rowY + rowHeight, borderPaint);
+            canvas.drawLine(colDeptX, rowY, colDeptX, rowY + rowHeight, borderPaint);
+            canvas.drawLine(colPresentX, rowY, colPresentX, rowY + rowHeight, borderPaint);
+            canvas.drawLine(colAbsentX, rowY, colAbsentX, rowY + rowHeight, borderPaint);
+            canvas.drawLine(colLateX, rowY, colLateX, rowY + rowHeight, borderPaint);
+            canvas.drawLine(colHalfDayX, rowY, colHalfDayX, rowY + rowHeight, borderPaint);
+            canvas.drawLine(colTotalX, rowY, colTotalX, rowY + rowHeight, borderPaint);
 
-            // Employee Name - BETTER DISPLAY FOR LONG NAMES
+            int textY = rowY + 14; // Adjusted text position
+
+            // Employee Name
             String name = summary.employeeName != null ? summary.employeeName : "Unknown";
-
-            // Create a paint to measure text width
-            Paint namePaint = new Paint(textPaint);
-            float maxNameWidth = 200; // Maximum width for name column
-
-            // If name is too long, wrap it to multiple lines
-            if (namePaint.measureText(name) > maxNameWidth) {
-                // Split name into words
-                String[] words = name.split(" ");
-                StringBuilder line1 = new StringBuilder();
-                StringBuilder line2 = new StringBuilder();
-
-                boolean firstLineFull = false;
-                for (String word : words) {
-                    if (!firstLineFull) {
-                        if (namePaint.measureText(line1.toString() + " " + word) < maxNameWidth) {
-                            if (line1.length() > 0) line1.append(" ");
-                            line1.append(word);
-                        } else {
-                            firstLineFull = true;
-                            line2.append(word);
-                        }
-                    } else {
-                        if (line2.length() > 0) line2.append(" ");
-                        line2.append(word);
-                    }
-                }
-
-                // Draw first line
-                canvas.drawText(line1.toString(), colNameX + 5, textY, textPaint);
-
-                // Draw second line if needed
-                if (line2.length() > 0) {
-                    // Truncate if still too long
-                    String secondLine = line2.toString();
-                    if (namePaint.measureText(secondLine) > maxNameWidth) {
-                        secondLine = truncateText(secondLine, maxNameWidth - 20, namePaint) + "...";
-                    }
-                    canvas.drawText(secondLine, colNameX + 5, textY + 10, textPaint);
-                }
-            } else {
-                // Name fits in one line
-                canvas.drawText(name, colNameX + 5, textY, textPaint);
+            if (name.length() > 28) {
+                name = name.substring(0, 25) + "...";
             }
+            canvas.drawText(name, colNameX + 5, textY, textPaint);
 
             // Phone
-            String phone = summary.phone != null ? summary.phone : "-";
-            canvas.drawText(phone, colPhoneX + 5, textY, textPaint);
+            canvas.drawText(summary.phone != null ? summary.phone : "-", colPhoneX + 5, textY, textPaint);
 
             // Department
             String dept = summary.department != null ? summary.department : "-";
             if (dept.length() > 12) {
-                dept = dept.substring(0, 9) + "...";
+                dept = dept.substring(0, 10) + "..";
             }
             canvas.drawText(dept, colDeptX + 5, textY, textPaint);
 
             // Present Days (green)
             Paint presentPaint = new Paint(textPaint);
-            presentPaint.setColor(Color.parseColor("#4CAF50"));
+            presentPaint.setColor(Color.parseColor("#2E7D32"));
             presentPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
             canvas.drawText(String.valueOf(summary.presentDays), colPresentX + 5, textY, presentPaint);
 
             // Absent Days (red)
             Paint absentPaint = new Paint(textPaint);
-            absentPaint.setColor(Color.parseColor("#F44336"));
+            absentPaint.setColor(Color.parseColor("#C62828"));
             absentPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
             canvas.drawText(String.valueOf(summary.absentDays), colAbsentX + 5, textY, absentPaint);
 
             // Late Days (orange)
             Paint latePaint = new Paint(textPaint);
-            latePaint.setColor(Color.parseColor("#FF5722"));
+            latePaint.setColor(Color.parseColor("#EF6C00"));
             latePaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
             canvas.drawText(String.valueOf(summary.lateDays), colLateX + 5, textY, latePaint);
 
             // Half Days (blue)
             Paint halfDayPaint = new Paint(textPaint);
-            halfDayPaint.setColor(Color.parseColor("#2196F3"));
+            halfDayPaint.setColor(Color.parseColor("#1565C0"));
             halfDayPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
             canvas.drawText(String.valueOf(summary.halfDays), colHalfDayX + 5, textY, halfDayPaint);
 
-            // Total Days (black)
+            // Total Days
             Paint totalPaint = new Paint(textPaint);
             totalPaint.setTypeface(Typeface.create(Typeface.DEFAULT, Typeface.BOLD));
             canvas.drawText(String.valueOf(summary.totalWorkingDays), colTotalX + 5, textY, totalPaint);
 
-            // Increase row height if name has two lines
-            if (namePaint.measureText(name) > maxNameWidth) {
-                rowHeight = 25; // Increase row height for two lines
-            } else {
-                rowHeight = 18; // Normal row height
-            }
-
             rowsDrawn++;
         }
 
-        // Draw horizontal line at bottom of table
-        int tableBottomY = yPosition + (rowsDrawn * 18); // Use standard height for line
-        canvas.drawLine(LEFT_MARGIN, tableBottomY, PAGE_WIDTH - RIGHT_MARGIN, tableBottomY, linePaint);
+        // Draw left and right borders with LIGHT GRAY
+        int tableBottomY = yPosition + (rowsDrawn * rowHeight);
+        canvas.drawLine(LEFT_MARGIN, yPosition - 28, LEFT_MARGIN, tableBottomY, borderPaint);
+        canvas.drawLine(PAGE_WIDTH - RIGHT_MARGIN, yPosition - 28, PAGE_WIDTH - RIGHT_MARGIN, tableBottomY, borderPaint);
+
+        // Draw bottom border of table
+        canvas.drawLine(LEFT_MARGIN, tableBottomY, PAGE_WIDTH - RIGHT_MARGIN, tableBottomY, borderPaint);
 
         return rowsDrawn;
     }
-
-    // Add this helper method for text truncation
-    private String truncateText(String text, float maxWidth, Paint paint) {
-        if (text == null) return "";
-
-        if (paint.measureText(text) <= maxWidth) {
-            return text;
-        }
-
-        // Truncate with ellipsis
-        String result = text;
-        while (result.length() > 3 && paint.measureText(result + "...") > maxWidth) {
-            result = result.substring(0, result.length() - 1);
-        }
-
-        return result + "...";
-    }
-
     private void drawMonthlyFooter(Canvas canvas, int pageNumber) {
         int footerY = PAGE_HEIGHT - 25;
 
@@ -1371,10 +1334,6 @@ public class ReportsActivity extends AppCompatActivity {
         float rightTextWidth = footerPaint.measureText(rightText);
         canvas.drawText(rightText, PAGE_WIDTH - RIGHT_MARGIN - rightTextWidth, PAGE_HEIGHT - 10, footerPaint);
     }
-
-    // ==============================
-    // COMMON METHODS
-    // ==============================
 
     private String formatDate(String dateStr) {
         try {
@@ -1551,10 +1510,6 @@ public class ReportsActivity extends AppCompatActivity {
             attendanceRecords.clear();
         }
     }
-
-    // ==============================
-    // DATA CLASSES
-    // ==============================
 
     private static class EmployeeData {
         String phone, name, email, department;

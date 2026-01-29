@@ -418,6 +418,7 @@ import com.sandhyyasofttech.attendsmart.Activities.EmployeeSelectionActivity;
 import com.sandhyyasofttech.attendsmart.Activities.ExportDataActivity;
 import com.sandhyyasofttech.attendsmart.Activities.GenerateSalaryActivity;
 import com.sandhyyasofttech.attendsmart.Activities.ProfileActivity;
+import com.sandhyyasofttech.attendsmart.Activities.ReportsActivity;
 import com.sandhyyasofttech.attendsmart.Activities.WebViewActivity;
 import com.sandhyyasofttech.attendsmart.R;
 import com.sandhyyasofttech.attendsmart.Registration.LoginActivity;
@@ -430,7 +431,7 @@ public class SettingsActivity extends AppCompatActivity {
     private MaterialToolbar topAppBar;
     private SwitchMaterial switchAttendance, switchLeaveNotifications,
             switchAutoBackup, switchBiometric;
-    private LinearLayout cardCompanyProfile, cardChangePassword, cardExportData,salaryConfrigration,GenerateSalary,
+    private LinearLayout cardCompanyProfile, cardChangePassword, cardExportData,salaryConfrigration,GenerateSalary,reports,
             cardClearCache, cardPrivacyPolicy, cardTerms;
     private TextView tvAppVersion;
     private MaterialButton btnLogout;
@@ -463,6 +464,7 @@ public class SettingsActivity extends AppCompatActivity {
         switchAutoBackup = findViewById(R.id.switchAutoBackup);
         switchBiometric = findViewById(R.id.switchBiometric);
         salaryConfrigration = findViewById(R.id.salaryConfrigration);
+        reports = findViewById(R.id.reports);
         cardCompanyProfile = findViewById(R.id.cardCompanyProfile);
         GenerateSalary= findViewById(R.id.GenerateSalary);
         cardChangePassword = findViewById(R.id.cardChangePassword);
@@ -589,6 +591,8 @@ public class SettingsActivity extends AppCompatActivity {
         // Generate Salary Click
         GenerateSalary.setOnClickListener(v -> opengenerateSalary());
 
+        reports.setOnClickListener(v -> openreport());
+
 
         // Change Password Click
         cardChangePassword.setOnClickListener(v -> showChangePasswordBottomSheet());
@@ -616,6 +620,10 @@ public class SettingsActivity extends AppCompatActivity {
 
     private void opengenerateSalary() {
         Intent intent = new Intent(this, GenerateSalaryActivity.class);
+        startActivity(intent);
+    }
+    private void openreport() {
+        Intent intent = new Intent(this, ReportsActivity.class);
         startActivity(intent);
     }
 

@@ -585,6 +585,39 @@
                             android:src="@drawable/ic_arrow_forward"
                             app:tint="#C7C7CC" />
                     </LinearLayout>
+                    <LinearLayout
+                        android:id="@+id/reports"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="16dp"
+                        android:gravity="center_vertical"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_reports"
+                            app:tint="#0011FF" />
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="12dp"
+                            android:text="Report"
+                            android:textSize="16sp"
+                            android:textColor="#000000"
+                            android:letterSpacing="-0.01" />
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_arrow_forward"
+                            app:tint="#C7C7CC" />
+                    </LinearLayout>
 
                     <!-- Clear Cache -->
                     <LinearLayout
@@ -620,6 +653,7 @@
                             android:src="@drawable/ic_arrow_forward"
                             app:tint="#C7C7CC" />
                     </LinearLayout>
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
