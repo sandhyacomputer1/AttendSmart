@@ -5,77 +5,161 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/white"
-    android:fitsSystemWindows="true"
-    android:padding="24dp">
+    android:fitsSystemWindows="true">
 
-    <!-- Header -->
+    <!-- Toolbar/Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/gradient_header"
+        android:elevation="4dp"
         android:orientation="vertical"
-        android:gravity="center"
-        android:layout_marginBottom="32dp">
+        android:paddingStart="24dp"
+        android:paddingTop="24dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="24dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="🏢"
-            android:textSize="48sp"
+            android:textSize="36sp"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Select Company"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Choose the company to access your account"
+            android:textSize="14sp"
+            android:textColor="@color/white"
             android:layout_marginBottom="16dp" />
 
+        <!-- User Email Badge -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_email"
+                app:tint="@color/white"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:id="@+id/tvEmployeeEmail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="sushant2425@gmail.com"
+                android:textSize="13sp"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Content Area -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@color/white"
+        android:padding="24dp">
+
+        <!-- Company Count -->
+        <TextView
+            android:id="@+id/tvCompanyCount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Available Companies: 0"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Progress Bar -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="40dp"
+            android:visibility="visible" />
+
+        <!-- Empty State - Changed ID to llEmptyMessage -->
+        <LinearLayout
+            android:id="@+id/llEmptyMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="40dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@drawable/ic_empty_company"
+            android:layout_marginBottom="16dp"
+            app:tint="@color/text_secondary" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Select Your Company"
-            android:textSize="28sp"
+            android:text="No Companies Found"
+            android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="@color/black"
+            android:textColor="@color/text_primary"
             android:gravity="center"
             android:layout_marginBottom="8dp" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Choose the company you want to login with:"
-            android:textSize="16sp"
+            android:text="You are not registered with any company yet."
+            android:textSize="14sp"
             android:textColor="@color/text_secondary"
             android:gravity="center"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="16dp" />
 
-        <TextView
-            android:id="@+id/tvEmployeeEmail"
-            android:layout_width="match_parent"
+        <Button
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="sushant2425@gmail.com"
-            android:textSize="14sp"
-            android:textColor="@color/primary"
-            android:gravity="center"
-            android:textStyle="bold" />
+            android:text="Go Back"
+            android:backgroundTint="@color/primary"
+            android:textColor="@color/white"
+            android:paddingHorizontal="24dp"
+            android:paddingVertical="8dp"
+            android:onClick="onBackPressed" />
 
     </LinearLayout>
 
     <!-- Companies List -->
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Available Companies"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="@color/black"
-        android:layout_marginBottom="16dp" />
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvCompanies"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:padding="8dp"
-        android:scrollbars="vertical" />
-
-    <!-- Bottom Space -->
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="80dp" />
+        android:paddingBottom="80dp"
+        android:scrollbars="vertical"
+        android:visibility="gone" />
 
 </LinearLayout>
+
+    </LinearLayout>

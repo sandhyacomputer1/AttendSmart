@@ -3,40 +3,59 @@ package com.sandhyyasofttech.attendsmart.Adapters;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.sandhyyasofttech.attendsmart.Models.CompanyItem;
 import com.sandhyyasofttech.attendsmart.R;
 
 import java.util.List;
-import java.util.function.Consumer;
 
-public class CompanyAdapter extends RecyclerView.Adapter<CompanyAdapter.CompanyViewHolder> {
-    
-    private List<CompanyItem> companies;
-    private Consumer<CompanyItem> onCompanyClick;
+public class CompanyAdapter extends RecyclerView.Adapter<CompanyAdapter.ViewHolder> {
 
-    public CompanyAdapter(List<CompanyItem> companies, Consumer<CompanyItem> onCompanyClick) {
+    private final List<CompanyItem> companies;
+    private final CompanyClickListener listener;
+
+    public interface CompanyClickListener {
+        void onCompanyClick(CompanyItem company);
+    }
+
+    public CompanyAdapter(List<CompanyItem> companies, CompanyClickListener listener) {
         this.companies = companies;
-        this.onCompanyClick = onCompanyClick;
+        this.listener = listener;
     }
 
     @NonNull
     @Override
-    public CompanyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_company, parent, false);
-        return new CompanyViewHolder(view);
+        return new ViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull CompanyViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         CompanyItem company = companies.get(position);
+
         holder.tvCompanyName.setText(company.companyName);
-        holder.itemView.setOnClickListener(v -> onCompanyClick.accept(company));
+        holder.tvCompanyEmail.setText(company.companyEmail);
+        holder.tvCompanyPhone.setText(company.companyPhone);
+
+        // Set company initial icon
+        if (!company.companyName.isEmpty()) {
+            String initial = company.companyName.substring(0, 1).toUpperCase();
+            holder.tvCompanyInitial.setText(initial);
+        }
+
+        holder.cardCompany.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onCompanyClick(company);
+            }
+        });
     }
 
     @Override
@@ -44,12 +63,20 @@ public class CompanyAdapter extends RecyclerView.Adapter<CompanyAdapter.CompanyV
         return companies.size();
     }
 
-    static class CompanyViewHolder extends RecyclerView.ViewHolder {
+    static class ViewHolder extends RecyclerView.ViewHolder {
+        CardView cardCompany;
+        TextView tvCompanyInitial;
         TextView tvCompanyName;
+        TextView tvCompanyEmail;
+        TextView tvCompanyPhone;
 
-        CompanyViewHolder(@NonNull View itemView) {
+        ViewHolder(@NonNull View itemView) {
             super(itemView);
+            cardCompany = itemView.findViewById(R.id.cardCompany);
+            tvCompanyInitial = itemView.findViewById(R.id.tvCompanyInitial);
             tvCompanyName = itemView.findViewById(R.id.tvCompanyName);
+            tvCompanyEmail = itemView.findViewById(R.id.tvCompanyEmail);
+            tvCompanyPhone = itemView.findViewById(R.id.tvCompanyPhone);
         }
     }
 }
