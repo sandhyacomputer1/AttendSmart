@@ -43,6 +43,9 @@ public class SalaryConfigActivity extends AppCompatActivity {
     private EditText etPfPercent, etEsiPercent, etOtherDeduction, etDeductionNote;
     private TextInputLayout tilPf, tilEsi, tilOtherDeduction, tilDeductionNote;
     private Button btnSave, btnDelete;
+    // Bank Details
+    private EditText etBankName, etAccountHolder, etAccountNumber, etIfscCode, etBranchName;
+
 
     // Firebase
     private DatabaseReference salaryRef;
@@ -99,6 +102,13 @@ public class SalaryConfigActivity extends AppCompatActivity {
 
         btnSave = findViewById(R.id.btnSaveSalary);
         btnDelete = findViewById(R.id.btnDeleteSalary);
+
+        etBankName = findViewById(R.id.etBankName);
+        etAccountHolder = findViewById(R.id.etAccountHolder);
+        etAccountNumber = findViewById(R.id.etAccountNumber);
+        etIfscCode = findViewById(R.id.etIfscCode);
+        etBranchName = findViewById(R.id.etBranchName);
+
     }
 
     private void setupToolbar() {
@@ -269,6 +279,11 @@ public class SalaryConfigActivity extends AppCompatActivity {
         etWorkingDays.setText(getStringValue(snapshot, "workingDays"));
         etPaidLeaves.setText(getStringValue(snapshot, "paidLeaves"));
         etEffectiveFrom.setText(getStringValue(snapshot, "effectiveFrom"));
+        etBankName.setText(getStringValue(snapshot, "bankName"));
+        etAccountHolder.setText(getStringValue(snapshot, "accountHolder"));
+        etAccountNumber.setText(getStringValue(snapshot, "accountNumber"));
+        etIfscCode.setText(getStringValue(snapshot, "ifscCode"));
+        etBranchName.setText(getStringValue(snapshot, "branchName"));
 
         String lateRule = getStringValue(snapshot, "lateRule");
         if (!lateRule.isEmpty()) {
@@ -383,6 +398,11 @@ public class SalaryConfigActivity extends AppCompatActivity {
         data.put("paidLeaves", etPaidLeaves.getText().toString().trim());
         data.put("lateRule", spLateRule.getSelectedItem().toString());
         data.put("effectiveFrom", etEffectiveFrom.getText().toString().trim());
+        data.put("bankName", etBankName.getText().toString().trim());
+        data.put("accountHolder", etAccountHolder.getText().toString().trim());
+        data.put("accountNumber", etAccountNumber.getText().toString().trim());
+        data.put("ifscCode", etIfscCode.getText().toString().trim());
+        data.put("branchName", etBranchName.getText().toString().trim());
 
         boolean deductionEnabled = switchDeduction.isChecked();
         data.put("deductionEnabled", deductionEnabled);

@@ -119,13 +119,16 @@
                             android:text="Present:"
                             android:textColor="#757575"/>
 
-                        <TextView
+                        <EditText
                             android:id="@+id/tvPresentDays"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:inputType="number"
                             android:text="0"
                             android:textColor="#4CAF50"
-                            android:textStyle="bold"/>
+                            android:textStyle="bold"
+                            android:background="@null"/>
+
                     </LinearLayout>
 
                     <LinearLayout
@@ -140,13 +143,15 @@
                             android:text="Leaves:"
                             android:textColor="#757575"/>
 
-                        <TextView
+                        <EditText
                             android:id="@+id/tvLeaves"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="0"
+                            android:inputType="text"
                             android:textColor="#2196F3"
-                            android:textStyle="bold"/>
+                            android:textStyle="bold"
+                            android:background="@null"/>
+
                     </LinearLayout>
 
                     <!-- Add this after the Leaves TextView -->
@@ -163,13 +168,16 @@
                             android:text="Half Days:"
                             android:textColor="#757575"/>
 
-                        <TextView
+                        <EditText
                             android:id="@+id/tvHalfDays"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:inputType="number"
                             android:text="0"
                             android:textColor="#FF9800"
-                            android:textStyle="bold"/>
+                            android:textStyle="bold"
+                            android:background="@null"/>
+
                     </LinearLayout>
 
                     <LinearLayout
@@ -185,13 +193,16 @@
                             android:text="Absent:"
                             android:textColor="#757575"/>
 
-                        <TextView
+                        <EditText
                             android:id="@+id/tvAbsentDays"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:inputType="number"
                             android:text="0"
                             android:textColor="#F44336"
-                            android:textStyle="bold"/>
+                            android:textStyle="bold"
+                            android:background="@null"/>
+
                     </LinearLayout>
 
                 </LinearLayout> <!-- Closing tag of inner LinearLayout -->

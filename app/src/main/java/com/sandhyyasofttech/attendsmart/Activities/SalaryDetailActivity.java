@@ -664,6 +664,11 @@ public class SalaryDetailActivity extends AppCompatActivity {
     private static final int TEXT_PRIMARY = Color.parseColor("#2C3E50");
     private static final int TEXT_SECONDARY = Color.parseColor("#7F8C8D");
     private static final int TEXT_LIGHT = Color.parseColor("#95A5A6");
+    private String bankName = "";
+    private String accountHolder = "";
+    private String accountNumber = "";
+    private String branchName = "";
+    private String ifscCode = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -701,17 +706,18 @@ public class SalaryDetailActivity extends AppCompatActivity {
                 .getReference("Companies")
                 .child(companyKey)
                 .child("employees")
-                .child(employeeMobile)
-                .child("info");
+                .child(employeeMobile);
 
         employeeRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    employeeName = snapshot.child("employeeName").getValue(String.class);
-                    employeeId = snapshot.child("employeeId").getValue(String.class);
 
-                    // Set default values if null
+                // ---------- EMPLOYEE INFO ----------
+                DataSnapshot infoSnap = snapshot.child("info");
+                if (infoSnap.exists()) {
+                    employeeName = infoSnap.child("employeeName").getValue(String.class);
+                    employeeId = infoSnap.child("employeeId").getValue(String.class);
+
                     if (employeeName == null) employeeName = "N/A";
                     if (employeeId == null) employeeId = "N/A";
 
@@ -721,6 +727,23 @@ public class SalaryDetailActivity extends AppCompatActivity {
                     employeeId = "N/A";
                     tvEmployeeName.setText(employeeName);
                 }
+
+                // ---------- SALARY CONFIG (BANK DETAILS) ----------
+                DataSnapshot salarySnap = snapshot.child("salaryConfig");
+                if (salarySnap.exists()) {
+                    bankName = salarySnap.child("bankName").getValue(String.class);
+                    accountHolder = salarySnap.child("accountHolder").getValue(String.class);
+                    accountNumber = salarySnap.child("accountNumber").getValue(String.class);
+                    branchName = salarySnap.child("branchName").getValue(String.class);
+                    ifscCode = salarySnap.child("ifscCode").getValue(String.class);
+
+                    if (bankName == null) bankName = "";
+                    if (accountHolder == null) accountHolder = "";
+                    if (accountNumber == null) accountNumber = "";
+                    if (branchName == null) branchName = "";
+                    if (ifscCode == null) ifscCode = "";
+                }
+
                 fetchSalaryDetails();
             }
 
@@ -729,8 +752,6 @@ public class SalaryDetailActivity extends AppCompatActivity {
                 Toast.makeText(SalaryDetailActivity.this,
                         "Error loading employee: " + error.getMessage(),
                         Toast.LENGTH_SHORT).show();
-                employeeName = "Error loading";
-                employeeId = "N/A";
                 fetchSalaryDetails();
             }
         });
@@ -1207,7 +1228,10 @@ public class SalaryDetailActivity extends AppCompatActivity {
         canvas.drawText("Bank Transfer", margin + 400, y + 50, paint);
 
         canvas.drawText("Account No:", margin + 300, y + 65, paint);
-        canvas.drawText("XXXXXX" + s.employeeMobile.substring(Math.max(0, s.employeeMobile.length() - 4)), margin + 400, y + 65, paint);
+        canvas.drawText(accountNumber, margin + 400, y + 65, paint);
+
+        canvas.drawText("Bank Name:", margin + 300, y + 80, paint);
+        canvas.drawText(bankName, margin + 400, y + 80, paint);
 
         canvas.drawText("Status:", margin + 300, y + 80, paint);
         paint.setColor(SUCCESS_COLOR);
