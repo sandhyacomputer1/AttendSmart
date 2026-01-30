@@ -1462,7 +1462,7 @@ public class AttendanceReportActivity extends AppCompatActivity {
 
                     // ✅ 1. HOLIDAY (HIGHEST PRIORITY) - PURPLE
                     if (statusSafe.contains("holiday") || finalStatusSafe.contains("holiday")) {
-                        holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_purplee);
+                        holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_orange);
                         holder.itemView.setTag("🟣 Holiday");
                     }
                     // ✅ 2. HALF DAY
