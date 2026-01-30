@@ -181,6 +181,8 @@ public class GeoFencingHelper {
      * @param isInside Whether user is inside geofence
      * @param distance Distance from office
      * @param radiusMeters Allowed radius
+     *
+     *
      * @return Status message
      */
     public static String getGeofenceStatusMessage(boolean isInside,

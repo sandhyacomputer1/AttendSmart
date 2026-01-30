@@ -72,6 +72,7 @@ public class AddEmployeeActivity extends AppCompatActivity {
     private String editingEmployeeId = "";
     private TextInputEditText etEmployeeId;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

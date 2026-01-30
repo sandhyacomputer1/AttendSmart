@@ -340,6 +340,7 @@ public class GeoFencingSettingsActivity extends AppCompatActivity
                 if (googleMap != null) {
                     try {
                         googleMap.setMyLocationEnabled(true);
+
                     } catch (SecurityException e) {
                         e.printStackTrace();
                     }

@@ -20,6 +20,7 @@ public class GeoFencingConfig {
         this.trackingEnabled = false;
     }
 
+
     // Getters and Setters
     public boolean isEnabled() { return enabled; }
     public void setEnabled(boolean enabled) { this.enabled = enabled; }

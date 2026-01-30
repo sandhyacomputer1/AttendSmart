@@ -25,6 +25,7 @@ public class EmployeeModel implements Serializable {
     private String checkOutTime;
     private String checkOutPhoto;
 
+
     private boolean requiresGeoFencing = true;  // Default: true (for backward compatibility)
 
     // Getter and Setter

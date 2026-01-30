@@ -8,6 +8,7 @@
     android:background="#F5F5F5">
 
     <!-- App Bar -->
+
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"

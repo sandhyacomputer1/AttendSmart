@@ -104,11 +104,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public class
-
-
-
-EmployeeDashboardActivity extends AppCompatActivity {
+public class EmployeeDashboardActivity extends AppCompatActivity {
 
     // UI Elements
     // Add this with your other location variables
@@ -125,6 +121,7 @@ EmployeeDashboardActivity extends AppCompatActivity {
     private CardView cardCheckIn, cardCheckOut, cardAttendanceReport, cardLogout;
     private View statusIndicator, locationStatusDot;
     private TextView tvChartTypeInfo;
+
     private LinearLayout legendItemsContainer;
     // Chart UI Elements
     private PieChart pieChart, donutChart;

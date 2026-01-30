@@ -48,6 +48,7 @@ public class PrefManager {
         editor.apply();
     }
 
+
     public String getCompanyEmail() {
         return prefs.getString("companyEmail", "");
     }
