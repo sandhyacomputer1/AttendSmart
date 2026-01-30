@@ -25,6 +25,16 @@ public class EmployeeModel implements Serializable {
     private String checkOutTime;
     private String checkOutPhoto;
 
+    private boolean requiresGeoFencing = true;  // Default: true (for backward compatibility)
+
+    // Getter and Setter
+    public boolean isRequiresGeoFencing() {
+        return requiresGeoFencing;
+    }
+
+    public void setRequiresGeoFencing(boolean requiresGeoFencing) {
+        this.requiresGeoFencing = requiresGeoFencing;
+    }
 
     // Default constructor REQUIRED for Firebase
     public EmployeeModel() {}

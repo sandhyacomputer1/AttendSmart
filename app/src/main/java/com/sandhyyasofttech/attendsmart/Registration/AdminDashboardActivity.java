@@ -3,9 +3,12 @@ package com.sandhyyasofttech.attendsmart.Registration;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -29,7 +32,8 @@ import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 
-import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
@@ -51,23 +55,26 @@ import com.sandhyyasofttech.attendsmart.Activities.EmployeeListActivity;
 import com.sandhyyasofttech.attendsmart.Activities.GenerateSalaryActivity;
 import com.sandhyyasofttech.attendsmart.Activities.ProfileActivity;
 import com.sandhyyasofttech.attendsmart.Activities.ReportsActivity;
-import com.sandhyyasofttech.attendsmart.Activities.SalaryDetailActivity;
 import com.sandhyyasofttech.attendsmart.Activities.SalaryListActivity;
+import com.sandhyyasofttech.attendsmart.Models.GeoFencingConfig;
+import com.sandhyyasofttech.attendsmart.Settings.GeoFencingSettingsActivity;
 import com.sandhyyasofttech.attendsmart.Settings.SettingsActivity;
 import com.sandhyyasofttech.attendsmart.Activities.ShiftActivity;
 import com.sandhyyasofttech.attendsmart.Adapters.EmployeeAdapter;
 import com.sandhyyasofttech.attendsmart.Admin.AddEmployeeActivity;
 import com.sandhyyasofttech.attendsmart.Models.EmployeeModel;
 import com.sandhyyasofttech.attendsmart.R;
-
+import com.sandhyyasofttech.attendsmart.Utils.GeoFencingHelper;
 import com.sandhyyasofttech.attendsmart.Utils.PrefManager;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import com.bumptech.glide.Glide;
 
@@ -76,7 +83,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
     // UI Views
     private MaterialToolbar topAppBar;
     private TextView tvTotalEmployees, tvPresent, tvAbsent, tvLate;
-    private TextView tvAvgCheckIn, tvTotalHours, tvOnTimePercent;  // NEW
+    private TextView tvAvgCheckIn, tvTotalHours, tvOnTimePercent;
     private BarChart weeklyChart;
     private RecyclerView rvEmployees;
     private TextInputEditText etSearch;
@@ -97,6 +104,27 @@ public class AdminDashboardActivity extends AppCompatActivity {
     private static final int NOTIF_PERMISSION = 201;
     private boolean isChartAnimated = false;
 
+    // 🔥 ADDED: Missing variables for geofencing tracking (NOT USED IN ADMIN)
+    // These are here to prevent compilation errors, but admin doesn't track
+    private Handler trackingHandler;
+    private Runnable trackingRunnable;
+    private int snapshotCounter = 0;
+    private GeoFencingConfig geoFencingConfig;
+    private boolean geoFencingEnabled = false;
+    private boolean isCurrentlyCheckedIn = false;
+    private boolean locationReady = false;
+    private String employeeMobile = "";
+    private double currentLat = 0;
+    private double currentLng = 0;
+
+    // 🔥 ADDED: Missing timer variables
+    private Handler timeHandler;
+    private Runnable timeRunnable;
+
+    // 🔥 ADDED: Missing location variables
+    private FusedLocationProviderClient fusedLocationClient;
+    private LocationCallback locationCallback;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -104,14 +132,14 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         initializeViews();
 
-        if (!setupCompanySession()) return;   // ðŸ”¥ FIRST
+        if (!setupCompanySession()) return;
+
         // Set status bar color
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setStatusBarColor(getResources().getColor(R.color.blue_800));
         }
 
-
-        initializeFirebaseReferences();       // ðŸ”¥ SECOND
+        initializeFirebaseReferences();
 
         setupToolbar();
         setupDrawer();
@@ -129,7 +157,39 @@ public class AdminDashboardActivity extends AppCompatActivity {
         setupWeeklyChart();
         fetchWeeklyData();
         fetchPendingNotifications();
+    }
 
+    // 🔥 ADDED: Missing method getTodayDate()
+    private String getTodayDate() {
+        return new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+    }
+
+    // 🔥 ADDED: Dummy tracking methods (Admin doesn't need these, but they're called in the code)
+    private void startLocationTracking() {
+        // Admin dashboard doesn't need location tracking
+        // This method is here only to prevent compilation errors
+        Log.d("AdminDashboard", "Location tracking not needed for admin");
+    }
+
+    private void stopLocationTracking() {
+        if (trackingHandler != null && trackingRunnable != null) {
+            trackingHandler.removeCallbacks(trackingRunnable);
+            trackingHandler = null;
+            trackingRunnable = null;
+            snapshotCounter = 0;
+            Log.d("LocationTracking", "Stopped periodic tracking");
+        }
+    }
+
+    private void saveLocationSnapshot() {
+        // Admin doesn't save location snapshots
+        Log.d("AdminDashboard", "Location snapshot not needed for admin");
+    }
+
+    // 🔥 ADDED: Dummy stopWorkTimer method
+    private void stopWorkTimer() {
+        // Admin doesn't need work timer
+        Log.d("AdminDashboard", "Work timer not needed for admin");
     }
 
     private void fetchPendingNotifications() {
@@ -154,7 +214,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
                                 notifications.add(new NotificationData(title, body));
                             }
 
-                            // Mark as delivered
                             notifSnap.getRef().child("delivered").setValue(true);
                         }
 
@@ -164,9 +223,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        // Handle error if needed
-                    }
+                    public void onCancelled(@NonNull DatabaseError error) {}
                 });
     }
 
@@ -176,7 +233,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
 
         LinearLayout container = dialogView.findViewById(R.id.notificationsContainer);
 
-        // Dynamically add each notification
         for (NotificationData notif : notifications) {
             View itemView = getLayoutInflater()
                     .inflate(R.layout.notification_item, container, false);
@@ -195,14 +251,12 @@ public class AdminDashboardActivity extends AppCompatActivity {
                 .setCancelable(false)
                 .create();
 
-        // Handle dismiss button
         TextView btnDismiss = dialogView.findViewById(R.id.btnDismiss);
         btnDismiss.setOnClickListener(v -> dialog.dismiss());
 
         dialog.show();
     }
 
-    // Helper class to hold notification data
     private static class NotificationData {
         String title;
         String body;
@@ -265,7 +319,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
         tvLate = findViewById(R.id.tvLate);
         tvToolbarTitle = findViewById(R.id.tvToolbarTitle);
 
-        // NEW: Quick stats
         tvAvgCheckIn = findViewById(R.id.tvAvgCheckIn);
         tvTotalHours = findViewById(R.id.tvTotalHours);
         tvOnTimePercent = findViewById(R.id.tvOnTimePercent);
@@ -285,13 +338,9 @@ public class AdminDashboardActivity extends AppCompatActivity {
         fabAddEmployee = findViewById(R.id.fabAddEmployee);
     }
 
-    // ==================== NEW: WEEKLY CHART SETUP ====================
-
     private void setupWeeklyChart() {
-
         weeklyChart.setHighlightPerTapEnabled(false);
         weeklyChart.setHighlightPerDragEnabled(false);
-
         weeklyChart.getDescription().setEnabled(false);
         weeklyChart.setTouchEnabled(true);
         weeklyChart.setDragEnabled(true);
@@ -300,8 +349,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
         weeklyChart.setDrawGridBackground(false);
         weeklyChart.setExtraOffsets(5, 10, 5, 10);
 
-
-        // X-Axis (same as before, but adjust for bars)
         XAxis xAxis = weeklyChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setGranularity(1f);
@@ -316,33 +363,26 @@ public class AdminDashboardActivity extends AppCompatActivity {
             }
         });
 
-        // Left Y-Axis
         YAxis leftAxis = weeklyChart.getAxisLeft();
         leftAxis.setDrawGridLines(true);
         leftAxis.setGridColor(Color.parseColor("#E0E0E0"));
         leftAxis.setTextColor(Color.parseColor("#757575"));
         leftAxis.setAxisMinimum(0f);
 
-        // Right Y-Axis (disabled)
         weeklyChart.getAxisRight().setEnabled(false);
-
-        // Legend
         weeklyChart.getLegend().setEnabled(true);
         weeklyChart.getLegend().setTextColor(Color.parseColor("#424242"));
-
-        // Bar-specific: Make bars grouped or stacked
-        weeklyChart.setFitBars(true);  // NEW: Fits bars to the chart
+        weeklyChart.setFitBars(true);
     }
+
     private void fetchWeeklyData() {
         Calendar cal = Calendar.getInstance();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
 
-        // 🔥 STEP 1: Move calendar to Monday of current week
         cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
 
         List<String> dates = new ArrayList<>();
 
-        // 🔥 STEP 2: Generate Monday → Sunday
         for (int i = 0; i < 7; i++) {
             dates.add(sdf.format(cal.getTime()));
             cal.add(Calendar.DAY_OF_YEAR, 1);
@@ -399,40 +439,27 @@ public class AdminDashboardActivity extends AppCompatActivity {
     }
 
     private void updateWeeklyChart(List<BarEntry> presentEntries, List<BarEntry> absentEntries) {
-        // Present bars (Green)
         BarDataSet presentDataSet = new BarDataSet(presentEntries, "Present");
         presentDataSet.setColor(Color.parseColor("#4CAF50"));
         presentDataSet.setValueTextSize(10f);
 
-        // Absent bars (Red)
         BarDataSet absentDataSet = new BarDataSet(absentEntries, "Absent");
         absentDataSet.setColor(Color.parseColor("#F44336"));
         absentDataSet.setValueTextSize(10f);
 
-        // Combine into BarData (group bars side-by-side)
         BarData barData = new BarData(presentDataSet, absentDataSet);
-//        barData.setBarWidth(0.4f);  // NEW: Set bar width
         barData.setBarWidth(0.38f);
 
         weeklyChart.setData(barData);
-
-        // Group bars with space between days
-//        weeklyChart.groupBars(0f, 0.1f, 0.02f);  // NEW: Groups Present/Absent bars per day
         weeklyChart.groupBars(0f, 0.12f, 0.04f);
-
-//        weeklyChart.animateY(1000);  // Change to Y animation for bars
-        weeklyChart.animateXY(
-                700,   // X axis
-                1200   // Y axis (bars grow up)
-        );
-
+        weeklyChart.animateXY(700, 1200);
         weeklyChart.invalidate();
+
         if (!isChartAnimated) {
             weeklyChart.animateY(1200);
             isChartAnimated = true;
         }
     }
-    // ==================== NEW: QUICK STATS ====================
 
     private void calculateQuickStats() {
         String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
@@ -460,9 +487,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
                     if (checkInTime != null && !checkInTime.isEmpty()) {
                         totalCheckIns++;
 
-                        // Calculate average check-in time
                         try {
-                            // checkInTime example: "09:39 AM"
                             SimpleDateFormat sdf = new SimpleDateFormat("hh:mm a", Locale.getDefault());
                             Date date = sdf.parse(checkInTime);
 
@@ -470,7 +495,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
                                 Calendar calendar = Calendar.getInstance();
                                 calendar.setTime(date);
 
-                                int hours = calendar.get(Calendar.HOUR_OF_DAY); // 0â€“23
+                                int hours = calendar.get(Calendar.HOUR_OF_DAY);
                                 int minutes = calendar.get(Calendar.MINUTE);
 
                                 totalMinutes += (hours * 60 + minutes);
@@ -479,8 +504,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
 
-
-                        // Calculate total hours
                         if (totalHoursStr != null && totalHoursStr.contains("h")) {
                             try {
                                 totalHoursStr = totalHoursStr.replace("h", "").trim();
@@ -488,25 +511,17 @@ public class AdminDashboardActivity extends AppCompatActivity {
                             } catch (Exception ignored) {}
                         }
 
-
-
-                        // Count on-time arrivals
-                        if ("On Time".equalsIgnoreCase(lateStatus)
-                                || lateStatus == null
-                                || lateStatus.isEmpty()) {
+                        if ("On Time".equalsIgnoreCase(lateStatus) || lateStatus == null || lateStatus.isEmpty()) {
                             onTimeCount++;
                         }
-
                     }
                 }
 
-                // Update UI
                 if (totalCheckIns > 0) {
                     int avgMinutes = totalMinutes / totalCheckIns;
                     int avgHours = avgMinutes / 60;
                     int avgMins = avgMinutes % 60;
                     tvAvgCheckIn.setText(String.format(Locale.getDefault(), "%02d:%02d", avgHours, avgMins));
-
                     tvTotalHours.setText(String.format(Locale.getDefault(), "%.1fh", totalHours));
 
                     int onTimePercent = (onTimeCount * 100) / totalCheckIns;
@@ -522,8 +537,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
-
-    // ==================== EXISTING CODE ====================
 
     private void setupSearchView() {
         etSearch.addTextChangedListener(new TextWatcher() {
@@ -579,7 +592,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
             }
             else if (id == R.id.nav_employees) intent = new Intent(this, EmployeeListActivity.class);
             else if (id == R.id.nav_departments) intent = new Intent(this, DepartmentActivity.class);
-            else if (id == R.id.nav_shifts) intent = new Intent(this, ShiftActivity.class);
+            else if (id == R.id.nav_shifts) intent = new Intent(this, GeoFencingSettingsActivity.class);
             else if (id == R.id.nav_attendance) intent = new Intent(this, AllAttendanceActivity.class);
             else if (id == R.id.nav_leaves) intent = new Intent(this, AdminLeaveListActivity.class);
             else if (id == R.id.nav_reports) intent = new Intent(this, ReportsActivity.class);
@@ -613,6 +626,50 @@ public class AdminDashboardActivity extends AppCompatActivity {
         updateNavHeader();
     }
 
+    private boolean getDefaultGeoFencingRequirement(String role) {
+        if (role == null) return true;
+
+        String roleLower = role.toLowerCase();
+
+        // Field roles (don't require geo-fencing)
+        if (roleLower.contains("field") ||
+                roleLower.contains("sales") ||
+                roleLower.contains("delivery") ||
+                roleLower.contains("driver") ||
+                roleLower.contains("site") ||
+                roleLower.contains("technician") ||
+                roleLower.contains("marketing") ||
+                roleLower.contains("service") ||
+                roleLower.contains("install")) {
+            return false;
+        }
+
+        // Office roles (require geo-fencing)
+        return true;
+    }
+    // Call this once from AdminActivity or similar
+    private void migrateExistingEmployees() {
+        employeesRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                int updated = 0;
+                for (DataSnapshot empSnap : snapshot.getChildren()) {
+                    DataSnapshot info = empSnap.child("info");
+                    if (!info.child("requiresGeoFencing").exists()) {
+                        String role = info.child("employeeRole").getValue(String.class);
+                        boolean defaultValue = getDefaultGeoFencingRequirement(role);
+
+                        info.getRef().child("requiresGeoFencing").setValue(defaultValue);
+                        updated++;
+                    }
+                }
+                Log.d("MIGRATION", "Updated " + updated + " employees");
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
     private void checkLeaveRequests() {
         FirebaseDatabase.getInstance()
                 .getReference("Companies")
@@ -789,7 +846,6 @@ public class AdminDashboardActivity extends AppCompatActivity {
         }
     }
 
-
     private void fetchEmployeeList() {
         String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
         FirebaseDatabase.getInstance().getReference("Companies").child(companyKey)
@@ -961,6 +1017,19 @@ public class AdminDashboardActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         fetchAllData();
-        fetchWeeklyData();  // NEW
+        fetchWeeklyData();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (timeHandler != null && timeRunnable != null) {
+            timeHandler.removeCallbacks(timeRunnable);
+        }
+        stopWorkTimer();
+        stopLocationTracking();
+        if (fusedLocationClient != null && locationCallback != null) {
+            fusedLocationClient.removeLocationUpdates(locationCallback);
+        }
     }
 }

@@ -339,6 +339,50 @@
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
 
+                    <!-- Geo-Fencing Requirement -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        app:cardCornerRadius="8dp"
+                        android:backgroundTint="@color/white"
+                        app:cardElevation="0dp"
+                        app:strokeColor="#3F51B5"
+                        app:strokeWidth="1dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="16dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="📍 Attendance Location Setting"
+                                android:textSize="15sp"
+                                android:textStyle="bold"
+                                android:layout_marginBottom="8dp" />
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial
+                                android:id="@+id/switchRequireGeoFencing"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Require Office Location Attendance"
+                                android:textSize="14sp"
+                                app:switchPadding="8dp" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="If enabled, employee must be within office radius to check in/out"
+                                android:textSize="12sp"
+                                android:textColor="#757575"
+                                android:layout_marginTop="4dp" />
+
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
                     <!-- Weekly Holiday Spinner -->
                     <com.google.android.material.card.MaterialCardView
                         android:layout_width="match_parent"

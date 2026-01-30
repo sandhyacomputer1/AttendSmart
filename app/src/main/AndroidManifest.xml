@@ -34,6 +34,16 @@
         android:theme="@style/Theme.AttendSmart"
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
+
+
+        <!-- Inside <application> tag -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="YOUR_GOOGLE_MAPS_API_KEY" />
+
+        <activity
+            android:name=".Settings.GeoFencingSettingsActivity"
+            android:exported="false" />
         <activity
             android:name=".Activities.SalaryPreviewActivity"
             android:exported="false" />

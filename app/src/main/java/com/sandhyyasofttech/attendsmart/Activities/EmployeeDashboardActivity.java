@@ -35,6 +35,12 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
+import android.location.Location;
+import android.location.LocationManager;
+import android.provider.Settings;
+
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
@@ -61,6 +67,7 @@ import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationAvailability;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
@@ -78,8 +85,10 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.sandhyyasofttech.attendsmart.Models.GeoFencingConfig;
 import com.sandhyyasofttech.attendsmart.R;
 import com.sandhyyasofttech.attendsmart.Registration.LoginActivity;
+import com.sandhyyasofttech.attendsmart.Utils.GeoFencingHelper;
 import com.sandhyyasofttech.attendsmart.Utils.PrefManager;
 
 import java.io.ByteArrayOutputStream;
@@ -95,9 +104,21 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-public class EmployeeDashboardActivity extends AppCompatActivity {
+public class
+
+
+
+EmployeeDashboardActivity extends AppCompatActivity {
 
     // UI Elements
+    // Add this with your other location variables
+
+    private float currentAccuracy = 0.0f;
+    private Handler trackingHandler;
+    private Runnable trackingRunnable;
+    private int snapshotCounter = 0;
+    private GeoFencingConfig geoFencingConfig;
+    private boolean geoFencingEnabled = false;
     private TextView tvWelcome, tvEmployeeName, tvCompany, tvRole, tvShift;
     private TextView tvTodayStatus, tvCurrentTime, tvLocation, tvWorkHours;
     private TextView tvCheckInTime, tvCheckOutTime;
@@ -161,7 +182,8 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
     // Timers
     private Handler timeHandler, workTimerHandler;
     private Runnable timeRunnable, workTimerRunnable;
-
+    // Add this with other employee data variables
+    private boolean requiresGeoFencing = true; // Default to true
     // Helper class
     private static class CheckInOutPair {
         String checkInTime;
@@ -186,6 +208,9 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
 
         initViews();
         setupFirebase();
+
+        loadGeoFencingConfig();  // ADD THIS LINE
+
         fetchCompanyName();
         setupLocation();
         requestLocationPermission();
@@ -516,6 +541,31 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                 .getReference().child("Companies").child(companyKey).child("attendance_photos");
     }
 
+    private void loadGeoFencingConfig() {
+        GeoFencingHelper.fetchGeoFencingConfig(companyKey,
+                new GeoFencingHelper.GeoFencingConfigCallback() {
+                    @Override
+                    public void onSuccess(GeoFencingConfig config) {
+                        geoFencingConfig = config;
+                        geoFencingEnabled = config.isEnabled();
+
+                        if (geoFencingEnabled) {
+                            Log.d("GeoFencing", "Geo-fencing is ENABLED");
+                            Log.d("GeoFencing", String.format("Office: %.6f, %.6f | Radius: %d m",
+                                    config.getOfficeLat(), config.getOfficeLng(),
+                                    config.getRadiusMeters()));
+                        } else {
+                            Log.d("GeoFencing", "Geo-fencing is DISABLED");
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(String error) {
+                        Log.e("GeoFencing", "Failed to load config: " + error);
+                        geoFencingEnabled = false;
+                    }
+                });
+    }
     private void fetchCompanyName() {
         FirebaseDatabase.getInstance()
                 .getReference("Companies")
@@ -565,11 +615,34 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                 if (location != null) {
                     currentLat = location.getLatitude();
                     currentLng = location.getLongitude();
-                    if (!locationReady) {
-                        locationReady = true;
-                        updateButtonStates();
+                    currentAccuracy = location.getAccuracy(); // Save the REAL accuracy
+
+                    Log.d("GeoFencing", "Location - Lat: " + currentLat +
+                            ", Lng: " + currentLng + ", Accuracy: " + currentAccuracy);
+
+                    // Only mark as ready if accuracy is acceptable
+                    if (currentAccuracy > 0 && currentAccuracy < 100) {
+                        if (!locationReady) {
+                            locationReady = true;
+                            updateButtonStates();
+                        }
+                        getAddressFromLatLng(currentLat, currentLng);
+                    } else {
+                        Log.w("GeoFencing", "Poor accuracy: " + currentAccuracy);
+                        if (currentAccuracy <= 0) {
+                            // Request better location
+                            requestFreshLocation();
+                        }
                     }
-                    getAddressFromLatLng(currentLat, currentLng);
+                }
+            }
+
+            @Override
+            public void onLocationAvailability(@NonNull LocationAvailability locationAvailability) {
+                super.onLocationAvailability(locationAvailability);
+                if (!locationAvailability.isLocationAvailable()) {
+                    Log.e("GeoFencing", "Location services became unavailable");
+//                    toatryCheckst("📍 Location services unavailable");
                 }
             }
         };
@@ -886,6 +959,16 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         });
     }
 
+    private String getCheckInMessage() {
+        if (!requiresGeoFencing) {
+            return "📸 Taking photo for check-in (Field employee)...";
+        } else if (firstCheckInTime == null) {
+            boolean isLate = isLateCheckIn(shiftStart, getCurrentTime());
+            return "📸 Taking photo for " + (isLate ? "Late" : "On Time") + " check-in...";
+        } else {
+            return "📸 Taking photo for check-in...";
+        }
+    }
     private boolean isHoliday(String dateStr, int[] weeklyHolidays) {
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
@@ -1322,6 +1405,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
 
 
     // Update updateLegend() - Better legend design
+
     private void updateLegend() {
         legendItemsContainer.removeAllViews();
 
@@ -1392,6 +1476,9 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                     if (email.equals(empEmail)) {
                         employeeMobile = emp.getKey();
                         employeeName = info.child("employeeName").getValue(String.class);
+
+                        Boolean requiresGeoFencingObj = info.child("requiresGeoFencing").getValue(Boolean.class);
+                        requiresGeoFencing = requiresGeoFencingObj != null ? requiresGeoFencingObj : true;
 
                         saveEmployeeFcmToken();
 
@@ -1742,6 +1829,70 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
             return;
         }
 
+
+        // MODIFY THIS SECTION - Conditional geo-fencing check
+        if (geoFencingEnabled && requiresGeoFencing && geoFencingConfig != null) {
+            // Apply geo-fencing only if employee requires it
+            // ... geo-fencing validation code ...
+        } else if (geoFencingEnabled && !requiresGeoFencing) {
+            // Field employee - show info message
+            toast("🌍 Field employee: Can check-in from any location");
+        }
+        // NEW: Geofencing validation
+        if (geoFencingEnabled && geoFencingConfig != null) {
+            Log.d("GeoFencingHelper", "GPS Accuracy: " + String.format("%.2f", currentAccuracy) +
+                    " meters (Threshold: " + geoFencingConfig.getAccuracyThreshold() + " meters)");
+
+            // Check if we have valid accuracy from GPS
+            if (currentAccuracy <= 0) {
+                Log.e("GeoFencingHelper", "Invalid accuracy: " + currentAccuracy);
+                toast("❌ GPS accuracy is 0. Please wait for GPS to stabilize.");
+
+                // Request fresh location to get better accuracy
+                requestFreshLocation();
+                return;
+            }
+
+            // Check if accuracy is acceptable
+            if (!GeoFencingHelper.isAccuracyAcceptable(currentAccuracy,
+                    geoFencingConfig.getAccuracyThreshold())) {
+                toast("❌ GPS accuracy too low (" + String.format("%.1f", currentAccuracy) +
+                        "m). Need < " + geoFencingConfig.getAccuracyThreshold() + "m");
+                return;
+            }
+
+            // Check if location coordinates are valid
+            if (!GeoFencingHelper.isLocationValid(currentLat, currentLng, currentAccuracy)) {
+                toast("❌ Invalid GPS coordinates.");
+                return;
+            }
+
+            // Check if inside geofence
+            boolean isInside = GeoFencingHelper.isInsideGeofence(
+                    currentLat, currentLng,
+                    geoFencingConfig.getOfficeLat(),
+                    geoFencingConfig.getOfficeLng(),
+                    geoFencingConfig.getRadiusMeters());
+
+            if (!isInside) {
+                float distance = GeoFencingHelper.calculateDistance(
+                        currentLat, currentLng,
+                        geoFencingConfig.getOfficeLat(),
+                        geoFencingConfig.getOfficeLng());
+
+                new androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setTitle("Outside Office Area")
+                        .setMessage("You are " + GeoFencingHelper.formatDistance(distance) +
+                                " from office.\n\nAllowed radius: " +
+                                geoFencingConfig.getRadiusMeters() + " meters" +
+                                "\n\nYou must be inside the office area to check-in.")
+                        .setPositiveButton("OK", null)
+                        .show();
+
+                return;
+            }
+        }
+
         String currentTime = getCurrentTime();
 
         if (firstCheckInTime == null) {
@@ -1781,10 +1932,58 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
             return;
         }
 
+        // Geofencing validation for check-out
+        if (geoFencingEnabled && geoFencingConfig != null) {
+            Log.d("GeoFencingHelper", "GPS Accuracy: " + String.format("%.2f", currentAccuracy) +
+                    " meters (Threshold: " + geoFencingConfig.getAccuracyThreshold() + " meters)");
+
+            if (currentAccuracy <= 0) {
+                Log.e("GeoFencingHelper", "Invalid accuracy: " + currentAccuracy);
+                toast("❌ GPS accuracy is 0. Please wait for GPS to stabilize.");
+                requestFreshLocation();
+                return;
+            }
+
+            if (!GeoFencingHelper.isAccuracyAcceptable(currentAccuracy,
+                    geoFencingConfig.getAccuracyThreshold())) {
+                toast("❌ GPS accuracy too low (" + String.format("%.1f", currentAccuracy) +
+                        "m). Need < " + geoFencingConfig.getAccuracyThreshold() + "m");
+                return;
+            }
+
+            if (!GeoFencingHelper.isLocationValid(currentLat, currentLng, currentAccuracy)) {
+                toast("❌ Invalid GPS coordinates.");
+                return;
+            }
+
+            boolean isInside = GeoFencingHelper.isInsideGeofence(
+                    currentLat, currentLng,
+                    geoFencingConfig.getOfficeLat(),
+                    geoFencingConfig.getOfficeLng(),
+                    geoFencingConfig.getRadiusMeters());
+
+            if (!isInside) {
+                float distance = GeoFencingHelper.calculateDistance(
+                        currentLat, currentLng,
+                        geoFencingConfig.getOfficeLat(),
+                        geoFencingConfig.getOfficeLng());
+
+                new androidx.appcompat.app.AlertDialog.Builder(this)
+                        .setTitle("Outside Office Area")
+                        .setMessage("You are " + GeoFencingHelper.formatDistance(distance) +
+                                " from office.\n\nAllowed radius: " +
+                                geoFencingConfig.getRadiusMeters() + " meters" +
+                                "\n\nYou must be inside the office area to check-out.")
+                        .setPositiveButton("OK", null)
+                        .show();
+
+                return;
+            }
+        }
+
         toast("📸 Taking photo for check-out...");
         openCamera("checkOut");
     }
-
     private boolean isInternetAvailable() {
         ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         return cm.getActiveNetworkInfo() != null && cm.getActiveNetworkInfo().isConnected();
@@ -1938,9 +2137,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                     saveAttendance(null, time);
                 });
     }
-
-
-
+    // Modify saveAttendance() to include geofencing data
     private void saveAttendance(String photoUrl, String time) {
         if (employeeMobile == null) {
             toast("Profile not loaded");
@@ -1950,14 +2147,37 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         String today = getTodayDate();
         DatabaseReference node = attendanceRef.child(today).child(employeeMobile);
 
+        // Calculate geofencing data
+        // Calculate geofencing data
+        float distance;
+        boolean insideGeofence;
+        float accuracy;
+
+        if (geoFencingEnabled && geoFencingConfig != null) {
+            distance = GeoFencingHelper.calculateDistance(
+                    currentLat, currentLng,
+                    geoFencingConfig.getOfficeLat(),
+                    geoFencingConfig.getOfficeLng());
+
+            insideGeofence = GeoFencingHelper.isInsideGeofence(
+                    currentLat, currentLng,
+                    geoFencingConfig.getOfficeLat(),
+                    geoFencingConfig.getOfficeLng(),
+                    geoFencingConfig.getRadiusMeters());
+
+            // Use the currentAccuracy from location updates
+            accuracy = currentAccuracy;
+        } else {
+            insideGeofence = true;
+            distance = 0;
+            accuracy = 0;
+        }
+
         node.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 String existingMarkedBy = snapshot.child("markedBy").getValue(String.class);
                 String existingFirstCheckIn = snapshot.child("checkInTime").getValue(String.class);
-                String existingLastCheckOut = snapshot.child("checkOutTime").getValue(String.class);
-                String existingStatus = snapshot.child("status").getValue(String.class);
-                String existingFinalStatus = snapshot.child("finalStatus").getValue(String.class);
 
                 if (pendingAction.equals("checkIn")) {
                     CheckInOutPair newPair = new CheckInOutPair(time);
@@ -1972,8 +2192,8 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
 
                     Map<String, Object> updates = new HashMap<>();
 
-                    final String checkInTimeForLambda = time;
-                    final boolean isFirstCheckIn = (existingFirstCheckIn == null || existingFirstCheckIn.isEmpty());
+                    final boolean isFirstCheckIn = (existingFirstCheckIn == null ||
+                            existingFirstCheckIn.isEmpty());
                     final boolean isAdminMarked = "Admin".equals(existingMarkedBy);
 
                     if (isFirstCheckIn) {
@@ -1983,6 +2203,11 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                         updates.put("checkInLat", currentLat);
                         updates.put("checkInLng", currentLng);
                         updates.put("checkInAddress", currentAddress);
+
+                        // NEW: Add geofencing data
+                        updates.put("checkInAccuracy", accuracy);
+                        updates.put("checkInDistance", distance);
+                        updates.put("checkInInsideGeofence", insideGeofence);
 
                         boolean isLate = isLateCheckIn(shiftStart, time);
                         lateStatus = isLate ? "Late" : "On Time";
@@ -2016,9 +2241,18 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                                 toastMessage += " (Session " + pairCount + ")";
                             }
 
-                            toast(toastMessage);
+                            if (geoFencingEnabled) {
+                                toastMessage += "\n" + GeoFencingHelper.formatDistance(distance) +
+                                        " from office";
+                            }
 
+                            toast(toastMessage);
                             startWorkTimer();
+
+                            // Start periodic tracking if enabled
+                            if (geoFencingEnabled && geoFencingConfig.isTrackingEnabled()) {
+                                startLocationTracking();
+                            }
 
                             new Handler().postDelayed(() -> {
                                 loadTodayAttendance();
@@ -2064,6 +2298,12 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                             updates.put("checkOutLat", currentLat);
                             updates.put("checkOutLng", currentLng);
                             updates.put("checkOutAddress", currentAddress);
+
+                            // NEW: Add geofencing data
+                            updates.put("checkOutAccuracy", accuracy);
+                            updates.put("checkOutDistance", distance);
+                            updates.put("checkOutInsideGeofence", insideGeofence);
+
                             updates.put("finalStatus", finalStatusCalc);
                             updates.put("status", displayStatus);
                             updates.put("totalMinutes", totalWorkedMinutes);
@@ -2099,9 +2339,14 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                                         toastMsg += "\n⚠️ Short by " + (shortBy/60) + "h " + (shortBy%60) + "m";
                                     }
 
-                                    toast(toastMsg);
+                                    if (geoFencingEnabled) {
+                                        toastMsg += "\n" + GeoFencingHelper.formatDistance(distance) +
+                                                " from office";
+                                    }
 
+                                    toast(toastMsg);
                                     stopWorkTimer();
+                                    stopLocationTracking(); // Stop tracking on checkout
 
                                     new Handler().postDelayed(() -> {
                                         loadTodayAttendance();
@@ -2125,9 +2370,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                 toast("❌ Save failed");
             }
         });
-    }
-
-    private void savePairsToDatabase(DatabaseReference node, Runnable onComplete) {
+    }    private void savePairsToDatabase(DatabaseReference node, Runnable onComplete) {
         DatabaseReference pairsRef = node.child("checkInOutPairs");
 
         pairsRef.removeValue().addOnSuccessListener(aVoid -> {
@@ -2316,6 +2559,13 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
     }
 
     private void getCurrentLocation() {
+        // Check if GPS is enabled
+        if (!isGpsEnabled()) {
+            toast("⚠️ Please enable GPS");
+            tvLocation.setText("GPS disabled");
+            return;
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
                     != PackageManager.PERMISSION_GRANTED) {
@@ -2323,21 +2573,120 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                         new String[]{Manifest.permission.POST_NOTIFICATIONS}, 201);
             }
         }
+
         fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
             if (location != null) {
                 currentLat = location.getLatitude();
                 currentLng = location.getLongitude();
-                locationReady = true;
-                getAddressFromLatLng(currentLat, currentLng);
+                float accuracy = location.getAccuracy();
+
+                Log.d("GeoFencing", "Location obtained - Lat: " + currentLat +
+                        ", Lng: " + currentLng + ", Accuracy: " + accuracy);
+
+                // Check if accuracy is valid
+                if (accuracy > 0) {
+                    locationReady = true;
+                    getAddressFromLatLng(currentLat, currentLng);
+                    updateButtonStates();
+                    toast("✓ GPS signal acquired (" + String.format("%.1f", accuracy) + "m accuracy)");
+                } else {
+                    // If accuracy is 0, try to get better location
+                    Log.w("GeoFencing", "GPS accuracy is 0.0, requesting fresh location...");
+                    toast("🔄 Getting better GPS signal...");
+                    requestFreshLocation();
+                }
+            } else {
+                Log.e("GeoFencing", "Location is null");
+                toast("📍 Waiting for GPS signal...");
             }
             startLocationUpdates();
-            updateButtonStates();
         }).addOnFailureListener(e -> {
-            toast("GPS Error");
+            Log.e("GeoFencing", "GPS Error: " + e.getMessage());
+            toast("⚠️ GPS Error: " + e.getMessage());
             startLocationUpdates();
         });
     }
 
+    private boolean isGpsEnabled() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+            return locationManager != null && locationManager.isLocationEnabled();
+        } else {
+            int locationMode = Settings.Secure.LOCATION_MODE_OFF;
+            try {
+                locationMode = Settings.Secure.getInt(getContentResolver(), Settings.Secure.LOCATION_MODE);
+            } catch (Settings.SettingNotFoundException e) {
+                e.printStackTrace();
+            }
+            return locationMode != Settings.Secure.LOCATION_MODE_OFF;
+        }
+    }
+    // Add this new method to request fresh location
+    private void requestFreshLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+
+        toast("🔄 Getting fresh GPS signal...");
+
+        // Create a high-accuracy one-time request
+        LocationRequest oneTimeRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000)
+                .setMinUpdateIntervalMillis(1000)
+                .setMaxUpdateDelayMillis(5000)
+                .setWaitForAccurateLocation(true)
+                .setMinUpdateDistanceMeters(0)
+                .build();
+
+        LocationCallback oneTimeCallback = new LocationCallback() {
+            @Override
+            public void onLocationResult(@NonNull LocationResult locationResult) {
+                Location location = locationResult.getLastLocation();
+                if (location != null) {
+                    currentLat = location.getLatitude();
+                    currentLng = location.getLongitude();
+                    currentAccuracy = location.getAccuracy(); // Update accuracy
+
+                    Log.d("FreshLocation", "Fresh location - Lat: " + currentLat +
+                            ", Lng: " + currentLng + ", Accuracy: " + currentAccuracy);
+
+                    if (currentAccuracy > 0 && currentAccuracy < 50) {
+                        locationReady = true;
+                        getAddressFromLatLng(currentLat, currentLng);
+                        updateButtonStates();
+                        toast("✓ GPS signal acquired (" +
+                                String.format("%.1f", currentAccuracy) + "m accuracy)");
+                    } else {
+                        Log.w("FreshLocation", "Accuracy still poor: " + currentAccuracy);
+                        toast("⚠️ GPS accuracy still " + String.format("%.1f", currentAccuracy) + "m");
+                    }
+                }
+
+                // Remove this callback after use
+                fusedLocationClient.removeLocationUpdates(this);
+            }
+
+            @Override
+            public void onLocationAvailability(@NonNull LocationAvailability locationAvailability) {
+                if (!locationAvailability.isLocationAvailable()) {
+                    Log.e("FreshLocation", "Location not available");
+                    toast("📍 Location services unavailable");
+                }
+            }
+        };
+
+        // Request fresh location
+        fusedLocationClient.requestLocationUpdates(oneTimeRequest, oneTimeCallback, null);
+
+        // Auto-remove callback after 10 seconds
+        new Handler().postDelayed(() -> {
+            try {
+                fusedLocationClient.removeLocationUpdates(oneTimeCallback);
+            } catch (Exception e) {
+                Log.e("FreshLocation", "Error removing callback: " + e.getMessage());
+            }
+        }, 10000);
+    }
     private void startLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) return;
@@ -2389,11 +2738,111 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         loadMonthlyAttendance();
     }
 
+    private void startLocationTracking() {
+        if (!geoFencingEnabled || !geoFencingConfig.isTrackingEnabled()) {
+            return;
+        }
+
+        stopLocationTracking(); // Stop any existing tracking
+
+        trackingHandler = new Handler();
+        trackingRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (isCurrentlyCheckedIn && locationReady) {
+                    saveLocationSnapshot();
+                }
+
+                if (trackingHandler != null && isCurrentlyCheckedIn) {
+                    trackingHandler.postDelayed(this, geoFencingConfig.getTrackingInterval());
+                }
+            }
+        };
+
+        // Start first snapshot after initial interval
+        trackingHandler.postDelayed(trackingRunnable, geoFencingConfig.getTrackingInterval());
+
+        Log.d("LocationTracking", "Started periodic tracking every " +
+                (geoFencingConfig.getTrackingInterval() / 60000) + " minutes");
+    }
+
+    // Stop tracking
+    private void stopLocationTracking() {
+        if (trackingHandler != null && trackingRunnable != null) {
+            trackingHandler.removeCallbacks(trackingRunnable);
+            trackingHandler = null;
+            trackingRunnable = null;
+            snapshotCounter = 0;
+            Log.d("LocationTracking", "Stopped periodic tracking");
+        }
+    }
+
+    // Save location snapshot
+    private void saveLocationSnapshot() {
+        if (!locationReady || employeeMobile == null) {
+            return;
+        }
+
+        String today = getTodayDate();
+        String timestamp = new SimpleDateFormat("h:mm a", Locale.ENGLISH).format(new Date());
+
+        float distance;
+        boolean insideGeofence;
+        float accuracy = 0;
+
+        if (geoFencingConfig != null) {
+            distance = GeoFencingHelper.calculateDistance(
+                    currentLat, currentLng,
+                    geoFencingConfig.getOfficeLat(),
+                    geoFencingConfig.getOfficeLng());
+
+            insideGeofence = GeoFencingHelper.isInsideGeofence(
+                    currentLat, currentLng,
+                    geoFencingConfig.getOfficeLat(),
+                    geoFencingConfig.getOfficeLng(),
+                    geoFencingConfig.getRadiusMeters());
+
+            Location location = new Location("");
+            location.setLatitude(currentLat);
+            location.setLongitude(currentLng);
+            accuracy = location.getAccuracy();
+        } else {
+            insideGeofence = true;
+            distance = 0;
+        }
+
+        snapshotCounter++;
+
+        Map<String, Object> snapshotData = new HashMap<>();
+        snapshotData.put("timestamp", timestamp);
+        snapshotData.put("lat", currentLat);
+        snapshotData.put("lng", currentLng);
+        snapshotData.put("accuracy", accuracy);
+        snapshotData.put("distance", distance);
+        snapshotData.put("insideGeofence", insideGeofence);
+
+        attendanceRef.child(today)
+                .child(employeeMobile)
+                .child("locationSnapshots")
+                .child("snapshot_" + snapshotCounter)
+                .setValue(snapshotData)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("LocationTracking", "Snapshot saved: " + timestamp +
+                            " | Distance: " + String.format("%.1f", distance) + "m" +
+                            " | Inside: " + insideGeofence);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("LocationTracking", "Failed to save snapshot: " + e.getMessage());
+                });
+    }
+
+    // Modify onDestroy() to stop tracking
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if (timeHandler != null) timeHandler.removeCallbacks(timeRunnable);
         stopWorkTimer();
+        stopLocationTracking(); // ADD THIS LINE
         if (fusedLocationClient != null && locationCallback != null) {
             fusedLocationClient.removeLocationUpdates(locationCallback);
         }

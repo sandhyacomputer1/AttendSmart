@@ -17,6 +17,7 @@ public class PrefManager {
         editor = prefs.edit();
     }
 
+
     // ==================== COMPANY INFO ====================
 
     public void setCompanyKey(String companyKey) {

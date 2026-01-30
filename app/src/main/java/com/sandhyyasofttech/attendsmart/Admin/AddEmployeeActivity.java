@@ -18,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -57,6 +58,12 @@ public class AddEmployeeActivity extends AppCompatActivity {
     private String joiningDate = "";
     private Calendar joiningCalendar;
 
+    // Add this with other UI variables
+    private SwitchMaterial switchRequireGeoFencing;
+
+    // Add this with other selected values
+    private boolean requiresGeoFencing = true; // Default true
+
     // Data Lists
     private ArrayList<String> departmentsList = new ArrayList<>();
     private ArrayList<String> shiftsList = new ArrayList<>();
@@ -84,6 +91,8 @@ public class AddEmployeeActivity extends AppCompatActivity {
         loadDepartments();
         loadShifts();
         setupClickListeners();
+        setupListeners();  // ADD THIS LINE
+
         checkEditMode();
         if (!isEditMode) {
             generateEmployeeId();
@@ -91,7 +100,87 @@ public class AddEmployeeActivity extends AppCompatActivity {
 
     }
 
+    private void setupListeners() {
+        // ... existing listeners ...
 
+        // Set smart default when role changes
+        spinnerRole.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                selectedRole = parent.getItemAtPosition(position).toString();
+
+                // Auto-set geo-fencing based on role
+                boolean defaultRequirement = getDefaultGeoFencingRequirement(selectedRole);
+                switchRequireGeoFencing.setChecked(defaultRequirement);
+                requiresGeoFencing = defaultRequirement;
+
+                // Show tooltip based on setting
+                if (defaultRequirement) {
+                    Toast.makeText(AddEmployeeActivity.this, "📍 Office-based attendance required", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(AddEmployeeActivity.this, "🌍 Field-based attendance allowed", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        // Listen to switch changes
+        switchRequireGeoFencing.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            requiresGeoFencing = isChecked;
+        });
+    }
+
+
+    // Temporary: Add field to existing employees (run once)
+    private void updateExistingEmployeesWithGeoFencingField() {
+        employeesRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot empSnap : snapshot.getChildren()) {
+                    String mobile = empSnap.getKey();
+                    DatabaseReference empRef = employeesRef.child(mobile).child("info");
+
+                    // Check if field exists
+                    if (!empSnap.child("info").child("requiresGeoFencing").exists()) {
+                        // Set smart default based on role
+                        String role = empSnap.child("info").child("employeeRole").getValue(String.class);
+                        boolean defaultValue = getDefaultGeoFencingRequirement(role);
+
+                        empRef.child("requiresGeoFencing").setValue(defaultValue)
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d("DB_UPDATE", "Updated " + mobile + " with requiresGeoFencing: " + defaultValue);
+                                });
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+    private boolean getDefaultGeoFencingRequirement(String role) {
+        if (role == null) return true;
+
+        String roleLower = role.toLowerCase();
+
+        // Field roles (don't require geo-fencing)
+        if (roleLower.contains("field") ||
+                roleLower.contains("sales") ||
+                roleLower.contains("delivery") ||
+                roleLower.contains("driver") ||
+                roleLower.contains("site") ||
+                roleLower.contains("technician") ||
+                roleLower.contains("marketing") ||
+                roleLower.contains("service") ||
+                roleLower.contains("install")) {
+            return false;
+        }
+
+        // Office roles (require geo-fencing)
+        return true;
+    }
     private void checkEditMode() {
         EmployeeModel existingEmployee = (EmployeeModel) getIntent().getSerializableExtra("employee");
         isEditMode = getIntent().getStringExtra("mode") != null &&
@@ -133,6 +222,10 @@ public class AddEmployeeActivity extends AppCompatActivity {
         // Load departments and shifts first, then set selections
         loadDepartmentsForEdit(employee.getEmployeeDepartment());
         loadShiftsForEdit(employee.getEmployeeShift());
+
+        requiresGeoFencing = employee.isRequiresGeoFencing();
+        switchRequireGeoFencing.setChecked(requiresGeoFencing);
+
     }
     private void setSpinnerSelection(Spinner spinner, String value, String defaultValue) {
         ArrayAdapter<?> adapter = (ArrayAdapter<?>) spinner.getAdapter();
@@ -223,6 +316,9 @@ public class AddEmployeeActivity extends AppCompatActivity {
 
     private void initializeViews() {
         toolbar = findViewById(R.id.toolbar);
+
+        switchRequireGeoFencing = findViewById(R.id.switchRequireGeoFencing);
+
 
         // Basic Info
         etEmpName = findViewById(R.id.etEmpName);
@@ -641,6 +737,7 @@ public class AddEmployeeActivity extends AppCompatActivity {
         employeeInfo.put("joinDate", joiningDate);
         employeeInfo.put("employeeStatus", "ACTIVE");
         employeeInfo.put("employeeId", employeeId);
+        employeeInfo.put("requiresGeoFencing", requiresGeoFencing);
 
         // Password handling
         if (!isEditMode || !TextUtils.isEmpty(password)) {
