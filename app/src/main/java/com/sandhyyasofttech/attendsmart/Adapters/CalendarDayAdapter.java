@@ -315,10 +315,10 @@ public class CalendarDayAdapter extends RecyclerView.Adapter<CalendarDayAdapter.
         // ✅ Status-based coloring
         switch (day.status) {
             case "Holiday":
-                // HOLIDAY (from attendance) - Purple
-                indicatorColor = Color.parseColor("#9C27B0"); // Purple indicator
-                bgColor = Color.parseColor("#F3E5F5"); // Very light purple background
-                textColor = Color.parseColor("#7B1FA2"); // Dark purple text
+                // WEEKLY HOLIDAY - Black/Gray
+                indicatorColor = Color.parseColor("#424242"); // Dark gray/black indicator
+                bgColor = Color.parseColor("#F5F5F5"); // Light gray background
+                textColor = Color.parseColor("#212121"); // Black text
                 break;
 
             case "Weekly Holiday":

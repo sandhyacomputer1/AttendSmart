@@ -557,7 +557,7 @@ public class AdminEmployeeAttendanceActivity extends AppCompatActivity {
                                 (finalStatus != null && finalStatus.equalsIgnoreCase("Holiday"));
 
                         if (isHoliday) {
-                            holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_purplee);
+                            holder.containerDay.setBackgroundResource(R.drawable.calendar_bg_orange);
                         }
                         // 2. Half Day = Blue
                         else if (status != null && status.equalsIgnoreCase("Half Day")) {
