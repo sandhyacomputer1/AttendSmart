@@ -54,7 +54,7 @@ public class SettingsActivity extends AppCompatActivity {
     private View cardAttendanceReport;
     private View cardApplyLeave;
     private View cardEmployment;
-    private View cardNotifications;
+    private View cardNotifications,carddocument;
     private View cardMyLeaves;
     private View cardMySalary;
     private View cardLogout;
@@ -106,7 +106,7 @@ public class SettingsActivity extends AppCompatActivity {
         cardMySalary = findViewById(R.id.cardMySalary);
         cardNotifications = findViewById(R.id.cardNotifications);
         cardLogout = findViewById(R.id.cardLogout);
-
+        carddocument  = findViewById(R.id.carddocument);
         cardAddTodaysWork = findViewById(R.id.cardAddTodaysWork);
         cardViewWork = findViewById(R.id.cardViewWork);
     }
@@ -375,6 +375,12 @@ public class SettingsActivity extends AppCompatActivity {
         if (cardMySalary != null) {
             cardMySalary.setOnClickListener(v -> {
                 Intent intent = new Intent(SettingsActivity.this, EmployeeSalaryListActivity.class);
+                startActivity(intent);
+            });
+        }
+        if (carddocument != null) {
+            carddocument.setOnClickListener(v -> {
+                Intent intent = new Intent(SettingsActivity.this, EmployeeDocumentActivity.class);
                 startActivity(intent);
             });
         }

@@ -4,7 +4,11 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -23,6 +27,7 @@ import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.database.DataSnapshot;
@@ -50,6 +55,7 @@ public class GeoFencingSettingsActivity extends AppCompatActivity
     private Button btnSetCurrentLocation, btnSave, btnReset;
     private GoogleMap googleMap;
     private Circle geofenceCircle;
+    private MaterialToolbar topAppBar;
 
     private DatabaseReference geoFencingRef;
     private FusedLocationProviderClient fusedLocationClient;
@@ -64,17 +70,33 @@ public class GeoFencingSettingsActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_geo_fencing_settings);
 
+        // Set status bar color
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = getWindow();
+            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+            window.setStatusBarColor(getResources().getColor(R.color.blue_800));
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                window.getDecorView().setSystemUiVisibility(
+                        window.getDecorView().getSystemUiVisibility() &
+                                ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+            }
+        }
+
         initViews();
         setupFirebase();
         setupMap();
         loadCurrentConfig();
         setupListeners();
+        setupToolbar();
     }
 
     private void initViews() {
         switchGeoFencing = findViewById(R.id.switchGeoFencing);
         switchTracking = findViewById(R.id.switchTracking);
         etRadius = findViewById(R.id.etRadius);
+        topAppBar = findViewById(R.id.toolbar);
+
         etAccuracy = findViewById(R.id.etAccuracy);
         etTrackingInterval = findViewById(R.id.etTrackingInterval);
         btnSetCurrentLocation = findViewById(R.id.btnSetCurrentLocation);
@@ -82,6 +104,9 @@ public class GeoFencingSettingsActivity extends AppCompatActivity
         btnReset = findViewById(R.id.btnReset);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+    }
+    private void setupToolbar() {
+        topAppBar.setNavigationOnClickListener(v -> finish());
     }
 
     private void setupFirebase() {

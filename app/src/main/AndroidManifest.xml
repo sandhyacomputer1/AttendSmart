@@ -40,7 +40,15 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="YOUR_GOOGLE_MAPS_API_KEY" />
-
+        <activity
+            android:name=".Activities.AdminDocumentsDashboardActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activities.AdminEmployeeDocumentsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Activities.EmployeeDocumentActivity"
+            android:exported="false" />
         <activity
             android:name=".Settings.GeoFencingSettingsActivity"
             android:exported="false" />

@@ -61,6 +61,14 @@
                 app:cardElevation="0dp"
                 app:strokeWidth="0dp"
                 app:cardBackgroundColor="@android:color/white">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:divider="@drawable/divider_horizontal"
+                    android:showDividers="middle">
+
+
 
                 <!-- Company Profile -->
                 <LinearLayout
@@ -78,7 +86,7 @@
                         android:layout_width="24dp"
                         android:layout_height="24dp"
                         android:src="@drawable/ic_business"
-                        app:tint="#007AFF" />
+                         />
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -109,6 +117,104 @@
                         android:layout_height="20dp"
                         android:src="@drawable/ic_arrow_forward"
                         app:tint="#C7C7CC" />
+                </LinearLayout>
+
+
+                <LinearLayout
+                    android:id="@+id/cardsetlocatopn"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="16dp"
+                    android:gravity="center_vertical"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:src="@drawable/img_5"
+                         />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="12dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Set Location"
+                            android:textSize="16sp"
+                            android:textColor="#000000"
+                            android:letterSpacing="-0.01" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Set Location For Check In-out"
+                            android:textSize="13sp"
+                            android:textColor="#8A8A8E"
+                            android:layout_marginTop="2dp" />
+                    </LinearLayout>
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_arrow_forward"
+                        app:tint="#C7C7CC" />
+                </LinearLayout>
+                    <LinearLayout
+                        android:id="@+id/carddocuments"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="16dp"
+                        android:gravity="center_vertical"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackground">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/img_4"
+                           />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="12dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="Documents"
+                                android:textSize="16sp"
+                                android:textColor="#000000"
+                                android:letterSpacing="-0.01" />
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="View-Export Documents"
+                                android:textSize="13sp"
+                                android:textColor="#8A8A8E"
+                                android:layout_marginTop="2dp" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_arrow_forward"
+                            app:tint="#C7C7CC" />
+                    </LinearLayout>
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -157,8 +263,8 @@
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
-                        android:src="@drawable/ic_generate_salary"
-                        app:tint="#007AFF" />
+                        android:src="@drawable/img_6"
+                         />
 
                     <LinearLayout
                         android:layout_width="0dp"
@@ -206,8 +312,8 @@
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
-                        android:src="@drawable/ic_generate_salary"
-                        app:tint="#007AFF" />
+                        android:src="@drawable/img_7"
+                        />
 
                     <LinearLayout
                         android:layout_width="0dp"

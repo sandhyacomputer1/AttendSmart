@@ -414,6 +414,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.sandhyyasofttech.attendsmart.Activities.AdminDocumentsDashboardActivity;
 import com.sandhyyasofttech.attendsmart.Activities.EmployeeSelectionActivity;
 import com.sandhyyasofttech.attendsmart.Activities.ExportDataActivity;
 import com.sandhyyasofttech.attendsmart.Activities.GenerateSalaryActivity;
@@ -431,7 +432,7 @@ public class SettingsActivity extends AppCompatActivity {
     private MaterialToolbar topAppBar;
     private SwitchMaterial switchAttendance, switchLeaveNotifications,
             switchAutoBackup, switchBiometric;
-    private LinearLayout cardCompanyProfile, cardChangePassword, cardExportData,salaryConfrigration,GenerateSalary,reports,
+    private LinearLayout cardCompanyProfile, cardChangePassword, cardExportData,salaryConfrigration,GenerateSalary,reports,cardsetlocatopn,carddocuments,
             cardClearCache, cardPrivacyPolicy, cardTerms;
     private TextView tvAppVersion;
     private MaterialButton btnLogout;
@@ -463,8 +464,11 @@ public class SettingsActivity extends AppCompatActivity {
         switchLeaveNotifications = findViewById(R.id.switchLeaveNotifications);
         switchAutoBackup = findViewById(R.id.switchAutoBackup);
         switchBiometric = findViewById(R.id.switchBiometric);
+        carddocuments = findViewById(R.id.carddocuments);
+
         salaryConfrigration = findViewById(R.id.salaryConfrigration);
         reports = findViewById(R.id.reports);
+        cardsetlocatopn=findViewById(R.id.cardsetlocatopn);
         cardCompanyProfile = findViewById(R.id.cardCompanyProfile);
         GenerateSalary= findViewById(R.id.GenerateSalary);
         cardChangePassword = findViewById(R.id.cardChangePassword);
@@ -594,6 +598,8 @@ public class SettingsActivity extends AppCompatActivity {
         reports.setOnClickListener(v -> openreport());
 
 
+        cardsetlocatopn.setOnClickListener(v -> cardsetlocatopn());
+        carddocuments.setOnClickListener(v -> carddocuments());
         // Change Password Click
         cardChangePassword.setOnClickListener(v -> showChangePasswordBottomSheet());
 
@@ -611,6 +617,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         // Logout Click
         btnLogout.setOnClickListener(v -> showLogoutDialog());
+
     }
 
     private void openCompanyProfile() {
@@ -618,6 +625,15 @@ public class SettingsActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+
+    private void cardsetlocatopn() {
+        Intent intent = new Intent(this, GeoFencingSettingsActivity.class);
+        startActivity(intent);
+    }
+    private void carddocuments() {
+        Intent intent = new Intent(this, AdminDocumentsDashboardActivity.class);
+        startActivity(intent);
+    }
     private void opengenerateSalary() {
         Intent intent = new Intent(this, GenerateSalaryActivity.class);
         startActivity(intent);

@@ -47,6 +47,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.messaging.FirebaseMessaging;
+import com.sandhyyasofttech.attendsmart.Activities.AdminDocumentsDashboardActivity;
 import com.sandhyyasofttech.attendsmart.Activities.AdminLeaveListActivity;
 import com.sandhyyasofttech.attendsmart.Activities.AdminTodayWorkActivity;
 import com.sandhyyasofttech.attendsmart.Activities.AllAttendanceActivity;
@@ -592,7 +593,7 @@ public class AdminDashboardActivity extends AppCompatActivity {
             }
             else if (id == R.id.nav_employees) intent = new Intent(this, EmployeeListActivity.class);
             else if (id == R.id.nav_departments) intent = new Intent(this, DepartmentActivity.class);
-            else if (id == R.id.nav_shifts) intent = new Intent(this, GeoFencingSettingsActivity.class);
+            else if (id == R.id.nav_shifts) intent = new Intent(this, ShiftActivity.class);
             else if (id == R.id.nav_attendance) intent = new Intent(this, AllAttendanceActivity.class);
             else if (id == R.id.nav_leaves) intent = new Intent(this, AdminLeaveListActivity.class);
             else if (id == R.id.nav_reports) intent = new Intent(this, ReportsActivity.class);

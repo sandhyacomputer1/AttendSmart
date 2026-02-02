@@ -13,12 +13,12 @@
             android:id="@+id/toolbar"
 
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/blue_800"
-            app:title="Geo-Fencing Settings"
-            app:titleTextColor="@android:color/white"
+            android:layout_height="55dp"
+            android:background="@drawable/gradient_header"
             app:navigationIcon="@drawable/ic_arrow_back"
-            app:navigationIconTint="@android:color/white" />
+            app:navigationIconTint="@android:color/white"
+            app:title="Geo-Fencing Settings"
+            app:titleTextColor="@android:color/white" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -31,6 +31,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:background="@color/white"
             android:orientation="vertical"
             android:padding="16dp">
 
@@ -45,6 +46,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@color/white"
                     android:orientation="vertical"
                     android:padding="16dp">
 
@@ -78,6 +80,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="300dp"
                 app:cardCornerRadius="12dp"
+                android:visibility="gone"
                 app:cardElevation="2dp"
                 android:layout_marginBottom="16dp">
 
@@ -109,6 +112,8 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
+                    android:background="@color/white"
+
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:padding="16dp">
@@ -171,6 +176,8 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@color/white"
+
                     android:orientation="vertical"
                     android:padding="16dp">
 
@@ -238,6 +245,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:backgroundTint="@color/blue_800"
                     android:text="Save Configuration"
                     android:textAllCaps="false"
                     android:layout_marginStart="8dp" />
