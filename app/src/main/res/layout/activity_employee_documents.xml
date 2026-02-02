@@ -16,8 +16,8 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="55dp"
-            android:background="@color/primary"
             app:title="My Documents"
+            android:background="@drawable/gradient_header"
             app:titleTextColor="@color/white" />
 
     </com.google.android.material.appbar.AppBarLayout>
