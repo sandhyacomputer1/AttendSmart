@@ -72,14 +72,34 @@
                     android:textColor="@color/text_secondary" />
             </LinearLayout>
 
-            <!-- Verified Badge -->
-            <ImageView
-                android:id="@+id/ivVerified"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:visibility="gone"
-                app:tint="@color/green"
-                tools:visibility="visible" />
+            <!-- Status Indicators -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <!-- Verified Badge -->
+                <ImageView
+                    android:id="@+id/ivVerified"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_verified"
+                    android:visibility="gone"
+                    app:tint="@color/green"
+                    tools:visibility="visible" />
+
+                <!-- Rejected Badge -->
+                <ImageView
+                    android:id="@+id/ivRejected"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_close"
+                    android:visibility="gone"
+                    app:tint="@color/red"
+                    android:layout_marginTop="4dp"
+                    tools:visibility="visible" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- Uploader Info -->
@@ -90,7 +110,37 @@
             android:text="By: John Doe"
             android:textSize="11sp"
             android:textColor="@color/text_secondary"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="8dp" />
+
+        <!-- Rejection Info Section -->
+        <LinearLayout
+            android:id="@+id/rejectionSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_rejection_section"
+            android:padding="8dp"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="❌ Rejected"
+                android:textSize="11sp"
+                android:textColor="@color/red"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/tvRejectionReason"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Reason: Document is not clear"
+                android:textSize="10sp"
+                android:textColor="@color/text_secondary" />
+        </LinearLayout>
 
         <!-- Action Buttons -->
         <LinearLayout
@@ -107,7 +157,10 @@
                 android:layout_marginEnd="4dp"
                 android:text="View"
                 android:textSize="11sp"
-                android:drawablePadding="4dp"
+                android:textAllCaps="false"
+                app:icon="@drawable/ic_view_salary"
+                app:iconSize="14dp"
+                app:iconPadding="4dp"
                 app:iconGravity="start"
                 app:cornerRadius="8dp"
                 style="@style/Widget.Material3.Button.OutlinedButton" />
@@ -120,10 +173,31 @@
                 android:layout_marginHorizontal="4dp"
                 android:text="Verify"
                 android:textSize="11sp"
-                android:drawablePadding="4dp"
+                android:textAllCaps="false"
+                app:icon="@drawable/ic_verified"
+                app:iconSize="14dp"
+                app:iconPadding="4dp"
                 app:iconGravity="start"
                 app:cornerRadius="8dp"
-                style="@style/Widget.Material3.Button.OutlinedButton" />
+                app:backgroundTint="@color/green"
+                style="@style/Widget.Material3.Button" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnReject"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="4dp"
+                android:text="Reject"
+                android:textSize="11sp"
+                android:textAllCaps="false"
+                app:icon="@drawable/ic_close"
+                app:iconSize="14dp"
+                app:iconPadding="4dp"
+                app:iconGravity="start"
+                app:cornerRadius="8dp"
+                app:backgroundTint="@color/orange"
+                style="@style/Widget.Material3.Button" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnDelete"
@@ -133,12 +207,14 @@
                 android:layout_marginStart="4dp"
                 android:text="Delete"
                 android:textSize="11sp"
-                android:drawableStart="@drawable/ic_delete"
-                android:drawablePadding="4dp"
+                android:textAllCaps="false"
+                app:icon="@drawable/ic_delete"
+                app:iconSize="14dp"
+                app:iconPadding="4dp"
                 app:iconGravity="start"
                 app:cornerRadius="8dp"
                 style="@style/Widget.Material3.Button.OutlinedButton"
-                app:backgroundTint="@color/red_light"
+                app:strokeColor="@color/red"
                 android:textColor="@color/red" />
         </LinearLayout>
 

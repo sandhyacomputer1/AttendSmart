@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="8dp"
@@ -40,8 +41,7 @@
                     android:layout_height="match_parent"
                     android:scaleType="centerCrop"
                     android:padding="10dp"
-                    android:src="@drawable/ic_description"
-                     />
+                    android:src="@drawable/ic_description" />
             </androidx.cardview.widget.CardView>
 
             <!-- Document Info -->
@@ -81,7 +81,32 @@
                         android:src="@drawable/ic_verified"
                         android:visibility="gone"
                         app:tint="@color/green"
-                        android:contentDescription="Verified" />
+                        android:contentDescription="Verified"
+                        tools:visibility="visible" />
+
+                    <!-- Rejected Badge -->
+                    <ImageView
+                        android:id="@+id/ivRejected"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_close"
+                        android:visibility="gone"
+                        app:tint="@color/red"
+                        android:layout_marginStart="4dp"
+                        android:contentDescription="Rejected"
+                        tools:visibility="visible" />
+
+                    <!-- Requested Badge -->
+                    <ImageView
+                        android:id="@+id/ivRequested"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_info"
+                        android:visibility="gone"
+                        app:tint="@color/orange"
+                        android:layout_marginStart="4dp"
+                        android:contentDescription="Requested"
+                        tools:visibility="visible" />
                 </LinearLayout>
 
                 <!-- Document Type Badge -->
@@ -92,7 +117,7 @@
                     android:text="Identity Proof"
                     android:textSize="10sp"
                     android:layout_margin="5dp"
-android:visibility="gone"
+                    android:visibility="gone"
                     android:textColor="@color/white"
                     android:background="@drawable/bg_doc_type_badge"
                     android:paddingHorizontal="8dp"
@@ -116,7 +141,6 @@ android:visibility="gone"
                         android:text="12 Jan 2025"
                         android:textSize="11sp"
                         android:layout_margin="5dp"
-
                         android:textColor="@color/text_secondary"
                         android:drawablePadding="4dp"
                         app:drawableTint="@color/text_secondary" />
@@ -127,7 +151,6 @@ android:visibility="gone"
                         android:layout_height="wrap_content"
                         android:text="2.5 MB"
                         android:layout_margin="5dp"
-
                         android:textSize="11sp"
                         android:textColor="@color/text_secondary"
                         android:drawableStart="@drawable/ic_file_size"
@@ -147,7 +170,8 @@ android:visibility="gone"
             android:padding="8dp"
             android:layout_marginTop="10dp"
             android:visibility="gone"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            tools:visibility="visible">
 
             <ImageView
                 android:layout_width="16dp"
@@ -164,6 +188,82 @@ android:visibility="gone"
                 android:text="Verified by Admin on 15 Jan 2025"
                 android:textSize="10sp"
                 android:textColor="@color/green"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Rejection Status Section -->
+        <LinearLayout
+            android:id="@+id/rejectionSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_rejection_section"
+            android:padding="8dp"
+            android:layout_marginTop="10dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_close"
+                    app:tint="@color/red" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="Document Rejected"
+                    android:textSize="11sp"
+                    android:textColor="@color/red"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvRejectionReason"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Reason: Document is not clear. Please reupload."
+                android:textSize="10sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+
+        <!-- Request Status Section -->
+        <LinearLayout
+            android:id="@+id/requestSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@drawable/bg_request_section"
+            android:padding="8dp"
+            android:layout_marginTop="10dp"
+            android:visibility="gone"
+            android:gravity="center_vertical"
+            tools:visibility="visible">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_info"
+                app:tint="@color/orange" />
+
+            <TextView
+                android:id="@+id/tvRequestInfo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="Requested by Admin"
+                android:textSize="10sp"
+                android:textColor="@color/orange"
                 android:textStyle="bold" />
         </LinearLayout>
 
