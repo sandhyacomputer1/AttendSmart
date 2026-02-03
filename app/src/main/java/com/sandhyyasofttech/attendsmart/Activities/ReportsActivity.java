@@ -139,7 +139,6 @@ public class ReportsActivity extends AppCompatActivity {
         footerPaint.setAntiAlias(true);
     }
 
-
     private void initViews() {
         tvTotalEmployees = findViewById(R.id.tvTotalEmployees);
         tvPresentCount = findViewById(R.id.tvPresentCount);
@@ -256,7 +255,6 @@ public class ReportsActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(v -> onBackPressed());
     }
 
-
     private void setupFirebase() {
         PrefManager pref = new PrefManager(this);
         companyKey = pref.getCompanyKey();
@@ -299,6 +297,7 @@ public class ReportsActivity extends AppCompatActivity {
                         String name = infoSnapshot.child("employeeName").getValue(String.class);
                         String email = infoSnapshot.child("employeeEmail").getValue(String.class);
                         String department = infoSnapshot.child("employeeDepartment").getValue(String.class);
+                        String weeklyHoliday = infoSnapshot.child("weeklyHoliday").getValue(String.class);
 
                         if (name != null && !name.trim().isEmpty()) {
                             EmployeeData emp = new EmployeeData();
@@ -306,6 +305,7 @@ public class ReportsActivity extends AppCompatActivity {
                             emp.name = name.trim();
                             emp.email = email;
                             emp.department = department;
+                            emp.weeklyHoliday = weeklyHoliday != null ? weeklyHoliday : "Sunday"; // Default
                             employeeDataMap.put(phone, emp);
                             total++;
                         }
@@ -397,192 +397,6 @@ public class ReportsActivity extends AppCompatActivity {
         }).start();
     }
 
-    private void fetchAttendanceData() {
-        databaseRef.child("attendance").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                final CountWrapper counts = new CountWrapper();
-                final MonthlyCountWrapper monthlyCounts = new MonthlyCountWrapper();
-
-                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-
-                attendanceRecords.clear();
-
-                // Track which employees were present on which dates
-                Map<String, Set<String>> employeeAttendanceByDate = new HashMap<>();
-
-                // First pass: Collect all attendance records that exist
-                Calendar currentDate = (Calendar) fromDate.clone();
-                while (!currentDate.after(toDate)) {
-                    String dateKey = dateFormat.format(currentDate.getTime());
-
-                    if (snapshot.hasChild(dateKey)) {
-                        DataSnapshot dateSnapshot = snapshot.child(dateKey);
-
-                        // Process each employee who has attendance on this date
-                        for (DataSnapshot empSnapshot : dateSnapshot.getChildren()) {
-                            String phone = empSnapshot.getKey();
-
-                            if (!employeeDataMap.containsKey(phone)) continue;
-
-                            // Track this employee as having attendance on this date
-                            if (!employeeAttendanceByDate.containsKey(dateKey)) {
-                                employeeAttendanceByDate.put(dateKey, new HashSet<>());
-                            }
-                            employeeAttendanceByDate.get(dateKey).add(phone);
-
-                            AttendanceRecord record = new AttendanceRecord();
-                            record.date = dateKey;
-                            record.phone = phone;
-
-                            EmployeeData empData = employeeDataMap.get(phone);
-                            record.employeeName = empData != null ? empData.name : "Unknown";
-
-                            // Get finalStatus and lateStatus
-                            String finalStatus = empSnapshot.child("finalStatus").getValue(String.class);
-                            String lateStatus = empSnapshot.child("lateStatus").getValue(String.class);
-
-                            record.checkInTime = empSnapshot.child("checkInTime").getValue(String.class);
-                            record.checkOutTime = empSnapshot.child("checkOutTime").getValue(String.class);
-                            record.markedBy = empSnapshot.child("markedBy").getValue(String.class);
-                            record.checkInAddress = empSnapshot.child("checkInAddress").getValue(String.class);
-
-                            // Display finalStatus as-is
-                            record.status = finalStatus;
-                            record.lateStatus = lateStatus;
-
-                            // ✅ COUNT EXISTING ATTENDANCE RECORDS
-                            if (finalStatus != null) {
-                                String statusLower = finalStatus.trim().toLowerCase();
-
-                                // ✅ Holiday - Skip (don't add to records)
-                                if (statusLower.equals("holiday")) {
-                                    continue; // Skip this record entirely
-                                }
-                                // ✅ Present
-                                else if (statusLower.equals("present")) {
-                                    counts.presentCount++;
-                                    record.status = "Present";
-                                }
-                                // ✅ Half Day
-                                else if (statusLower.equals("half day") || statusLower.equals("half-day")) {
-                                    counts.halfDayCount++;
-                                    record.status = "Half Day";
-                                }
-                            }
-
-                            // ✅ Late Status - Separate count
-                            if (lateStatus != null && lateStatus.trim().equalsIgnoreCase("late")) {
-                                counts.lateCount++;
-                            }
-
-                            // Add record to list (skip holidays)
-                            attendanceRecords.add(record);
-                        }
-                    }
-
-                    currentDate.add(Calendar.DAY_OF_MONTH, 1);
-                }
-
-                // ✅ SECOND PASS: COUNT ABSENT EMPLOYEES
-                // For each date in the range, count employees who don't have attendance
-                currentDate = (Calendar) fromDate.clone(); // Reset to start date
-
-                while (!currentDate.after(toDate)) {
-                    String dateKey = dateFormat.format(currentDate.getTime());
-
-                    // Skip weekends for absent counting (optional)
-                    int dayOfWeek = currentDate.get(Calendar.DAY_OF_WEEK);
-                    if (dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY) {
-                        currentDate.add(Calendar.DAY_OF_MONTH, 1);
-                        continue;
-                    }
-
-                    // Get employees who were present on this date
-                    Set<String> presentEmployeesOnThisDate = employeeAttendanceByDate.get(dateKey);
-                    if (presentEmployeesOnThisDate == null) {
-                        presentEmployeesOnThisDate = new HashSet<>();
-                    }
-
-                    // For each employee, check if they have attendance on this date
-                    for (Map.Entry<String, EmployeeData> entry : employeeDataMap.entrySet()) {
-                        String phone = entry.getKey();
-                        EmployeeData empData = entry.getValue();
-
-                        // If employee doesn't have attendance record for this date, they're absent
-                        if (!presentEmployeesOnThisDate.contains(phone)) {
-                            // ✅ CREATE ABSENT RECORD
-                            AttendanceRecord absentRecord = new AttendanceRecord();
-                            absentRecord.date = dateKey;
-                            absentRecord.phone = phone;
-                            absentRecord.employeeName = empData.name != null ? empData.name : "Unknown";
-                            absentRecord.status = "Absent";
-                            absentRecord.lateStatus = null;
-                            absentRecord.checkInTime = null;
-                            absentRecord.checkOutTime = null;
-                            absentRecord.markedBy = "System";
-                            absentRecord.checkInAddress = "Not Applicable";
-
-                            attendanceRecords.add(absentRecord);
-                            counts.absentCount++;
-                        }
-                    }
-
-                    currentDate.add(Calendar.DAY_OF_MONTH, 1);
-                }
-
-                // ✅ SORT records
-                Collections.sort(attendanceRecords, (a, b) -> {
-                    int dateCompare = a.date.compareTo(b.date);
-                    if (dateCompare != 0) return dateCompare;
-                    String nameA = a.employeeName != null ? a.employeeName : "";
-                    String nameB = b.employeeName != null ? b.employeeName : "";
-                    return nameA.compareToIgnoreCase(nameB);
-                });
-
-                // Calculate monthly summary
-                Map<String, EmployeeMonthlySummary> monthlySummary = calculateMonthlySummary();
-                monthlyCounts.totalEmployees = employeeDataMap.size();
-                monthlyCounts.workingDays = calculateWorkingDays(fromDate, toDate);
-
-                for (EmployeeMonthlySummary summary : monthlySummary.values()) {
-                    monthlyCounts.totalPresentDays += summary.presentDays;
-                    monthlyCounts.totalAbsentDays += summary.absentDays;
-                }
-
-                // Update UI
-                runOnUiThread(() -> {
-                    tvPresentCount.setText(String.valueOf(counts.presentCount));
-                    tvAbsentCount.setText(String.valueOf(counts.absentCount));
-                    tvLateCount.setText(String.valueOf(counts.lateCount));
-                    tvHalfDayCount.setText(String.valueOf(counts.halfDayCount));
-
-                    tvTotalEmployeesSummary.setText(String.valueOf(monthlyCounts.totalEmployees));
-                    tvWorkingDays.setText(String.valueOf(monthlyCounts.workingDays));
-                    tvTotalPresentDays.setText(String.valueOf(monthlyCounts.totalPresentDays));
-                    tvTotalAbsentDays.setText(String.valueOf(monthlyCounts.totalAbsentDays));
-
-                    // Generate PDF
-                    new Thread(() -> {
-                        if (selectedReportType == 0) {
-                            createDetailedPdf();
-                        } else {
-                            createMonthlySummaryPdf();
-                        }
-                    }).start();
-                });
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                runOnUiThread(() -> {
-                    progressDialog.dismiss();
-                    Toast.makeText(ReportsActivity.this,
-                            "Error loading attendance data", Toast.LENGTH_SHORT).show();
-                });
-            }
-        });
-    }
     private void createDetailedPdf() {
         try {
             PdfDocument pdfDocument = new PdfDocument();
@@ -959,69 +773,6 @@ public class ReportsActivity extends AppCompatActivity {
         }
     }
 
-
-    private Map<String, EmployeeMonthlySummary> calculateMonthlySummary() {
-        Map<String, EmployeeMonthlySummary> summaryMap = new HashMap<>();
-
-        // Initialize for all employees
-        for (Map.Entry<String, EmployeeData> entry : employeeDataMap.entrySet()) {
-            EmployeeMonthlySummary summary = new EmployeeMonthlySummary();
-            summary.employeeName = entry.getValue().name;
-            summary.phone = entry.getValue().phone;
-            summary.department = entry.getValue().department;
-            summary.totalWorkingDays = calculateWorkingDays(fromDate, toDate);
-            summary.presentDays = 0;
-            summary.absentDays = 0;
-            summary.lateDays = 0;
-            summary.halfDays = 0;
-
-            summaryMap.put(entry.getKey(), summary);
-        }
-
-        // ✅ Count from all attendance records (including system-generated absent records)
-        for (AttendanceRecord record : attendanceRecords) {
-            if (!summaryMap.containsKey(record.phone)) continue;
-
-            EmployeeMonthlySummary summary = summaryMap.get(record.phone);
-
-            // ✅ Count based on status
-            if (record.status != null) {
-                if (record.status.equals("Present")) {
-                    summary.presentDays++;
-                } else if (record.status.equals("Absent")) {
-                    summary.absentDays++;
-                } else if (record.status.equals("Half Day")) {
-                    summary.halfDays++;
-                }
-            }
-
-            // ✅ Count lateStatus separately
-            if (record.lateStatus != null && record.lateStatus.trim().equalsIgnoreCase("late")) {
-                summary.lateDays++;
-            }
-        }
-
-        return summaryMap;
-    }
-
-
-    private int calculateWorkingDays(Calendar start, Calendar end) {
-        int workingDays = 0;
-        Calendar current = (Calendar) start.clone();
-
-        while (!current.after(end)) {
-            int dayOfWeek = current.get(Calendar.DAY_OF_WEEK);
-            // Count only weekdays (Monday to Friday)
-            if (dayOfWeek != Calendar.SATURDAY && dayOfWeek != Calendar.SUNDAY) {
-                workingDays++;
-            }
-            current.add(Calendar.DAY_OF_MONTH, 1);
-        }
-
-        return workingDays;
-    }
-
-
     private int drawMonthlySummaryHeader(Canvas canvas, int yPosition) {
         // Draw blue background
         Paint headerBg = new Paint();
@@ -1057,6 +808,8 @@ public class ReportsActivity extends AppCompatActivity {
 
         return 90;
     }
+
+
     private int drawMonthlyReportInfo(Canvas canvas, int yPosition) {
         // Draw report period
         SimpleDateFormat displayFormat = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
@@ -1484,6 +1237,389 @@ public class ReportsActivity extends AppCompatActivity {
         }
     }
 
+
+    private void fetchAttendanceData() {
+        databaseRef.child("attendance").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot attendanceSnapshot) {
+                progressDialog.setMessage("Processing attendance data...");
+
+                // Clear all data
+                attendanceRecords.clear();
+
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+
+                // Map to track attendance by date and phone
+                Map<String, Map<String, AttendanceRecord>> dateEmployeeMap = new HashMap<>();
+
+                // 1. FIRST: Collect ALL existing attendance records from Firebase
+                Calendar currentDate = (Calendar) fromDate.clone();
+                while (!currentDate.after(toDate)) {
+                    String dateKey = dateFormat.format(currentDate.getTime());
+
+                    if (attendanceSnapshot.hasChild(dateKey)) {
+                        DataSnapshot dateSnapshot = attendanceSnapshot.child(dateKey);
+
+                        for (DataSnapshot empSnapshot : dateSnapshot.getChildren()) {
+                            String phone = empSnapshot.getKey();
+
+                            // Only process if employee exists
+                            if (employeeDataMap.containsKey(phone)) {
+                                AttendanceRecord record = createAttendanceRecord(empSnapshot, dateKey, phone);
+
+                                // Store in map for easy lookup
+                                if (!dateEmployeeMap.containsKey(dateKey)) {
+                                    dateEmployeeMap.put(dateKey, new HashMap<>());
+                                }
+                                dateEmployeeMap.get(dateKey).put(phone, record);
+
+                                attendanceRecords.add(record);
+                            }
+                        }
+                    }
+                    currentDate.add(Calendar.DAY_OF_MONTH, 1);
+                }
+
+                // 2. SECOND: For each employee, check each date in range
+                currentDate = (Calendar) fromDate.clone();
+
+                while (!currentDate.after(toDate)) {
+                    String dateKey = dateFormat.format(currentDate.getTime());
+
+                    for (Map.Entry<String, EmployeeData> empEntry : employeeDataMap.entrySet()) {
+                        String phone = empEntry.getKey();
+                        EmployeeData empData = empEntry.getValue();
+
+                        // Check if we already have a record for this employee on this date
+                        boolean hasRecord = dateEmployeeMap.containsKey(dateKey) &&
+                                dateEmployeeMap.get(dateKey).containsKey(phone);
+
+                        // If no record exists, check if we should create an absent record
+                        if (!hasRecord) {
+                            // Check if this is a working day for this employee
+                            String weeklyHoliday = empData.weeklyHoliday != null ? empData.weeklyHoliday : "Sunday";
+                            boolean isHoliday = isWeeklyHoliday(currentDate, weeklyHoliday);
+
+                            // Only create absent record if it's NOT a holiday
+                            if (!isHoliday) {
+                                AttendanceRecord absentRecord = createAbsentRecord(dateKey, phone, empData.name);
+
+                                // Add to collections
+                                if (!dateEmployeeMap.containsKey(dateKey)) {
+                                    dateEmployeeMap.put(dateKey, new HashMap<>());
+                                }
+                                dateEmployeeMap.get(dateKey).put(phone, absentRecord);
+                                attendanceRecords.add(absentRecord);
+                            }
+                        }
+                    }
+                    currentDate.add(Calendar.DAY_OF_MONTH, 1);
+                }
+
+                // 3. THIRD: COUNT ALL RECORDS - USING SAME LOGIC AS AdminEmployeeAttendanceActivity
+                CountWrapper counts = new CountWrapper();
+
+                for (AttendanceRecord record : attendanceRecords) {
+                    if (record.status != null) {
+                        String status = record.status.trim().toLowerCase();
+                        String lateStatus = record.lateStatus != null ? record.lateStatus.trim().toLowerCase() : "";
+
+                        // Skip holiday records completely (like your other activity does)
+                        if (status.contains("holiday") || status.contains("leave")) {
+                            continue;
+                        }
+
+                        // Check if it has check-in time or is marked as present/half day
+                        boolean hasCheckIn = record.checkInTime != null && !record.checkInTime.isEmpty();
+                        boolean countedPresent = false;
+
+                        // ✅ PRESENT (base condition) - SAME LOGIC
+                        if (hasCheckIn || status.contains("present") || status.contains("full") || status.contains("half")) {
+                            counts.presentCount++;
+                            countedPresent = true;
+                        }
+
+                        // ✅ HALF DAY (independent) - SAME LOGIC
+                        if (status.contains("half")) {
+                            counts.halfDayCount++;
+                        }
+
+                        // ✅ LATE (independent) - SAME LOGIC
+                        if ("late".equalsIgnoreCase(lateStatus) || status.contains("late")) {
+                            counts.lateCount++;
+                        }
+
+                        // ✅ ABSENT - SAME LOGIC
+                        // If no check-in & no present/half day status → ABSENT
+                        if (!countedPresent && (status.equals("absent") ||
+                                (record.checkInTime == null && !status.contains("half") && !status.contains("present")))) {
+                            counts.absentCount++;
+                        }
+                    }
+                }
+
+                // 4. Calculate monthly summary
+                Map<String, EmployeeMonthlySummary> monthlySummary = calculateMonthlySummary();
+                MonthlyCountWrapper monthlyCounts = new MonthlyCountWrapper();
+                monthlyCounts.totalEmployees = employeeDataMap.size();
+
+                // Calculate totals
+                int totalWorkingDays = 0;
+                for (EmployeeMonthlySummary summary : monthlySummary.values()) {
+                    monthlyCounts.totalPresentDays += summary.presentDays;
+                    monthlyCounts.totalAbsentDays += summary.absentDays;
+                    totalWorkingDays += summary.totalWorkingDays;
+                }
+
+                // For display, show average or total working days
+                monthlyCounts.workingDays = monthlySummary.isEmpty() ? 0 : totalWorkingDays;
+
+                // 5. Update UI
+                runOnUiThread(() -> {
+                    // Update detailed summary
+                    tvPresentCount.setText(String.valueOf(counts.presentCount));
+                    tvAbsentCount.setText(String.valueOf(counts.absentCount));
+                    tvLateCount.setText(String.valueOf(counts.lateCount));
+                    tvHalfDayCount.setText(String.valueOf(counts.halfDayCount));
+
+                    // Update monthly summary
+                    tvTotalEmployeesSummary.setText(String.valueOf(monthlyCounts.totalEmployees));
+                    tvWorkingDays.setText(String.valueOf(monthlyCounts.workingDays));
+                    tvTotalPresentDays.setText(String.valueOf(monthlyCounts.totalPresentDays));
+                    tvTotalAbsentDays.setText(String.valueOf(monthlyCounts.totalAbsentDays));
+
+                    // Debug logging
+                    Log.d("FINAL_COUNTS",
+                            "Employees: " + monthlyCounts.totalEmployees +
+                                    "\nPresent: " + counts.presentCount +
+                                    "\nAbsent: " + counts.absentCount +
+                                    "\nLate: " + counts.lateCount +
+                                    "\nHalfDay: " + counts.halfDayCount +
+                                    "\nTotalRecords: " + attendanceRecords.size());
+
+                    // Generate PDF
+                    new Thread(() -> {
+                        if (selectedReportType == 0) {
+                            createDetailedPdf();
+                        } else {
+                            createMonthlySummaryPdf();
+                        }
+                    }).start();
+
+                    progressDialog.dismiss();
+                });
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                runOnUiThread(() -> {
+                    progressDialog.dismiss();
+                    Toast.makeText(ReportsActivity.this,
+                            "Error loading attendance data",
+                            Toast.LENGTH_LONG).show();
+                });
+            }
+        });
+    }
+
+    private AttendanceRecord createAttendanceRecord(DataSnapshot empSnapshot, String dateKey, String phone) {
+        AttendanceRecord record = new AttendanceRecord();
+        record.date = dateKey;
+        record.phone = phone;
+
+        EmployeeData empData = employeeDataMap.get(phone);
+        record.employeeName = empData != null ? empData.name : "Unknown";
+
+        // Get basic fields
+        record.checkInTime = getStringValue(empSnapshot, "checkInTime");
+        record.checkOutTime = getStringValue(empSnapshot, "checkOutTime");
+        record.markedBy = getStringValue(empSnapshot, "markedBy");
+        record.checkInAddress = getStringValue(empSnapshot, "checkInAddress");
+        record.lateStatus = getStringValue(empSnapshot, "lateStatus");
+
+        // DETERMINE STATUS - THIS IS THE CRITICAL PART
+        String status = getStringValue(empSnapshot, "finalStatus");
+        if (status == null || status.isEmpty()) {
+            status = getStringValue(empSnapshot, "status");
+        }
+
+        // If still no status, check if there's check-in time
+        if ((status == null || status.isEmpty()) && record.checkInTime != null && !record.checkInTime.isEmpty()) {
+            status = "Present";
+        }
+
+        // Normalize status
+        if (status != null && !status.isEmpty()) {
+            String statusLower = status.trim().toLowerCase();
+
+            if (statusLower.equals("present") || statusLower.equals("late")) {
+                record.status = "Present";
+            } else if (statusLower.equals("absent")) {
+                record.status = "Absent";
+            } else if (statusLower.contains("half") || statusLower.equals("half day") || statusLower.equals("half-day")) {
+                record.status = "Half Day";
+            } else if (statusLower.equals("holiday") || statusLower.equals("leave")) {
+                record.status = "Holiday";
+            } else {
+                record.status = status; // Keep original
+            }
+        } else {
+            record.status = "Unknown";
+        }
+
+        return record;
+    }
+
+
+    private AttendanceRecord createAbsentRecord(String dateKey, String phone, String name) {
+        AttendanceRecord record = new AttendanceRecord();
+        record.date = dateKey;
+        record.phone = phone;
+        record.employeeName = name != null ? name : "Unknown";
+        record.status = "Absent";
+        record.lateStatus = null;
+        record.checkInTime = null;
+        record.checkOutTime = null;
+        record.markedBy = "System";
+        record.checkInAddress = "Not Applicable";
+        return record;
+    }
+
+
+    private Map<String, EmployeeMonthlySummary> calculateMonthlySummary() {
+        Map<String, EmployeeMonthlySummary> summaryMap = new HashMap<>();
+
+        if (employeeDataMap.isEmpty()) {
+            return summaryMap;
+        }
+
+        // Group attendance records by employee
+        Map<String, List<AttendanceRecord>> employeeRecords = new HashMap<>();
+        for (AttendanceRecord record : attendanceRecords) {
+            if (!employeeRecords.containsKey(record.phone)) {
+                employeeRecords.put(record.phone, new ArrayList<>());
+            }
+            employeeRecords.get(record.phone).add(record);
+        }
+
+        // Process each employee
+        for (Map.Entry<String, EmployeeData> empEntry : employeeDataMap.entrySet()) {
+            String phone = empEntry.getKey();
+            EmployeeData empData = empEntry.getValue();
+
+            EmployeeMonthlySummary summary = new EmployeeMonthlySummary();
+            summary.employeeName = empData.name;
+            summary.phone = phone;
+            summary.department = empData.department;
+
+            // Calculate working days for this employee
+            String weeklyHoliday = empData.weeklyHoliday != null ? empData.weeklyHoliday : "Sunday";
+            summary.totalWorkingDays = calculateWorkingDaysForEmployee(fromDate, toDate, weeklyHoliday);
+
+            // Initialize counters
+            summary.presentDays = 0;
+            summary.absentDays = 0;
+            summary.lateDays = 0;
+            summary.halfDays = 0;
+
+            // Count from this employee's records - USING SAME LOGIC
+            if (employeeRecords.containsKey(phone)) {
+                for (AttendanceRecord record : employeeRecords.get(phone)) {
+                    if (record.status != null) {
+                        String status = record.status.trim().toLowerCase();
+                        String lateStatus = record.lateStatus != null ? record.lateStatus.trim().toLowerCase() : "";
+
+                        // Skip holiday/leave - SAME LOGIC
+                        if (status.contains("holiday") || status.contains("leave")) {
+                            continue;
+                        }
+
+                        // Check if it has check-in time or is marked as present/half day
+                        boolean hasCheckIn = record.checkInTime != null && !record.checkInTime.isEmpty();
+                        boolean countedPresent = false;
+
+                        // ✅ PRESENT (base condition) - SAME LOGIC
+                        if (hasCheckIn || status.contains("present") || status.contains("full") || status.contains("half")) {
+                            summary.presentDays++;
+                            countedPresent = true;
+                        }
+
+                        // ✅ HALF DAY (independent) - SAME LOGIC
+                        if (status.contains("half")) {
+                            summary.halfDays++;
+                        }
+
+                        // ✅ LATE (independent) - SAME LOGIC
+                        if ("late".equalsIgnoreCase(lateStatus) || status.contains("late")) {
+                            summary.lateDays++;
+                        }
+
+                        // ✅ ABSENT - SAME LOGIC
+                        // If no check-in & no present/half day status → ABSENT
+                        if (!countedPresent && (status.equals("absent") ||
+                                (record.checkInTime == null && !status.contains("half") && !status.contains("present")))) {
+                            summary.absentDays++;
+                        }
+                    }
+                }
+            } else {
+                // If no records at all, employee is absent for all working days
+                summary.absentDays = summary.totalWorkingDays;
+            }
+
+            summaryMap.put(phone, summary);
+
+            // Debug log
+            Log.d("EMP_SUMMARY", phone + " - " + summary.employeeName +
+                    ": Present=" + summary.presentDays +
+                    ", Absent=" + summary.absentDays +
+                    ", Late=" + summary.lateDays +
+                    ", HalfDay=" + summary.halfDays +
+                    ", TotalWorking=" + summary.totalWorkingDays);
+        }
+
+        return summaryMap;
+    }
+
+
+    // Helper method to get string value from DataSnapshot
+    private String getStringValue(DataSnapshot snapshot, String key) {
+        if (snapshot.hasChild(key)) {
+            Object value = snapshot.child(key).getValue();
+            return value != null ? value.toString() : null;
+        }
+        return null;
+    }
+
+    // Helper method to check if a date is weekly holiday
+    private boolean isWeeklyHoliday(Calendar date, String weeklyHoliday) {
+        if (weeklyHoliday == null || weeklyHoliday.isEmpty()) {
+            return false;
+        }
+
+        SimpleDateFormat dayFormat = new SimpleDateFormat("EEEE", Locale.ENGLISH);
+        String dayOfWeek = dayFormat.format(date.getTime());
+
+        return dayOfWeek.equalsIgnoreCase(weeklyHoliday.trim());
+    }
+
+    // Calculate working days based on employee's weekly holiday
+    private int calculateWorkingDaysForEmployee(Calendar start, Calendar end, String weeklyHoliday) {
+        int workingDays = 0;
+        Calendar current = (Calendar) start.clone();
+
+        while (!current.after(end)) {
+            if (!isWeeklyHoliday(current, weeklyHoliday)) {
+                workingDays++;
+            }
+            current.add(Calendar.DAY_OF_MONTH, 1);
+        }
+
+        return workingDays;
+    }
+
+
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -1512,7 +1648,7 @@ public class ReportsActivity extends AppCompatActivity {
     }
 
     private static class EmployeeData {
-        String phone, name, email, department;
+        String phone, name, email, department,weeklyHoliday;
     }
 
     private static class CompanyInfo {
@@ -1528,6 +1664,8 @@ public class ReportsActivity extends AppCompatActivity {
         String phone;
         String department;
         String month;
+        String weeklyHoliday; // Add this
+
         int presentDays;
         int absentDays;
         int lateDays;
