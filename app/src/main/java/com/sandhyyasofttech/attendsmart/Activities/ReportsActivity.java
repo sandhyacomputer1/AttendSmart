@@ -1238,6 +1238,10 @@ public class ReportsActivity extends AppCompatActivity {
     }
 
 
+
+
+
+
     private void fetchAttendanceData() {
         databaseRef.child("attendance").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -1466,6 +1470,11 @@ public class ReportsActivity extends AppCompatActivity {
         } else {
             record.status = "Unknown";
         }
+//
+//        // Special case: If lateStatus is "Late", ensure status is "Present"
+//        if ("Late".equalsIgnoreCase(record.lateStatus) && !"Absent".equalsIgnoreCase(record.status)) {
+//            record.status = "Present";
+//        }
 
         return record;
     }
@@ -1580,6 +1589,12 @@ public class ReportsActivity extends AppCompatActivity {
 
         return summaryMap;
     }
+
+
+
+
+
+
 
 
     // Helper method to get string value from DataSnapshot
