@@ -384,110 +384,187 @@ public class ExportDataActivity extends AppCompatActivity {
         }
     }
 
+// CORRECTED exportAttendanceData method - Properly counts Absent employees
+
+// CORRECTED exportAttendanceData method - Excludes weekly holidays from export
+
     private void exportAttendanceData() {
         Log.d(TAG, "Fetching attendance data from Firebase");
-        databaseRef.child("attendance").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot attendanceSnapshot) {
-                Log.d(TAG, "Attendance data received. Total dates: " + attendanceSnapshot.getChildrenCount());
-                List<AttendanceRecord> records = new ArrayList<>();
 
-                // First get all employee names for mapping mobile numbers to names
-                Map<String, String> employeeNames = new HashMap<>();
-                databaseRef.child("employees").addListenerForSingleValueEvent(new ValueEventListener() {
+        // First, get all employees with their weekly holidays
+        databaseRef.child("employees").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot employeesSnapshot) {
+                // Store all employees with their names and weekly holidays
+                Map<String, EmployeeInfo> allEmployees = new HashMap<>();
+
+                for (DataSnapshot employee : employeesSnapshot.getChildren()) {
+                    String mobile = employee.getKey();
+                    DataSnapshot info = employee.child("info");
+                    if (info.exists()) {
+                        String name = info.child("employeeName").getValue(String.class);
+                        String status = info.child("employeeStatus").getValue(String.class);
+                        String weeklyHoliday = info.child("weeklyHoliday").getValue(String.class);
+
+                        // Only include active employees
+                        if (name != null && (status == null || !status.equalsIgnoreCase("Inactive"))) {
+                            EmployeeInfo empInfo = new EmployeeInfo();
+                            empInfo.name = name;
+                            empInfo.weeklyHoliday = weeklyHoliday != null ? weeklyHoliday : "";
+                            allEmployees.put(mobile, empInfo);
+                            Log.d(TAG, "Active employee: " + mobile + " -> " + name + " | Holiday: " + empInfo.weeklyHoliday);
+                        }
+                    }
+                }
+
+                Log.d(TAG, "Total active employees: " + allEmployees.size());
+
+                // Now fetch attendance data
+                databaseRef.child("attendance").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
-                    public void onDataChange(@NonNull DataSnapshot employeesSnapshot) {
-                        for (DataSnapshot employee : employeesSnapshot.getChildren()) {
-                            String mobile = employee.getKey();
-                            DataSnapshot info = employee.child("info");
-                            if (info.exists()) {
-                                String name = info.child("employeeName").getValue(String.class);
-                                if (name != null) {
-                                    employeeNames.put(mobile, name);
-                                    Log.d(TAG, "Mapped " + mobile + " -> " + name);
+                    public void onDataChange(@NonNull DataSnapshot attendanceSnapshot) {
+                        Log.d(TAG, "Attendance data received. Total dates: " + attendanceSnapshot.getChildrenCount());
+                        List<AttendanceRecord> records = new ArrayList<>();
+
+                        // Generate list of all dates in the selected range
+                        List<String> datesInRange = new ArrayList<>();
+                        try {
+                            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                            Date start = sdf.parse(startDate);
+                            Date end = sdf.parse(endDate);
+
+                            if (start != null && end != null) {
+                                Date currentDate = start;
+                                while (!currentDate.after(end)) {
+                                    datesInRange.add(sdf.format(currentDate));
+                                    // Move to next day
+                                    currentDate = new Date(currentDate.getTime() + (24 * 60 * 60 * 1000));
                                 }
                             }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error generating date range", e);
                         }
-                        Log.d(TAG, "Loaded " + employeeNames.size() + " employee names");
 
-                        // Now process attendance data with names
-                        for (DataSnapshot dateSnapshot : attendanceSnapshot.getChildren()) {
-                            String date = dateSnapshot.getKey();
+                        Log.d(TAG, "Dates in range: " + datesInRange.size());
+
+                        int skippedWeeklyOff = 0;
+
+                        // For each date in range
+                        for (String date : datesInRange) {
                             Log.d(TAG, "Processing date: " + date);
 
-                            // Check if this date node has any children (employee data)
-                            if (!dateSnapshot.hasChildren()) {
-                                Log.d(TAG, "No employee data for date: " + date);
-                                continue;
+                            // Get day of week for this date
+                            String dayOfWeek = getDayOfWeek(date);
+
+                            // Get attendance records for this date (if any)
+                            DataSnapshot dateSnapshot = attendanceSnapshot.child(date);
+                            Map<String, DataSnapshot> attendanceForDate = new HashMap<>();
+
+                            if (dateSnapshot.exists()) {
+                                for (DataSnapshot empAttendance : dateSnapshot.getChildren()) {
+                                    String mobile = empAttendance.getKey();
+                                    attendanceForDate.put(mobile, empAttendance);
+                                }
                             }
 
-                            // Check if date is in range
-                            if (isDateInRange(date, startDate, endDate)) {
-                                Log.d(TAG, "Date " + date + " is in range " + startDate + " to " + endDate);
+                            Log.d(TAG, "Attendance records for " + date + " (" + dayOfWeek + "): " + attendanceForDate.size());
 
-                                // Iterate through all employees for this date
-                                for (DataSnapshot employeeSnapshot : dateSnapshot.getChildren()) {
-                                    String employeeMobile = employeeSnapshot.getKey();
-                                    Log.d(TAG, "Processing employee attendance: " + employeeMobile + " for date: " + date);
+                            // Now process each employee for this date
+                            for (Map.Entry<String, EmployeeInfo> employee : allEmployees.entrySet()) {
+                                String employeeMobile = employee.getKey();
+                                EmployeeInfo empInfo = employee.getValue();
+                                String employeeName = empInfo.name;
+                                String weeklyHoliday = empInfo.weeklyHoliday;
 
-                                    // Get the attendance data for this employee on this date
-                                    if (employeeSnapshot.exists()) {
-                                        AttendanceRecord record = new AttendanceRecord();
+                                // Check if today is employee's weekly holiday
+                                boolean isWeeklyHoliday = isWeeklyHoliday(dayOfWeek, weeklyHoliday);
 
-                                        // Get employee name from our map
-                                        String employeeName = employeeNames.get(employeeMobile);
-                                        record.employeeName = employeeName != null ? employeeName : "Unknown";
-                                        record.employeeMobile = employeeMobile;
-                                        record.date = date;
-
-                                        // Get attendance details - handle null values
-                                        record.checkInTime = employeeSnapshot.child("checkInTime").getValue(String.class);
-                                        record.checkOutTime = employeeSnapshot.child("checkOutTime").getValue(String.class);
-                                        record.status = employeeSnapshot.child("status").getValue(String.class);
-                                        record.finalStatus = employeeSnapshot.child("finalStatus").getValue(String.class);
-                                        record.totalHours = employeeSnapshot.child("totalHours").getValue(String.class);
-                                        record.lateStatus = employeeSnapshot.child("lateStatus").getValue(String.class);
-                                        record.markedBy = employeeSnapshot.child("markedBy").getValue(String.class);
-
-                                        // Debug log all values
-                                        Log.d(TAG, "Employee: " + record.employeeName +
-                                                " | Date: " + record.date +
-                                                " | CheckIn: " + record.checkInTime +
-                                                " | CheckOut: " + record.checkOutTime +
-                                                " | Status: " + record.status);
-
-                                        // Handle totalHours from totalMinutes if needed
-                                        if (record.totalHours == null || record.totalHours.isEmpty()) {
-                                            Integer totalMinutes = employeeSnapshot.child("totalMinutes").getValue(Integer.class);
-                                            if (totalMinutes != null && totalMinutes > 0) {
-                                                int hours = totalMinutes / 60;
-                                                int minutes = totalMinutes % 60;
-                                                record.totalHours = hours + "h " + minutes + "m";
-                                            } else {
-                                                record.totalHours = "0h 0m";
-                                            }
-                                        }
-
-                                        // Set default values for null fields
-                                        if (record.status == null) record.status = "";
-                                        if (record.finalStatus == null) record.finalStatus = "";
-                                        if (record.lateStatus == null) record.lateStatus = "";
-                                        if (record.markedBy == null) record.markedBy = "";
-                                        if (record.checkInTime == null) record.checkInTime = "";
-                                        if (record.checkOutTime == null) record.checkOutTime = "";
-
-                                        records.add(record);
-                                        Log.d(TAG, "✓ Added attendance record for " + record.employeeName + " on " + record.date);
-                                    } else {
-                                        Log.w(TAG, "No attendance data found for employee " + employeeMobile + " on " + date);
-                                    }
+                                // SKIP this record if it's a weekly holiday
+                                if (isWeeklyHoliday) {
+                                    skippedWeeklyOff++;
+                                    Log.d(TAG, "⊗ Skipping Weekly Off: " + employeeName + " on " + date + " (" + dayOfWeek + ")");
+                                    continue; // Skip to next employee
                                 }
-                            } else {
-                                Log.d(TAG, "Date " + date + " is NOT in range " + startDate + " to " + endDate);
+
+                                AttendanceRecord record = new AttendanceRecord();
+                                record.employeeName = employeeName;
+                                record.employeeMobile = employeeMobile;
+                                record.date = date;
+
+                                // Check if this employee has attendance record for this date
+                                if (attendanceForDate.containsKey(employeeMobile)) {
+                                    DataSnapshot employeeSnapshot = attendanceForDate.get(employeeMobile);
+
+                                    // Employee has attendance record - get the data
+                                    record.checkInTime = employeeSnapshot.child("checkInTime").getValue(String.class);
+                                    record.checkOutTime = employeeSnapshot.child("checkOutTime").getValue(String.class);
+                                    record.finalStatus = employeeSnapshot.child("finalStatus").getValue(String.class);
+                                    record.totalHours = employeeSnapshot.child("totalHours").getValue(String.class);
+                                    record.lateStatus = employeeSnapshot.child("lateStatus").getValue(String.class);
+                                    record.markedBy = employeeSnapshot.child("markedBy").getValue(String.class);
+
+                                    // Handle totalHours from totalMinutes if needed
+                                    if (record.totalHours == null || record.totalHours.isEmpty()) {
+                                        Integer totalMinutes = employeeSnapshot.child("totalMinutes").getValue(Integer.class);
+                                        if (totalMinutes != null && totalMinutes > 0) {
+                                            int hours = totalMinutes / 60;
+                                            int minutes = totalMinutes % 60;
+                                            record.totalHours = hours + "h " + minutes + "m";
+                                        } else {
+                                            record.totalHours = "-";
+                                        }
+                                    }
+
+                                    // Set default values for null fields
+                                    if (record.finalStatus == null || record.finalStatus.isEmpty()) {
+                                        record.finalStatus = "Present"; // Default if not specified
+                                    }
+                                    if (record.lateStatus == null || record.lateStatus.isEmpty()) {
+                                        record.lateStatus = "-";
+                                    }
+                                    if (record.markedBy == null || record.markedBy.isEmpty()) {
+                                        record.markedBy = "-";
+                                    }
+                                    if (record.checkInTime == null || record.checkInTime.isEmpty()) {
+                                        record.checkInTime = "-";
+                                    }
+                                    if (record.checkOutTime == null || record.checkOutTime.isEmpty()) {
+                                        record.checkOutTime = "-";
+                                    }
+
+                                    Log.d(TAG, "✓ Present: " + employeeName + " on " + date + " - Status: " + record.finalStatus);
+
+                                } else {
+                                    // Employee does NOT have attendance record and it's NOT a weekly holiday
+                                    // Mark as ABSENT
+                                    record.checkInTime = "-";
+                                    record.checkOutTime = "-";
+                                    record.finalStatus = "Absent";
+                                    record.totalHours = "-";
+                                    record.lateStatus = "-";
+                                    record.markedBy = "-";
+
+                                    Log.d(TAG, "✗ Absent: " + employeeName + " on " + date);
+                                }
+
+                                records.add(record);
                             }
                         }
 
-                        Log.d(TAG, "Total filtered attendance records: " + records.size());
+                        Log.d(TAG, "Total attendance records: " + records.size());
+                        Log.d(TAG, "Skipped weekly offs: " + skippedWeeklyOff);
+
+                        // Count present and absent
+                        int presentCount = 0, absentCount = 0;
+                        for (AttendanceRecord rec : records) {
+                            if ("Absent".equalsIgnoreCase(rec.finalStatus)) {
+                                absentCount++;
+                            } else {
+                                presentCount++;
+                            }
+                        }
+
+                        Log.d(TAG, "Present: " + presentCount + ", Absent: " + absentCount);
 
                         if (records.isEmpty()) {
                             runOnUiThread(() -> {
@@ -502,11 +579,11 @@ public class ExportDataActivity extends AppCompatActivity {
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-                        Log.e(TAG, "Error fetching employee names: " + error.getMessage());
+                        Log.e(TAG, "Error fetching attendance data: " + error.getMessage());
                         runOnUiThread(() -> {
                             progressBar.setVisibility(View.GONE);
                             btnExport.setEnabled(true);
-                            showSnackbar("Error fetching employee data: " + error.getMessage());
+                            showSnackbar("Error: " + error.getMessage());
                         });
                     }
                 });
@@ -514,15 +591,54 @@ public class ExportDataActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Log.e(TAG, "Error fetching attendance data: " + error.getMessage());
+                Log.e(TAG, "Error fetching employee data: " + error.getMessage());
                 runOnUiThread(() -> {
                     progressBar.setVisibility(View.GONE);
                     btnExport.setEnabled(true);
-                    showSnackbar("Error: " + error.getMessage());
+                    showSnackbar("Error fetching employee data: " + error.getMessage());
                 });
             }
         });
-    }    private void exportLeavesData() {
+    }
+
+    // Helper method to get day of week from date string
+    private String getDayOfWeek(String dateString) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            Date date = sdf.parse(dateString);
+            if (date != null) {
+                SimpleDateFormat dayFormat = new SimpleDateFormat("EEEE", Locale.getDefault());
+                return dayFormat.format(date);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error getting day of week for: " + dateString, e);
+        }
+        return "";
+    }
+
+    // Helper method to check if a day is employee's weekly holiday
+    private boolean isWeeklyHoliday(String dayOfWeek, String weeklyHoliday) {
+        if (dayOfWeek == null || dayOfWeek.isEmpty() || weeklyHoliday == null || weeklyHoliday.isEmpty()) {
+            return false;
+        }
+
+        // Convert both to lowercase for case-insensitive comparison
+        String day = dayOfWeek.toLowerCase();
+        String holiday = weeklyHoliday.toLowerCase();
+
+        // Check if the day matches the weekly holiday
+        // Handle cases like "Sunday", "sun", etc.
+        return day.startsWith(holiday.substring(0, Math.min(3, holiday.length()))) ||
+                holiday.startsWith(day.substring(0, Math.min(3, day.length())));
+    }
+
+    // Helper class to store employee info
+    private static class EmployeeInfo {
+        String name;
+        String weeklyHoliday;
+    }
+
+    private void exportLeavesData() {
         Log.d(TAG, "Fetching leaves data from Firebase");
         databaseRef.child("leaves").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -625,6 +741,7 @@ public class ExportDataActivity extends AppCompatActivity {
         });
     }
 
+    // 2. Updated createAttendanceExcel method
     private void createAttendanceExcel(List<AttendanceRecord> records) {
         Log.d(TAG, "Creating attendance Excel with " + records.size() + " records");
         new Thread(() -> {
@@ -632,11 +749,11 @@ public class ExportDataActivity extends AppCompatActivity {
                 Workbook workbook = new XSSFWorkbook();
                 Sheet sheet = workbook.createSheet("Attendance");
 
-                // Header - More detailed based on your data structure
+                // Header - Updated without "Status" column
                 Row headerRow = sheet.createRow(0);
                 String[] headers = {
                         "Employee Name", "Employee Mobile", "Date",
-                        "Check In Time", "Check Out Time", "Status",
+                        "Check In Time", "Check Out Time",
                         "Final Status", "Total Hours", "Late Status",
                         "Marked By"
                 };
@@ -655,13 +772,12 @@ public class ExportDataActivity extends AppCompatActivity {
                     row.createCell(col++).setCellValue(record.employeeName != null ? record.employeeName : "");
                     row.createCell(col++).setCellValue(record.employeeMobile != null ? record.employeeMobile : "");
                     row.createCell(col++).setCellValue(record.date != null ? record.date : "");
-                    row.createCell(col++).setCellValue(record.checkInTime != null ? record.checkInTime : "");
-                    row.createCell(col++).setCellValue(record.checkOutTime != null ? record.checkOutTime : "");
-                    row.createCell(col++).setCellValue(record.status != null ? record.status : "");
-                    row.createCell(col++).setCellValue(record.finalStatus != null ? record.finalStatus : "");
-                    row.createCell(col++).setCellValue(record.totalHours != null ? record.totalHours : "");
-                    row.createCell(col++).setCellValue(record.lateStatus != null ? record.lateStatus : "");
-                    row.createCell(col++).setCellValue(record.markedBy != null ? record.markedBy : "");
+                    row.createCell(col++).setCellValue(record.checkInTime != null ? record.checkInTime : "-");
+                    row.createCell(col++).setCellValue(record.checkOutTime != null ? record.checkOutTime : "-");
+                    row.createCell(col++).setCellValue(record.finalStatus != null ? record.finalStatus : "Absent");
+                    row.createCell(col++).setCellValue(record.totalHours != null ? record.totalHours : "-");
+                    row.createCell(col++).setCellValue(record.lateStatus != null ? record.lateStatus : "-");
+                    row.createCell(col++).setCellValue(record.markedBy != null ? record.markedBy : "-");
                 }
 
                 // Set column widths
@@ -670,11 +786,10 @@ public class ExportDataActivity extends AppCompatActivity {
                 sheet.setColumnWidth(2, 15 * 256);  // Date
                 sheet.setColumnWidth(3, 15 * 256);  // Check In Time
                 sheet.setColumnWidth(4, 15 * 256);  // Check Out Time
-                sheet.setColumnWidth(5, 15 * 256);  // Status
-                sheet.setColumnWidth(6, 15 * 256);  // Final Status
-                sheet.setColumnWidth(7, 15 * 256);  // Total Hours
-                sheet.setColumnWidth(8, 15 * 256);  // Late Status
-                sheet.setColumnWidth(9, 15 * 256);  // Marked By
+                sheet.setColumnWidth(5, 15 * 256);  // Final Status
+                sheet.setColumnWidth(6, 15 * 256);  // Total Hours
+                sheet.setColumnWidth(7, 15 * 256);  // Late Status
+                sheet.setColumnWidth(8, 15 * 256);  // Marked By
 
                 Log.d(TAG, "Attendance Excel created successfully");
                 saveExcelFile(workbook, "Attendance_Report");
@@ -689,7 +804,6 @@ public class ExportDataActivity extends AppCompatActivity {
             }
         }).start();
     }
-
     private void createLeavesExcel(List<LeaveRecord> records) {
         Log.d(TAG, "Creating leaves Excel with " + records.size() + " records");
         new Thread(() -> {
@@ -928,9 +1042,10 @@ public class ExportDataActivity extends AppCompatActivity {
     }
 
     // Data classes
+    // 3. Updated AttendanceRecord class
     private static class AttendanceRecord {
         String employeeName, employeeMobile, date, checkInTime, checkOutTime,
-                status, finalStatus, totalHours, lateStatus, markedBy;
+                finalStatus, totalHours, lateStatus, markedBy;
     }
 
     private static class LeaveRecord {
