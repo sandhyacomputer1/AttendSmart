@@ -85,7 +85,7 @@
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
-                        android:src="@drawable/ic_business"
+                        android:src="@drawable/company"
                          />
 
                     <LinearLayout
@@ -389,8 +389,8 @@
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            android:src="@drawable/ic_notifications"
-                            app:tint="#FF9500" />
+                            android:src="@drawable/notification"
+                           />
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -434,8 +434,8 @@
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            android:src="@drawable/ic_event"
-                            app:tint="#34C759" />
+                            android:src="@drawable/leaveee"
+                            />
 
                         <LinearLayout
                             android:layout_width="0dp"
