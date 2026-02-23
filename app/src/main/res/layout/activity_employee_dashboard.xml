@@ -136,8 +136,8 @@
                         android:text="Fetching your current location..."
                         android:textColor="#FFFFFF"
                         android:textSize="11sp"
-                        android:textStyle="italic"
                         android:alpha="0.9"
+                        android:textStyle="normal"
                         android:maxLines="3"
                         android:ellipsize="end"
                         android:lineSpacingExtra="2dp" />
@@ -152,7 +152,11 @@
             </LinearLayout>
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
-
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipeRefreshLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
     <!-- Main Content -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -344,8 +348,9 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Not marked"
-                            android:textColor="#90A4AE"
-                            android:textSize="10sp"
+                            android:textColor="#1B1B1B"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
                             android:layout_marginTop="4dp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -396,8 +401,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Not marked"
-                            android:textColor="#90A4AE"
-                            android:textSize="10sp"
+                            android:textColor="#161616"
+                            android:textSize="12sp"
                             android:layout_marginTop="4dp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -1431,4 +1436,5 @@ android:visibility="gone"
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

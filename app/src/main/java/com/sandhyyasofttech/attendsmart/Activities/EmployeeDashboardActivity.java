@@ -34,6 +34,7 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 
 import android.location.Location;
@@ -121,7 +122,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
     private CardView cardCheckIn, cardCheckOut, cardAttendanceReport, cardLogout;
     private View statusIndicator, locationStatusDot;
     private TextView tvChartTypeInfo;
-
+    private SwipeRefreshLayout swipeRefreshLayout;
     private LinearLayout legendItemsContainer;
     // Chart UI Elements
     private PieChart pieChart, donutChart;
@@ -205,9 +206,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
 
         initViews();
         setupFirebase();
-
-        loadGeoFencingConfig();  // ADD THIS LINE
-
+        loadGeoFencingConfig();
         fetchCompanyName();
         setupLocation();
         requestLocationPermission();
@@ -215,6 +214,44 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
         loadTodayAttendance();
         startClock();
         updateGreeting();
+
+        // ===== FIXED: Initialize SwipeRefreshLayout FIRST =====
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+
+        // Configure swipe refresh (only need to do this once)
+        swipeRefreshLayout.setColorSchemeColors(
+                getResources().getColor(R.color.blue_500),
+                getResources().getColor(R.color.green_500),
+                getResources().getColor(R.color.orange_500)
+        );
+
+        // Set background color for better visibility
+        swipeRefreshLayout.setProgressBackgroundColorSchemeColor(
+                getResources().getColor(android.R.color.white)
+        );
+
+        // Set size of the refresh indicator
+        swipeRefreshLayout.setSize(SwipeRefreshLayout.DEFAULT);
+
+        // Set the refresh listener - only ONE listener needed
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                // Show a subtle toast for feedback
+                Toast.makeText(EmployeeDashboardActivity.this,
+                        "✓ Dashboard is up to date", Toast.LENGTH_SHORT).show();
+
+                // Hide the refresh indicator after a short delay
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (swipeRefreshLayout != null && swipeRefreshLayout.isRefreshing()) {
+                            swipeRefreshLayout.setRefreshing(false);
+                        }
+                    }
+                }, 1000); // 1 second delay
+            }
+        });
 
         // Set status bar color
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -229,7 +266,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
             }
         }
     }
-
     private void initViews() {
         // Initialize basic views
         tvCurrentTime = findViewById(R.id.tvCurrentTime);
@@ -777,34 +813,38 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                                             // Remove this date from allDatesInMonth (it has attendance)
                                             allDatesInMonth.remove(dateKey);
 
-                                            // Count days by status
                                             String statusLower = effectiveStatus.toLowerCase();
 
-                                            if (statusLower.contains("present") ||
+                                            // Check for HALF DAY first - this is the key fix
+                                            if (statusLower.contains("half")) {
+                                                halfDayCount++;
+                                                halfDays++;  // Update chart variable
+                                                presentCount++; // Half day counts as present for total attendance
+                                                presentDays++;  // Update chart variable
+
+                                                Log.d("HALF_DAY_DEBUG", "Half day counted for date: " + dateKey);
+                                            }
+                                            // Then check for PRESENT (including those with check-in)
+                                            else if (statusLower.contains("present") ||
                                                     (checkInTime != null && !checkInTime.isEmpty())) {
-                                                presentDays++;
                                                 presentCount++;
+                                                presentDays++;
 
                                                 if (lateStatus != null && lateStatus.equals("Late") ||
                                                         statusLower.contains("late")) {
-                                                    lateDays++;
                                                     lateCount++;
+                                                    lateDays++;
                                                 } else {
                                                     onTimeCount++;
                                                 }
-
-                                            } else if (statusLower.contains("half")) {
-                                                halfDays++;
-                                                halfDayCount++;
-                                                // Also count as present for total attendance
-                                                presentDays++;
-                                                presentCount++;
-                                            } else if (statusLower.contains("absent")) {
-                                                absentDays++;
+                                            }
+                                            // Check for ABSENT
+                                            else if (statusLower.contains("absent")) {
                                                 absentCount++;
+                                                absentDays++;
                                             }
 
-                                            // Calculate worked minutes
+                                            // Calculate worked minutes (same as before)
                                             long dayMinutes = 0;
 
                                             if (minutes != null && minutes > 0 && minutes < 1440) {
@@ -839,8 +879,8 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                                     // Skip future dates
                                     if (absentDate.compareTo(today) > 0) continue;
 
-                                    absentDays++;
                                     absentCount++;
+                                    absentDays++;
                                     Log.d("ABSENT_CALC", "Marked as absent: " + absentDate);
                                 }
 
@@ -850,9 +890,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                                 Log.d("STATS_DEBUG", "Late Days: " + lateCount);
                                 Log.d("STATS_DEBUG", "Half Days: " + halfDayCount);
                                 Log.d("STATS_DEBUG", "Absent Days: " + absentCount);
-                                Log.d("STATS_DEBUG", "Total Working Days: " + allDatesInMonth.size() + " + recorded = " + (allDatesInMonth.size() + presentCount + halfDayCount + absentCount));
-                                Log.d("STATS_DEBUG", "Total Minutes: " + totalMinutes);
-                                Log.d("STATS_DEBUG", "Days With Hours: " + daysWithHours);
+                                Log.d("STATS_DEBUG", "Half Days (Chart): " + halfDays);
                                 Log.d("STATS_DEBUG", "====================================");
 
                                 final int finalPresentCount = presentCount;
@@ -923,8 +961,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                                     updateLineChart();
                                     updateDonutChart();
                                     updateLegend();
-
-
                                 });
                             }
 
@@ -955,7 +991,6 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
             }
         });
     }
-
     private String getCheckInMessage() {
         if (!requiresGeoFencing) {
             return "📸 Taking photo for check-in (Field employee)...";
