@@ -192,7 +192,7 @@ public class AllAttendanceActivity extends AppCompatActivity {
                 rvAttendance.setVisibility(View.GONE);
             } else {
                 // Show "no employees" message
-                tvEmptyState.setText("No employees found");
+                tvEmptyState.setText("No employees found add your first employee to get started.");
                 tvEmptyState.setVisibility(View.VISIBLE);
                 rvAttendance.setVisibility(View.GONE);
             }

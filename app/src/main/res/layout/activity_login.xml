@@ -41,7 +41,7 @@
             android:id="@+id/logoCard"
             android:layout_width="90dp"
             android:layout_height="90dp"
-            android:layout_marginTop="40dp"
+            android:layout_marginTop="60dp"
             app:cardCornerRadius="45dp"
             app:cardElevation="20dp"
             app:cardBackgroundColor="#FFFFFF"
@@ -53,7 +53,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:padding="12dp"
-                android:background="@drawable/logo_gradient_bg">
+                android:background="@color/white"
+               >
 
                 <ImageView
                     android:id="@+id/ivLogo"
@@ -70,7 +71,7 @@
             android:id="@+id/tvAppTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="AttendSmart"
+            android:text="S Salary"
             android:textSize="28sp"
             android:textStyle="bold"
             android:textColor="@android:color/white"
@@ -151,7 +152,7 @@
                     android:layout_height="wrap_content"
                     android:hint="Email Address"
                     app:startIconDrawable="@drawable/ic_email"
-                    app:startIconTint="#464647"
+                    app:startIconTint="@color/blue_500"
                     app:boxStrokeColor="#3F51B5"
                     app:hintTextColor="#4D4C4B"
                     app:boxCornerRadiusTopStart="14dp"
@@ -181,7 +182,7 @@
                     android:layout_marginTop="16dp"
                     android:hint="Password"
                     app:startIconDrawable="@drawable/ic_lock"
-                    app:startIconTint="#464647"
+                    app:startIconTint="@color/blue_500"
                     app:endIconMode="password_toggle"
                     app:endIconTint="#757575"
                     app:boxStrokeColor="#3F51B5"
@@ -300,7 +301,6 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:orientation="horizontal"
-                    android:background="@drawable/register_section_bg"
                     android:padding="14dp">
 
                     <TextView
