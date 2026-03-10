@@ -1,6 +1,9 @@
 package com.sandhyyasofttech.attendsmart.Activities;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -57,7 +60,6 @@ public class MyLeavesActivity extends AppCompatActivity {
             getWindow().setStatusBarColor(getResources().getColor(R.color.blue_800));
         }
 
-
         initViews();
         setupToolbar();
         setupFilters();
@@ -86,6 +88,23 @@ public class MyLeavesActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
         toolbar.setNavigationOnClickListener(v -> finish());
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_my_leaves, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.action_apply_leave) {
+            // Open Apply Leave Activity
+            Intent intent = new Intent(MyLeavesActivity.this, ApplyLeaveActivity.class);
+            startActivity(intent);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void setupFilters() {

@@ -3,6 +3,8 @@ package com.sandhyyasofttech.attendsmart.Activities;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.RadioGroup;
@@ -14,7 +16,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -44,24 +45,21 @@ public class ApplyLeaveActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_apply_leave);
+
         // Set status bar color
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             getWindow().setStatusBarColor(getResources().getColor(R.color.blue_800));
         }
 
-
         Intent intent = getIntent();
         if (intent != null) {
             String companyKeyFromIntent = intent.getStringExtra("companyKey");
             String employeeMobileFromIntent = intent.getStringExtra("employeeMobile");
-
             // You can ignore or validate later
         }
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        toolbar.setNavigationOnClickListener(v -> finish());
 
         initViews();
+        setupToolbar();
         setupFirebase();
         setupListeners();
     }
@@ -73,7 +71,32 @@ public class ApplyLeaveActivity extends AppCompatActivity {
         rgLeaveType = findViewById(R.id.rgLeaveType);
         rgHalfDay = findViewById(R.id.rgHalfDay);
         btnSubmit = findViewById(R.id.btnSubmit);
+    }
 
+    private void setupToolbar() {
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+        toolbar.setNavigationOnClickListener(v -> finish());
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_apply_leave, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.action_view_leaves) {
+            // Open MyLeavesActivity
+            Intent intent = new Intent(ApplyLeaveActivity.this, MyLeavesActivity.class);
+            startActivity(intent);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void setupFirebase() {
@@ -89,7 +112,6 @@ public class ApplyLeaveActivity extends AppCompatActivity {
     }
 
     private void setupListeners() {
-
         rgLeaveType.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.rbHalfDay) {
                 rgHalfDay.setVisibility(View.VISIBLE);
@@ -172,15 +194,10 @@ public class ApplyLeaveActivity extends AppCompatActivity {
                         for (DataSnapshot s : snapshot.getChildren()) {
                             String f = s.child("fromDate").getValue(String.class);
                             String t = s.child("toDate").getValue(String.class);
-//                            if (fromDate.equals(f) || toDate.equals(t)) {
-//                                toast("Leave already applied for this date");
-//                                return;
-//                            }
                             if (!(toDate.compareTo(f) < 0 || fromDate.compareTo(t) > 0)) {
                                 toast("Leave already applied for selected dates");
                                 return;
                             }
-
                         }
                         saveLeave(reason);
                     }
@@ -190,7 +207,6 @@ public class ApplyLeaveActivity extends AppCompatActivity {
     }
 
     private void saveLeave(String reason) {
-
         DatabaseReference empNameRef = FirebaseDatabase.getInstance()
                 .getReference("Companies")
                 .child(companyKey)
@@ -202,7 +218,6 @@ public class ApplyLeaveActivity extends AppCompatActivity {
         empNameRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-
                 String empName = snapshot.getValue(String.class);
                 if (empName == null || empName.trim().isEmpty()) {
                     empName = "Employee";
@@ -216,7 +231,7 @@ public class ApplyLeaveActivity extends AppCompatActivity {
 
                 Map<String, Object> map = new HashMap<>();
                 map.put("employeeMobile", employeeMobile);
-                map.put("employeeName", empName); // ✅ NOW CORRECT
+                map.put("employeeName", empName);
                 map.put("leaveType", leaveType);
                 map.put("halfDayType", halfDayType);
                 map.put("fromDate", fromDate);
@@ -226,7 +241,6 @@ public class ApplyLeaveActivity extends AppCompatActivity {
                 map.put("isPaid", null);
                 map.put("approvedBy", null);
                 map.put("approvedAt", null);
-
                 map.put("appliedAt", System.currentTimeMillis());
 
                 leavesRef.child(leaveId).setValue(map)

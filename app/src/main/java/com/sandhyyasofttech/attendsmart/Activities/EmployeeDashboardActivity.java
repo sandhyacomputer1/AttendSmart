@@ -739,7 +739,7 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                                 long totalMinutes = 0;
                                 int daysWithHours = 0;
 
-                                // For charts
+                                // For charts - RESET ALL COUNTERS
                                 presentDays = 0;
                                 lateDays = 0;
                                 absentDays = 0;
@@ -815,16 +815,29 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
 
                                             String statusLower = effectiveStatus.toLowerCase();
 
-                                            // Check for HALF DAY first - this is the key fix
+                                            // FIXED: Count for charts - handle both half day and late properly
+
+                                            // First, check if it's a half day
                                             if (statusLower.contains("half")) {
                                                 halfDayCount++;
-                                                halfDays++;  // Update chart variable
-                                                presentCount++; // Half day counts as present for total attendance
-                                                presentDays++;  // Update chart variable
+                                                halfDays++;  // Count as half day in chart
+                                                presentCount++; // Counts toward attendance
 
-                                                Log.d("HALF_DAY_DEBUG", "Half day counted for date: " + dateKey);
+                                                // Even if it's half day, it can also be late
+                                                if (lateStatus != null && lateStatus.equals("Late") ||
+                                                        statusLower.contains("late")) {
+                                                    lateCount++;
+                                                    lateDays++; // Count as late in chart
+                                                } else {
+                                                    onTimeCount++;
+                                                }
+
+                                                presentDays++; // Half day counts as present for total
+
+                                                Log.d("HALF_DAY_DEBUG", "Half day counted - Late: " +
+                                                        (lateStatus != null && lateStatus.equals("Late")));
                                             }
-                                            // Then check for PRESENT (including those with check-in)
+                                            // Then check for PRESENT (not half day)
                                             else if (statusLower.contains("present") ||
                                                     (checkInTime != null && !checkInTime.isEmpty())) {
                                                 presentCount++;
@@ -890,7 +903,10 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                                 Log.d("STATS_DEBUG", "Late Days: " + lateCount);
                                 Log.d("STATS_DEBUG", "Half Days: " + halfDayCount);
                                 Log.d("STATS_DEBUG", "Absent Days: " + absentCount);
+                                Log.d("STATS_DEBUG", "Present Days (Chart): " + presentDays);
+                                Log.d("STATS_DEBUG", "Late Days (Chart): " + lateDays);
                                 Log.d("STATS_DEBUG", "Half Days (Chart): " + halfDays);
+                                Log.d("STATS_DEBUG", "Absent Days (Chart): " + absentDays);
                                 Log.d("STATS_DEBUG", "====================================");
 
                                 final int finalPresentCount = presentCount;
@@ -903,7 +919,9 @@ public class EmployeeDashboardActivity extends AppCompatActivity {
                                 final int finalDaysInMonth = daysInMonth;
 
                                 runOnUiThread(() -> {
-                                    // Update chart summary
+                                    // Update chart summary - these now correctly show:
+                                    // - Half Days: Count of days marked as half day
+                                    // - Late Days: Count of days marked as late (including late half days)
                                     tvChartPresent.setText(String.valueOf(presentDays));
                                     tvChartLate.setText(String.valueOf(lateDays));
                                     tvChartAbsent.setText(String.valueOf(absentDays));

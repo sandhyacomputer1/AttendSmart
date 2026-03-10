@@ -24,7 +24,8 @@
             app:navigationIcon="@drawable/ic_arrow_back"
             app:navigationIconTint="@android:color/white"
             app:title="My Leave Requests"
-            app:titleTextColor="@android:color/white" />
+            app:titleTextColor="@android:color/white"
+            app:menu="@menu/menu_my_leaves" />
 
     </com.google.android.material.appbar.AppBarLayout>
 

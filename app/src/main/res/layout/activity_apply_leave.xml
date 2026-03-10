@@ -18,7 +18,8 @@
             app:navigationIcon="@drawable/ic_arrow_back"
             app:navigationIconTint="@android:color/white"
             app:title="Apply Leave"
-            app:titleTextColor="@android:color/white" />
+            app:titleTextColor="@android:color/white"
+            app:menu="@menu/menu_apply_leave" />  <!-- Add this line -->
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -334,6 +335,7 @@
                     app:cardBackgroundColor="#F5F7FF"
                     app:cardCornerRadius="10dp"
                     app:cardElevation="0dp"
+                    android:visibility="gone"
                     app:strokeColor="#D1D9FF"
                     app:strokeWidth="0.5dp"
                     android:layout_marginTop="16dp">
